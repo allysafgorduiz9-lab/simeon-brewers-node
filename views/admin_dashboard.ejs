@@ -1,46 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simeon Admin</title>
+    <title>Simeon Admin - Manage Menu</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; }
+        .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
+        .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+    </style>
 </head>
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
 
-    <div style="width: 240px; background: #2D1B14; height: 100vh; color: white; padding: 20px; position: fixed;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="/Simeon Cafe.jpg" style="width: 45px; border-radius: 50%; border: 2px solid #C6A664;">
-            <span style="font-weight: 800;">SIMEON ADMIN</span>
+    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; display: flex; flex-direction: column; box-sizing: border-box;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
+            <h3 style="color: #C6A664; margin-top: 10px; letter-spacing: 1px; font-size: 16px;">SIMEON BREWERS</h3>
+            
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+                <p style="font-size: 11px; margin: 0 0 8px 0; color: #aaa;">STORE STATUS</p>
+                <form action="/admin/toggle-status" method="POST">
+                    <button class="status-btn" style="background: <%= storeOpen ? '#27ae60' : '#e74c3c' %>;">
+                        <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
+                    </button>
+                </form>
+            </div>
         </div>
-        <nav style="margin-top: 40px; display: flex; flex-direction: column; gap: 10px;">
-            <a href="/admin" style="color: white; text-decoration: none; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">Dashboard</a>
+
+        <nav style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1;">
+            <a href="/admin/orders" class="nav-item">Active Orders</a>
+            <a href="/admin/categories" class="nav-item">Manage Categories</a>
+            <a href="/admin/menu" class="nav-item active">Manage Menu</a>
+            <a href="/admin/feedbacks" class="nav-item">Feedbacks</a>
+            <a href="/admin/reports" class="nav-item">Daily Reports</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664;">View Live Site</a>
+            <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
         </nav>
     </div>
 
-    <div style="margin-left: 240px; padding: 40px; width: calc(100% - 240px);">
-        <h2 style="color: #2D1B14;">Inventory Management</h2>
+    <div style="margin-left: 260px; padding: 40px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 style="color: #2D1B14; margin: 0;">Inventory Management</h2>
+            <a href="/admin/add-product" style="background: #2D1B14; color: #C6A664; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">+ Add New Menu</a>
+        </div>
+
         <table style="width: 100%; background: white; border-radius: 15px; border-collapse: collapse; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <thead style="background: #2D1B14; color: white;">
                 <tr>
                     <th style="padding: 15px; text-align: left;">Product</th>
                     <th style="padding: 15px; text-align: left;">Category</th>
                     <th style="padding: 15px; text-align: left;">Price</th>
-                    <th style="padding: 15px; text-align: left;">Action</th>
+                    <th style="padding: 15px; text-align: center;">Action</th>
                 </tr>
             </thead>
             <tbody>
-                <% products.forEach(p => { %>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                        <img src="/images/<%= p.image %>" width="50" style="border-radius: 8px;">
-                        <strong><%= p.name %></strong>
-                    </td>
-                    <td style="padding: 15px;"><%= p.category %></td>
-                    <td style="padding: 15px; color: #C6A664; font-weight: 600;">₱<%= p.price_1 %></td>
-                    <td style="padding: 15px;">
-                        <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Confirm Delete?')" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Delete</a>
-                    </td>
-                </tr>
-                <% }); %>
+                <% if (products.length > 0) { %>
+                    <% products.forEach(p => { %>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                            <img src="/images/<%= p.image %>" width="50" height="50" style="border-radius: 8px; object-fit: cover;">
+                            <strong><%= p.name %></strong>
+                        </td>
+                        <td style="padding: 15px;"><%= p.category %></td>
+                        <td style="padding: 15px; color: #C6A664; font-weight: 600;">₱<%= p.price_1 %></td>
+                        <td style="padding: 15px; text-align: center;">
+                            <a href="/admin/edit/<%= p.id %>" style="color: #2D1B14; text-decoration: none; margin-right: 15px; font-size: 14px;">Edit</a>
+                            <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Confirm Delete?')" style="color: #e74c3c; text-decoration: none; font-weight: bold; font-size: 14px;">Delete</a>
+                        </td>
+                    </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr><td colspan="4" style="padding: 30px; text-align: center; color: #888;">No menu items found.</td></tr>
+                <% } %>
             </tbody>
         </table>
     </div>

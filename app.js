@@ -7,7 +7,7 @@ const session = require('express-session');
 
 const app = express();
 
-// 1. AIVEN CONNECTION (Includes SSL for security)
+// 1. AIVEN CONNECTION
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -19,17 +19,24 @@ const db = mysql.createConnection({
 
 db.connect(err => {
     if (err) {
-        console.error('DATABASE ERROR: Check your .env credentials or internet.');
+        console.error('DATABASE ERROR:', err);
         return;
     }
     console.log('Connected to Aiven MySQL Successfully!');
 });
 
-// 2. MIDDLEWARE (Links your Design/CSS)
+// 2. MIDDLEWARE
 app.set('view engine', 'ejs');
 app.use(express.static('public')); 
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'simeon_secret', resave: false, saveUninitialized: true }));
+app.use(session({ 
+    secret: 'simeon_secret', 
+    resave: false, 
+    saveUninitialized: true 
+}));
+
+// Global Store Status
+let storeOpen = true; 
 
 // 3. IMAGE UPLOAD CONFIG
 const storage = multer.diskStorage({
@@ -40,24 +47,55 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 4. FUNCTIONALITIES (Routes)
-app.get('/admin', (req, res) => {
+// 4. ROUTES
+
+// Toggle Store Status
+app.post('/admin/toggle-status', (req, res) => {
+    storeOpen = !storeOpen;
+    res.redirect('back');
+});
+
+// Manage Menu (This is your current Dashboard)
+app.get('/admin/menu', (req, res) => {
     db.query("SELECT * FROM products ORDER BY category", (err, products) => {
-        db.query("SELECT * FROM orders ORDER BY created_at DESC", (err, orders) => {
-            res.render('admin_dashboard', { products, orders });
+        res.render('admin_dashboard', { 
+            products: products || [], 
+            storeOpen 
         });
     });
 });
 
-app.post('/admin/add-product', upload.single('image'), (req, res) => {
-    const { name, category, price_1, price_2 } = req.body;
-    const image = req.file ? req.file.filename : 'default.jpg';
-    const sql = "INSERT INTO products (name, category, price_1, price_2, image) VALUES (?, ?, ?, ?, ?)";
-    db.query(sql, [name, category, price_1, price_2, image], () => res.redirect('/admin'));
+// Active Orders Route
+app.get('/admin/orders', (req, res) => {
+    db.query("SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC", (err, orders) => {
+        res.render('active_orders', { orders: orders || [], storeOpen });
+    });
 });
 
-app.get('/admin/delete/:id', (req, res) => {
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin'));
+// Update Order Status (Pending -> Preparing -> Completed)
+app.post('/admin/update-order/:id', (req, res) => {
+    const { status } = req.body;
+    db.query("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], () => {
+        res.redirect('/admin/orders');
+    });
 });
 
-app.listen(process.env.PORT, () => console.log(`System Live: http://localhost:${process.env.PORT}/admin`));
+// Daily Reports
+app.get('/admin/reports', (req, res) => {
+    const today = new Date().toISOString().split('T')[0];
+    const query = "SELECT SUM(total_price) as dailyTotal FROM orders WHERE DATE(created_at) = ? AND status = 'Completed'";
+    db.query(query, [today], (err, result) => {
+        res.render('daily_reports', { total: result[0].dailyTotal || 0, storeOpen });
+    });
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => res.redirect('/login'));
+});
+
+// Redirect root admin to menu
+app.get('/admin', (req, res) => res.redirect('/admin/menu'));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`System Live: http://localhost:${PORT}/admin`));
