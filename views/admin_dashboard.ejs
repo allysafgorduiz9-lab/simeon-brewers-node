@@ -1,3 +1,4 @@
+<% if (typeof storeOpen === 'undefined') { var storeOpen = true; } %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,7 +15,7 @@
     <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; display: flex; flex-direction: column; box-sizing: border-box;">
         <div style="text-align: center; margin-bottom: 30px;">
             <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
-            <h3 style="color: #C6A664; margin-top: 10px; letter-spacing: 1px; font-size: 16px;">SIMEON BREWERS</h3>
+            <h3 style="color: #C6A664; margin-top: 10px; font-size: 16px;">SIMEON BREWERS</h3>
             
             <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin: 0 0 8px 0; color: #aaa;">STORE STATUS</p>
@@ -41,10 +42,10 @@
     <div style="margin-left: 260px; padding: 40px; width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h2 style="color: #2D1B14; margin: 0;">Inventory Management</h2>
-            <a href="/admin/add-product" style="background: #2D1B14; color: #C6A664; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">+ Add New Menu</a>
+            <a href="/admin/add-product" style="background: #2D1B14; color: #C6A664; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">+ Add New Menu</a>
         </div>
 
-        <table style="width: 100%; background: white; border-radius: 15px; border-collapse: collapse; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <table style="width: 100%; background: white; border-radius: 15px; border-collapse: collapse; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <thead style="background: #2D1B14; color: white;">
                 <tr>
                     <th style="padding: 15px; text-align: left;">Product</th>
@@ -54,7 +55,7 @@
                 </tr>
             </thead>
             <tbody>
-                <% if (products.length > 0) { %>
+                <% if (products && products.length > 0) { %>
                     <% products.forEach(p => { %>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px; display: flex; align-items: center; gap: 15px;">
@@ -64,8 +65,7 @@
                         <td style="padding: 15px;"><%= p.category %></td>
                         <td style="padding: 15px; color: #C6A664; font-weight: 600;">₱<%= p.price_1 %></td>
                         <td style="padding: 15px; text-align: center;">
-                            <a href="/admin/edit/<%= p.id %>" style="color: #2D1B14; text-decoration: none; margin-right: 15px; font-size: 14px;">Edit</a>
-                            <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Confirm Delete?')" style="color: #e74c3c; text-decoration: none; font-weight: bold; font-size: 14px;">Delete</a>
+                            <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Delete?')" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Delete</a>
                         </td>
                     </tr>
                     <% }); %>

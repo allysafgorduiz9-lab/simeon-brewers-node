@@ -7,6 +7,9 @@ const session = require('express-session');
 
 const app = express();
 
+// Global Store Status (Defined outside routes so it stays in memory)
+let storeOpen = true; 
+
 // 1. AIVEN CONNECTION
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -18,10 +21,7 @@ const db = mysql.createConnection({
 });
 
 db.connect(err => {
-    if (err) {
-        console.error('DATABASE ERROR:', err);
-        return;
-    }
+    if (err) { console.error('DATABASE ERROR:', err); return; }
     console.log('Connected to Aiven MySQL Successfully!');
 });
 
@@ -29,14 +29,7 @@ db.connect(err => {
 app.set('view engine', 'ejs');
 app.use(express.static('public')); 
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ 
-    secret: 'simeon_secret', 
-    resave: false, 
-    saveUninitialized: true 
-}));
-
-// Global Store Status
-let storeOpen = true; 
+app.use(session({ secret: 'simeon_secret', resave: false, saveUninitialized: true }));
 
 // 3. IMAGE UPLOAD CONFIG
 const storage = multer.diskStorage({
@@ -55,47 +48,28 @@ app.post('/admin/toggle-status', (req, res) => {
     res.redirect('back');
 });
 
-// Manage Menu (This is your current Dashboard)
+// Manage Menu (Your Main Dashboard)
 app.get('/admin/menu', (req, res) => {
     db.query("SELECT * FROM products ORDER BY category", (err, products) => {
+        // PASSING BOTH PRODUCTS AND STOREOPEN
         res.render('admin_dashboard', { 
             products: products || [], 
-            storeOpen 
+            storeOpen: storeOpen 
         });
     });
 });
 
-// Active Orders Route
-app.get('/admin/orders', (req, res) => {
-    db.query("SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC", (err, orders) => {
-        res.render('active_orders', { orders: orders || [], storeOpen });
-    });
+// Delete Product
+app.get('/admin/delete/:id', (req, res) => {
+    db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin/menu'));
 });
 
-// Update Order Status (Pending -> Preparing -> Completed)
-app.post('/admin/update-order/:id', (req, res) => {
-    const { status } = req.body;
-    db.query("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], () => {
-        res.redirect('/admin/orders');
-    });
-});
+// Placeholder routes for other sidebar links to prevent 404s
+app.get('/admin/orders', (req, res) => res.send("Active Orders Page Coming Soon"));
+app.get('/admin/reports', (req, res) => res.send("Daily Reports Page Coming Soon"));
 
-// Daily Reports
-app.get('/admin/reports', (req, res) => {
-    const today = new Date().toISOString().split('T')[0];
-    const query = "SELECT SUM(total_price) as dailyTotal FROM orders WHERE DATE(created_at) = ? AND status = 'Completed'";
-    db.query(query, [today], (err, result) => {
-        res.render('daily_reports', { total: result[0].dailyTotal || 0, storeOpen });
-    });
-});
-
-// Logout
-app.get('/logout', (req, res) => {
-    req.session.destroy(() => res.redirect('/login'));
-});
-
-// Redirect root admin to menu
+// Redirect /admin to /admin/menu
 app.get('/admin', (req, res) => res.redirect('/admin/menu'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`System Live: http://localhost:${PORT}/admin`));
+app.listen(PORT, () => console.log(`Simeon Brewers Live: http://localhost:${PORT}/admin`));
