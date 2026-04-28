@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simeon Cafe | Premium Coffee Shop</title>
+    <title>Simeon Cafe | Order Now</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary-dark: #1a1a1a; --accent-gold: #C6A664; --bg-cream: #F8F4F1; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--bg-cream); scroll-behavior: smooth; }
-        header { background-color: var(--primary-dark); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-left: 10px; }
-        .open { background-color: #27ae60; } .closed { background-color: #e74c3c; }
-        nav a { color: white; text-decoration: none; margin-left: 25px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .hero { background: #111; height: 30vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
-        .main-content { display: flex; padding: 50px 8%; gap: 40px; }
-        .sidebar { width: 200px; background: white; border-radius: 15px; padding: 20px; height: fit-content; }
-        .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        :root { --primary: #2D1B14; --accent: #C6A664; --bg: #F8F4F1; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
+        header { background: var(--primary); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .open { background: #27ae60; } .closed { background: #e74c3c; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 40px 8%; }
         .product-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
         .product-img { width: 100%; height: 150px; border-radius: 10px; object-fit: cover; }
         .btn-add { background: #5D4037; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
-        .btn-disabled { background: #ccc; color: #666; cursor: not-allowed; padding: 10px; border-radius: 5px; width: 100%; border: none; }
+        .btn-disabled { background: #ccc; cursor: not-allowed; padding: 10px; border-radius: 5px; width: 100%; border: none; }
+        #cart-count { background: var(--accent); color: var(--primary); padding: 2px 7px; border-radius: 50%; font-size: 12px; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -27,79 +24,81 @@
 <header>
     <div style="display: flex; align-items: center;">
         <img src="/Simeon Cafe.jpg" width="40" style="border-radius: 5px;" onerror="this.style.display='none'">
-        <h1 style="margin: 0 0 0 10px; font-size: 18px;">SIMEON CAFE</h1>
-        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>"><%= storeOpen ? 'Open' : 'Closed' %></span>
+        <h2 style="margin: 0 0 0 10px; font-size: 18px;">SIMEON CAFE</h2>
+        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>" style="margin-left: 10px;">
+            <%= storeOpen ? 'OPEN' : 'CLOSED' %>
+        </span>
     </div>
     <nav>
-        <a href="/">HOME</a>
-        <a onclick="checkout()" style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;">
-            <i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span>
-        </a>
+        <button onclick="checkout()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+            <i class="fas fa-shopping-cart"></i> CART <span id="cart-count">0</span>
+        </button>
     </nav>
 </header>
 
-<section class="hero">
-    <h1>Welcome to <span>Simeon Cafe</span></h1>
-    <p>Handcrafted Coffee in Silago</p>
-</section>
-
-<div class="main-content">
-    <aside class="sidebar">
-        <h3 style="font-size: 16px;">Categories</h3>
-        <ul style="list-style: none; padding: 0; font-size: 14px;">
-            <li><a href="/" style="text-decoration: none; color: var(--accent-gold); font-weight: bold;">ALL ITEMS</a></li>
-        </ul>
-    </aside>
-
-    <div class="product-grid">
-        <% if (products && products.length > 0) { %>
-            <% products.forEach(p => { %>
-                <div class="product-card">
-                    <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
-                    <h4 style="margin: 10px 0;"><%= p.name %></h4>
-                    <div style="font-weight: bold; color: #8D6E63; margin-bottom: 10px;">₱<%= p.price_1 || 0 %></div>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="number" value="1" min="1" id="qty-<%= p.id %>" style="width: 40px; text-align: center;">
-                        <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>" 
-                                onclick="addToCart('<%= p.id %>', '<%= p.name %>', <%= p.price_1 || 0 %>)"
-                                <%= !storeOpen ? 'disabled' : '' %>>
-                            <%= storeOpen ? 'Add' : 'Closed' %>
-                        </button>
-                    </div>
+<div class="product-grid">
+    <% if (typeof products !== 'undefined' && products.length > 0) { %>
+        <% products.forEach(p => { %>
+            <div class="product-card">
+                <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
+                <h3 style="margin: 15px 0 5px 0; font-size: 18px;"><%= p.name %></h3>
+                <p style="color: #8D6E63; font-weight: bold; margin-bottom: 15px;">₱<%= p.price_1 || 0 %></p>
+                
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" value="1" min="1" id="qty-<%= p.id %>" style="width: 45px; text-align: center; border: 1px solid #ddd; border-radius: 5px;">
+                    
+                    <button 
+                        class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>"
+                        data-id="<%= p.id %>"
+                        data-name="<%= p.name %>"
+                        data-price="<%= p.price_1 || 0 %>"
+                        onclick="addToCart(this)"
+                        <%= !storeOpen ? 'disabled' : '' %>>
+                        <%= storeOpen ? 'ADD' : 'CLOSED' %>
+                    </button>
                 </div>
-            <% }); %>
-        <% } else { %>
-            <p style="grid-column: 1/-1; text-align: center; color: #888;">No products available yet.</p>
-        <% } %>
-    </div>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+            <h3>Our menu is being updated...</h3>
+            <p>Please check back shortly!</p>
+        </div>
+    <% } %>
 </div>
 
 <script>
     let cart = [];
 
-    function addToCart(id, name, price) {
+    function addToCart(button) {
+        // We pull data from the button's attributes instead of the onclick function
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const price = parseFloat(button.getAttribute('data-price'));
         const qtyInput = document.getElementById('qty-' + id);
-        const qty = parseInt(qtyInput.value) || 1;
-        
+        const quantity = parseInt(qtyInput.value) || 1;
+
         const existing = cart.find(item => item.id === id);
         if (existing) {
-            existing.quantity += qty;
+            existing.quantity += quantity;
         } else {
-            cart.push({ id: id, name: name, price: price, quantity: qty });
+            cart.push({ id, name, price, quantity });
         }
         
-        updateUI();
+        updateCartBadge();
+        console.log("Cart Updated:", cart);
         alert(name + " added to cart!");
     }
 
-    function updateUI() {
-        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        document.getElementById('cart-count').innerText = count;
+    function updateCartBadge() {
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').innerText = total;
     }
 
     async function checkout() {
-        if (cart.length === 0) return alert("Cart is empty!");
-        const customerName = prompt("Enter your name for the order:");
+        if (cart.length === 0) return alert("Your cart is empty!");
+        
+        const customerName = prompt("Please enter your name for the order:");
         if (!customerName) return;
 
         const orderData = {
@@ -109,22 +108,24 @@
         };
 
         try {
-            const res = await fetch('/api/place-order', {
+            const response = await fetch('/api/place-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
             });
-            if (res.ok) {
-                alert("Order placed! Thank you.");
+
+            if (response.ok) {
+                alert("Order placed successfully, " + customerName + "!");
                 cart = [];
-                updateUI();
+                updateCartBadge();
             } else {
-                alert("Order failed. Check database.");
+                alert("Could not place order. Please try again.");
             }
-        } catch (e) {
-            alert("Error: " + e.message);
+        } catch (err) {
+            alert("Network error: " + err.message);
         }
     }
 </script>
+
 </body>
 </html>
