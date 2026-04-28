@@ -115,3 +115,28 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/admin`);
 });
+
+// --- CATEGORY MANAGEMENT ---
+app.get('/admin/categories', (req, res) => {
+    db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
+        if (err) { console.error(err); return res.status(500).send("Error loading categories."); }
+        res.render('manage_categories', { 
+            categories: categories || [], 
+            storeOpen: storeOpen 
+        });
+    });
+});
+
+app.post('/admin/add-category', (req, res) => {
+    const { name } = req.body;
+    db.query("INSERT INTO categories (name) VALUES (?)", [name], (err) => {
+        if (err) console.error(err);
+        res.redirect('/admin/categories');
+    });
+});
+
+app.get('/admin/delete-category/:id', (req, res) => {
+    db.query("DELETE FROM categories WHERE id = ?", [req.params.id], () => {
+        res.redirect('/admin/categories');
+    });
+});
