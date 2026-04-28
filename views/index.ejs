@@ -6,271 +6,63 @@
     <title>Simeon Cafe | Premium Coffee Shop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary-dark: #2D1B14;
-            --accent-gold: #C6A664;
-            --bg-cream: #F8F4F1;
-            --text-gray: #666;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            background-color: var(--bg-cream);
-            color: var(--primary-dark);
-        }
-
-        /* Header / Navbar */
-        header {
-            background-color: #1a1a1a;
-            padding: 15px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .logo-section { display: flex; align-items: center; gap: 15px; }
-        .logo-section img { width: 45px; border-radius: 5px; }
-        .logo-text h1 { margin: 0; font-size: 18px; letter-spacing: 1px; color: white; }
-        .logo-text p { margin: 0; font-size: 10px; color: var(--accent-gold); font-weight: bold; }
-
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+        :root { --primary-dark: #2D1B14; --accent-gold: #C6A664; --bg-cream: #F8F4F1; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--bg-cream); }
+        header { background-color: #1a1a1a; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .open { background-color: #27ae60; color: white; }
         .closed { background-color: #e74c3c; color: white; }
-
-        nav a { color: white; text-decoration: none; margin-left: 25px; font-size: 14px; font-weight: 500; }
-        .cart-icon { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; position: relative; }
-
-        /* Main Layout */
-        .container {
-            display: flex;
-            padding: 40px 50px;
-            gap: 30px;
-            max-width: 1400px;
-            margin: auto;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background: white;
-            border-radius: 20px;
-            padding: 30px 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            height: fit-content;
-        }
-
-        .sidebar h3 {
-            font-size: 18px;
-            margin-bottom: 25px;
-            padding-left: 10px;
-            border-left: 4px solid var(--accent-gold);
-        }
-
+        .container { display: flex; padding: 40px 50px; gap: 30px; max-width: 1400px; margin: auto; }
+        .sidebar { width: 250px; background: white; border-radius: 20px; padding: 30px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: fit-content; }
         .category-list { list-style: none; padding: 0; }
-        .category-list li { margin-bottom: 5px; }
-        .category-list a {
-            display: block;
-            padding: 12px 15px;
-            text-decoration: none;
-            color: var(--text-gray);
-            font-weight: 600;
-            font-size: 13px;
-            border-radius: 10px;
-            transition: 0.3s;
-            text-transform: uppercase;
-        }
-        .category-list a:hover, .category-list a.active {
-            background-color: var(--bg-cream);
-            color: var(--primary-dark);
-        }
-
-        /* Content Area */
-        .content { flex: 1; }
-
-        .search-bar {
-            display: flex;
-            background: white;
-            border-radius: 50px;
-            padding: 5px 5px 5px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 40px;
-            align-items: center;
-        }
-        .search-bar input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 15px;
-            color: var(--text-gray);
-        }
-        .search-btn {
-            background: #6D4C41;
-            color: white;
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        /* Product Cards */
-        .category-title {
-            font-size: 24px;
-            color: #8D6E63;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
-            transition: 0.3s;
-        }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-
-        .product-img {
-            width: 110px;
-            height: 110px;
-            border-radius: 15px;
-            object-fit: cover;
-            background-color: #f9f9f9;
-        }
-
-        .product-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-info h4 { margin: 0; font-size: 18px; color: var(--primary-dark); }
-        .product-info p { margin: 5px 0; font-size: 12px; color: #aaa; line-height: 1.4; }
-
-        .order-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .qty-input {
-            width: 45px;
-            padding: 8px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .btn-add {
-            flex: 1;
-            background: #5D4037;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-add:hover { background: #3E2723; }
-
-        /* Store Closed State */
-        .btn-disabled {
-            flex: 1;
-            background: #e0e0e0;
-            color: #999;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: not-allowed;
-        }
-        .qty-input:disabled { background: #f5f5f5; color: #ccc; }
-
+        .category-list a { display: block; padding: 12px 15px; text-decoration: none; color: #666; font-weight: 600; font-size: 13px; border-radius: 10px; text-transform: uppercase; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .product-card { background: white; border-radius: 20px; padding: 20px; display: flex; gap: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .product-img { width: 110px; height: 110px; border-radius: 15px; object-fit: cover; }
+        .btn-add { background: #5D4037; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-disabled { background: #e0e0e0; color: #999; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: not-allowed; flex: 1; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo-section">
-        <img src="/Simeon Cafe.jpg" alt="Logo">
-        <div class="logo-text">
-            <h1>SIMEON CAFE</h1>
-            <p>PREMIUM COFFEE SHOP</p>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <img src="/Simeon Cafe.jpg" width="45" style="border-radius: 5px;">
+        <div style="line-height: 1.2;">
+            <h1 style="margin: 0; font-size: 18px;">SIMEON CAFE</h1>
+            <p style="margin: 0; font-size: 10px; color: var(--accent-gold);">PREMIUM COFFEE SHOP</p>
         </div>
-        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>">
-            <%= storeOpen ? 'Open Now' : 'Closed' %>
-        </span>
+        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>"><%= storeOpen ? 'Open Now' : 'Closed' %></span>
     </div>
-    <nav>
-        <a href="/">HOME</a>
-        <a href="#menu">MENU</a>
-        <a href="#">ABOUT</a>
-        <a href="#" class="cart-icon"><i class="fa-solid fa-cart-shopping"></i> <span>0</span></a>
-        <a href="/login"><i class="fa-solid fa-user"></i></a>
-    </nav>
+    <nav><a href="/" style="color:white; text-decoration:none;">HOME</a></nav>
 </header>
 
-<div class="container" id="menu">
+<div class="container">
     <aside class="sidebar">
-        <h3>Categories</h3>
+        <h3 style="border-left: 4px solid var(--accent-gold); padding-left: 10px;">Categories</h3>
         <ul class="category-list">
-            <li><a href="/" class="active">ALL ITEMS</a></li>
-            <% if (typeof products !== 'undefined') { 
-                let uniqueCats = [...new Set(products.map(p => p.category))];
-                uniqueCats.forEach(cat => { %>
-                    <li><a href="#<%= cat %>"><%= cat %></a></li>
-                <% }); 
-            } %>
+            <li><a href="/" style="background: var(--bg-cream); color: black;">ALL ITEMS</a></li>
+            <% let uniqueCats = [...new Set(products.map(p => p.category))]; uniqueCats.forEach(cat => { %>
+                <li><a href="#"><%= cat %></a></li>
+            <% }); %>
         </ul>
     </aside>
 
-    <main class="content">
-        <div class="search-bar">
-            <input type="text" placeholder="Search for latte or food...">
-            <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
-        </div>
-
-        <h2 class="category-title">Menu Items</h2>
-        
+    <main style="flex: 1;">
+        <h2 style="color: #8D6E63; text-transform: uppercase;">Menu Items</h2>
         <div class="product-grid">
             <% products.forEach(p => { %>
                 <div class="product-card">
                     <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
-                    <div class="product-info">
+                    <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
                         <div>
-                            <h4><%= p.name %></h4>
-                            <p>Handcrafted Simeon signature drink.</p>
+                            <h4 style="margin:0;"><%= p.name %></h4>
+                            <p style="font-size:12px; color:#aaa; margin:5px 0;">Handcrafted signature drink.</p>
                         </div>
-                        
-                        <div style="font-weight: bold; color: #8D6E63; font-size: 16px;">
-                            ₱<%= p.price_1 %>
-                        </div>
-
-                        <div class="order-row">
-                            <input type="number" value="1" min="1" class="qty-input" <%= !storeOpen ? 'disabled' : '' %>>
-                            
-                            <% if (storeOpen) { %>
-                                <button class="btn-add">Add to Cart</button>
-                            <% } else { %>
-                                <button class="btn-disabled" disabled>Closed</button>
-                            <% } %>
+                        <div style="font-weight:bold; color:#8D6E63;">₱<%= p.price_1 %></div>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <input type="number" value="1" min="1" style="width:40px;" class="qty-input" <%= !storeOpen ? 'disabled' : '' %>>
+                            <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>" <%= !storeOpen ? 'disabled' : '' %>><%= storeOpen ? 'Add to Cart' : 'Closed' %></button>
                         </div>
                     </div>
                 </div>
@@ -278,22 +70,21 @@
         </div>
     </main>
 </div>
+
 <script>
-// Check the store status every 5 seconds
-setInterval(() => {
-    fetch('/api/status') // You'd need to create this simple GET route in app.js
-        .then(res => res.json())
-        .then(data => {
+    setInterval(() => {
+        fetch('/api/status').then(res => res.json()).then(data => {
             const badge = document.querySelector('.status-badge');
-            if (data.storeOpen) {
-                badge.innerText = 'Open Now';
-                badge.className = 'status-badge open';
-            } else {
-                badge.innerText = 'Closed';
-                badge.className = 'status-badge closed';
-            }
+            badge.innerText = data.storeOpen ? 'Open Now' : 'Closed';
+            badge.className = `status-badge ${data.storeOpen ? 'open' : 'closed'}`;
+            document.querySelectorAll('.product-card button').forEach(btn => {
+                btn.innerText = data.storeOpen ? 'Add to Cart' : 'Closed';
+                btn.className = data.storeOpen ? 'btn-add' : 'btn-disabled';
+                btn.disabled = !data.storeOpen;
+            });
+            document.querySelectorAll('.qty-input').forEach(i => i.disabled = !data.storeOpen);
         });
-}, 5000);
+    }, 5000);
 </script>
 </body>
 </html>
