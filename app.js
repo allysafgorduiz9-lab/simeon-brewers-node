@@ -38,6 +38,7 @@ app.use(session({
     saveUninitialized: true 
 }));
 
+// Protects admin pages from unauthorized access
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
@@ -62,11 +63,12 @@ app.get('/', (req, res) => {
     });
 });
 
+// Live Status API for Footer/Header Badges
 app.get('/api/status', (req, res) => {
     res.json({ storeOpen: storeOpen });
 });
 
-// 5. AUTHENTICATION
+// 5. AUTHENTICATION (STAFF PORTAL)
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
 app.post('/login', (req, res) => {
@@ -79,15 +81,27 @@ app.post('/login', (req, res) => {
     }
 });
 
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
+app.get('/logout', (req, res) => { 
+    req.session.destroy(); 
+    res.redirect('/login'); 
+});
 
-// 6. ADMIN - STORE STATUS
+// 6. ADMIN - STORE STATUS TOGGLE (AJAX)
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     res.json({ storeOpen: storeOpen });
 });
 
-// 7. ADMIN - MENU MANAGEMENT
+// 7. ADMIN - ACTIVE ORDERS
+app.get('/admin/orders', isAuthenticated, (req, res) => {
+    const sql = "SELECT * FROM orders ORDER BY created_at DESC";
+    db.query(sql, (err, orders) => {
+        // If 'orders' table doesn't exist yet, we pass an empty array to prevent crashing
+        res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
+    });
+});
+
+// 8. ADMIN - MENU MANAGEMENT
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         res.render('admin_dashboard', { products: products || [], storeOpen: storeOpen });
@@ -103,7 +117,8 @@ app.get('/admin/add-product', isAuthenticated, (req, res) => {
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
     const image = req.file ? req.file.filename : 'default.jpg';
-    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)", [name, category, price_1, image], () => {
+    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)", 
+    [name, category, price_1, image], () => {
         res.redirect('/admin/menu');
     });
 });
@@ -111,7 +126,11 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, product) => {
         db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-            res.render('edit_product', { product: product[0], categories: categories || [], storeOpen: storeOpen });
+            res.render('edit_product', { 
+                product: product[0], 
+                categories: categories || [], 
+                storeOpen: storeOpen 
+            });
         });
     });
 });
@@ -129,7 +148,7 @@ app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin/menu'));
 });
 
-// 8. CATEGORY MANAGEMENT
+// 9. CATEGORY MANAGEMENT
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
         res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
@@ -137,27 +156,35 @@ app.get('/admin/categories', isAuthenticated, (req, res) => {
 });
 
 app.post('/admin/add-category', isAuthenticated, (req, res) => {
-    db.query("INSERT INTO categories (name) VALUES (?)", [req.body.name], () => res.redirect('/admin/categories'));
+    db.query("INSERT INTO categories (name) VALUES (?)", [req.body.name], () => {
+        res.redirect('/admin/categories');
+    });
 });
 
-// --- DELETE CATEGORY (FIXED) ---
+// FIXED DELETE CATEGORY ROUTE
 app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
     const categoryId = req.params.id;
-
-    // First check if any products are using this category
+    // Check if category is empty before deleting
     db.query("SELECT name FROM categories WHERE id = ?", [categoryId], (err, results) => {
         if (err || results.length === 0) return res.redirect('/admin/categories');
         const categoryName = results[0].name;
 
         db.query("SELECT COUNT(*) as count FROM products WHERE category = ?", [categoryName], (err, result) => {
             if (result[0].count > 0) {
-                // Prevents deletion if category is in use
-                return res.send("<script>alert('Cannot delete! This category is currently assigned to products.'); window.location='/admin/categories';</script>");
+                return res.send("<script>alert('Error: This category has active products!'); window.location='/admin/categories';</script>");
             }
             db.query("DELETE FROM categories WHERE id = ?", [categoryId], () => res.redirect('/admin/categories'));
         });
     });
 });
 
+// 10. DAILY REPORTS (Placeholder for future expansion)
+app.get('/admin/reports', isAuthenticated, (req, res) => {
+    res.render('reports', { storeOpen: storeOpen });
+});
+
+// --- SERVER START ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Simeon Brewers running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Simeon Brewers running on http://localhost:${PORT}`);
+});
