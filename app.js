@@ -37,7 +37,6 @@ app.use(session({
     saveUninitialized: true 
 }));
 
-// SECURITY MIDDLEWARE
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
@@ -57,15 +56,6 @@ app.get('/', (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         if (err) return res.status(500).send("Error loading menu.");
         res.render('index', { products: products || [], storeOpen: storeOpen });
-    });
-});
-
-app.post('/place-order', (req, res) => {
-    const { customer_name, items, total } = req.body;
-    const sql = "INSERT INTO orders (customer_name, items, total_amount, status) VALUES (?, ?, ?, 'Pending')";
-    db.query(sql, [customer_name, items, total], (err) => {
-        if (err) return res.status(500).send("Order failed.");
-        res.send(`<h2>Thank you, ${customer_name}!</h2><a href="/">Back to Menu</a>`);
     });
 });
 
@@ -96,71 +86,55 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
     });
 });
 
-app.get('/admin/add-product', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-        res.render('add_product', { categories: categories || [], storeOpen: storeOpen });
-    });
-});
-
-app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1 } = req.body;
-    const image = req.file ? req.file.filename : 'default.jpg';
-    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)", [name, category, price_1, image], () => {
-        res.redirect('/admin/menu');
-    });
-});
-
-// --- EDIT & UPDATE PRODUCT ROUTES ---
+// --- EDIT PRODUCT ROUTES ---
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     const productId = req.params.id;
     db.query("SELECT * FROM products WHERE id = ?", [productId], (err, product) => {
         if (err || product.length === 0) return res.redirect('/admin/menu');
         db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-            res.render('edit_product', { product: product[0], categories: categories || [], storeOpen: storeOpen });
+            res.render('edit_product', { 
+                product: product[0], 
+                categories: categories || [], 
+                storeOpen: storeOpen 
+            });
         });
     });
 });
 
 app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
+    const productId = req.params.id;
     let sql, params;
+
     if (req.file) {
         sql = "UPDATE products SET name = ?, category = ?, price_1 = ?, image = ? WHERE id = ?";
-        params = [name, category, price_1, req.file.filename, req.params.id];
+        params = [name, category, price_1, req.file.filename, productId];
     } else {
         sql = "UPDATE products SET name = ?, category = ?, price_1 = ? WHERE id = ?";
-        params = [name, category, price_1, req.params.id];
+        params = [name, category, price_1, productId];
     }
-    db.query(sql, params, () => res.redirect('/admin/menu'));
+
+    db.query(sql, params, (err) => {
+        if (err) { console.error(err); return res.send("Update failed."); }
+        res.redirect('/admin/menu');
+    });
 });
 
+// OTHER ADMIN ACTIONS
 app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin/menu'));
 });
 
-// OTHER ADMIN PAGES
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC", (err, orders) => {
         res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
     });
 });
 
-app.post('/admin/update-order-status/:id', isAuthenticated, (req, res) => {
-    db.query("UPDATE orders SET status = ? WHERE id = ?", [req.body.status, req.params.id], () => res.redirect('/admin/orders'));
-});
-
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
         res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
     });
-});
-
-app.post('/admin/add-category', isAuthenticated, (req, res) => {
-    db.query("INSERT INTO categories (name) VALUES (?)", [req.body.name], () => res.redirect('/admin/categories'));
-});
-
-app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
-    db.query("DELETE FROM categories WHERE id = ?", [req.params.id], () => res.redirect('/admin/categories'));
 });
 
 app.get('/admin/reports', isAuthenticated, (req, res) => {
