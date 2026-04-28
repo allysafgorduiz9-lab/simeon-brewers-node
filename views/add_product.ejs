@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simeon Admin - Add Menu</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body style="background: #F8F4F1; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+
+    <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 400px;">
+        <h2 style="color: #2D1B14; margin-top: 0;">Add New Menu Item</h2>
+        
+        <form action="/admin/save-product" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="font-size: 14px; color: #888;">Product Name</label>
+                <input type="text" name="name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px;">
+            </div>
+
+            <div>
+                <label style="font-size: 14px; color: #888;">Category</label>
+                <select name="category" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px;">
+                    <option value="Coffee">Coffee</option>
+                    <option value="Non-Coffee">Non-Coffee</option>
+                    <option value="Pastries">Pastries</option>
+                    <option value="Meals">Meals</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-size: 14px; color: #888;">Price (₱)</label>
+                <input type="number" name="price_1" step="0.01" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px;">
+            </div>
+
+            <div>
+                <label style="font-size: 14px; color: #888;">Product Image</label>
+                <input type="file" name="image" style="margin-top: 5px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" style="flex: 1; background: #2D1B14; color: #C6A664; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Save Product</button>
+                <a href="/admin/menu" style="flex: 1; text-align: center; background: #eee; color: #333; padding: 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold;">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
