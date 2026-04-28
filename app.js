@@ -122,15 +122,23 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     const productId = req.params.id;
 
-    // 1. Get the specific product you want to edit
+    // First: Get the product
     db.query("SELECT * FROM products WHERE id = ?", [productId], (err, productResult) => {
-        if (err || productResult.length === 0) return res.redirect('/admin/menu');
+        if (err || productResult.length === 0) {
+            console.error("Product not found");
+            return res.redirect('/admin/menu');
+        }
         
-        // 2. Get the categories (Same as in the Add Product route)
+        // Second: Get the categories list (This is what fills the dropdown)
         db.query("SELECT * FROM categories ORDER BY name ASC", (err, categoryResults) => {
+            if (err) {
+                console.error("Category query error:", err);
+            }
+
+            // We render the page and pass BOTH the product and the categories
             res.render('edit_product', { 
                 product: productResult[0], 
-                categories: categoryResults || [], // Passing categories to the view
+                categories: categoryResults || [], // If query fails, it's an empty array
                 storeOpen: storeOpen 
             });
         });
