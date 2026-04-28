@@ -3,16 +3,22 @@
 <head>
     <title>Edit Product - Simeon Admin</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
-        .form-card { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn-save { background: #2D1B14; color: #C6A664; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .current-img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #F8F4F1; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .form-card { background: white; padding: 40px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h2 { color: #2D1B14; margin-top: 0; text-align: center; margin-bottom: 30px; }
+        label { display: block; margin-top: 15px; font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #C6A664; }
+        .btn-save { background: #2D1B14; color: #C6A664; border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 30px; font-size: 16px; }
+        .btn-save:hover { background: #3d2a21; }
+        .current-img-container { text-align: center; margin: 20px 0; padding: 15px; background: #fafafa; border-radius: 10px; }
+        .current-img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 3px solid #C6A664; }
+        .cancel-link { display: block; text-align: center; margin-top: 20px; color: #e74c3c; text-decoration: none; font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
     <div class="form-card">
-        <h2>Edit Product</h2>
+        <h2>Edit Menu Item</h2>
         <form action="/admin/update-product/<%= product.id %>" method="POST" enctype="multipart/form-data">
             <label>Product Name</label>
             <input type="text" name="name" value="<%= product.name %>" required>
@@ -29,14 +35,16 @@
             <label>Price (₱)</label>
             <input type="number" name="price_1" value="<%= product.price_1 %>" required>
 
-            <label>Current Image</label><br>
-            <img src="/images/<%= product.image %>" class="current-img"><br>
+            <label>Existing Image</label>
+            <div class="current-img-container">
+                <img src="/images/<%= product.image %>" class="current-img">
+            </div>
             
-            <label>Change Image (Optional)</label>
+            <label>Replace Image (Optional)</label>
             <input type="file" name="image">
 
-            <button type="submit" class="btn-save">Update Product</button>
-            <a href="/admin/menu" style="display:block; text-align:center; margin-top:15px; color:#888; text-decoration:none;">Cancel</a>
+            <button type="submit" class="btn-save">Save Changes</button>
+            <a href="/admin/menu" class="cancel-link">Discard Changes</a>
         </form>
     </div>
 </body>
