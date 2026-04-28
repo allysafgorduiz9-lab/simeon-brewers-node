@@ -92,8 +92,8 @@ app.get('/admin', isAuthenticated, (req, res) => res.redirect('/admin/menu'));
 
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
-    // This sends the user back to the page they were just on (the dashboard)
-    res.redirect('back'); 
+    console.log("Store status changed to:", storeOpen); // This helps you see it working in the terminal
+    res.redirect('/admin/menu'); 
 });
 
 // 7. ADMIN - MENU MANAGEMENT (CRUD)

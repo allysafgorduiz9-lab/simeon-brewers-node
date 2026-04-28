@@ -27,11 +27,11 @@
             
             <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
-                <form action="/admin/toggle-status" method="POST">
-                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
-                        <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
-                    </button>
-                </form>
+               <form action="/admin/toggle-status" method="POST">
+    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
+        <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
+    </button>
+</form>
             </div>
         </div>
 
