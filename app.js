@@ -53,13 +53,37 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- ROUTES ---
+// --- CUSTOMER SIDE ROUTES ---
 
-// 4. CUSTOMER SIDE (LOADS FIRST AT localhost:3000)
+// 4. CUSTOMER SIDE (HOME PAGE)
 app.get('/', (req, res) => {
+    // Added safety: If DB returns nothing, we send an empty array [] to avoid EJS crash
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
-        if (err) return res.status(500).send("Error loading menu.");
+        if (err) {
+            console.error(err);
+            return res.render('index', { products: [], storeOpen: storeOpen });
+        }
         res.render('index', { products: products || [], storeOpen: storeOpen });
+    });
+});
+
+// 5. ADD TO CART / PLACE ORDER API
+app.post('/api/place-order', (req, res) => {
+    const { customer_name, items, total_price } = req.body;
+
+    // Check if data is arriving correctly
+    if (!customer_name || !items) {
+        return res.status(400).json({ success: false, message: "Missing order details" });
+    }
+
+    const sql = "INSERT INTO orders (customer_name, items, total_price, status) VALUES (?, ?, ?, 'Pending')";
+    db.query(sql, [customer_name, items, total_price], (err, result) => {
+        if (err) {
+            console.error("MySQL Order Error:", err);
+            return res.status(500).json({ success: false });
+        }
+        console.log(`New order from ${customer_name}!`);
+        res.status(200).json({ success: true });
     });
 });
 
@@ -68,7 +92,9 @@ app.get('/api/status', (req, res) => {
     res.json({ storeOpen: storeOpen });
 });
 
-// 5. AUTHENTICATION (STAFF PORTAL)
+// --- ADMIN SIDE ROUTES ---
+
+// 6. AUTHENTICATION (STAFF PORTAL)
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
 app.post('/login', (req, res) => {
@@ -86,22 +112,21 @@ app.get('/logout', (req, res) => {
     res.redirect('/login'); 
 });
 
-// 6. ADMIN - STORE STATUS TOGGLE (AJAX)
+// 7. ADMIN - STORE STATUS TOGGLE (AJAX)
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     res.json({ storeOpen: storeOpen });
 });
 
-// 7. ADMIN - ACTIVE ORDERS
+// 8. ADMIN - ACTIVE ORDERS
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     const sql = "SELECT * FROM orders ORDER BY created_at DESC";
     db.query(sql, (err, orders) => {
-        // If 'orders' table doesn't exist yet, we pass an empty array to prevent crashing
         res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
     });
 });
 
-// 8. ADMIN - MENU MANAGEMENT
+// 9. ADMIN - MENU MANAGEMENT
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         res.render('admin_dashboard', { products: products || [], storeOpen: storeOpen });
@@ -148,7 +173,7 @@ app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin/menu'));
 });
 
-// 9. CATEGORY MANAGEMENT
+// 10. CATEGORY MANAGEMENT
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
         res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
@@ -161,10 +186,8 @@ app.post('/admin/add-category', isAuthenticated, (req, res) => {
     });
 });
 
-// FIXED DELETE CATEGORY ROUTE
 app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
     const categoryId = req.params.id;
-    // Check if category is empty before deleting
     db.query("SELECT name FROM categories WHERE id = ?", [categoryId], (err, results) => {
         if (err || results.length === 0) return res.redirect('/admin/categories');
         const categoryName = results[0].name;
@@ -178,7 +201,7 @@ app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// 10. DAILY REPORTS (Placeholder for future expansion)
+// 11. REPORTS
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     res.render('reports', { storeOpen: storeOpen });
 });
