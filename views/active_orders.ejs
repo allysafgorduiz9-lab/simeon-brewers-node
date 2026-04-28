@@ -5,13 +5,12 @@
     <style>
         .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
         .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
-        .order-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid #C6A664; }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-        .status-Pending { background: #ffeaa7; color: #d35400; }
-        .status-Preparing { background: #81ecec; color: #0097e6; }
-        .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-open { background-color: #27ae60; }
-        .btn-closed { background-color: #e74c3c; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .pending { background: #ffeaa7; color: #d63031; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 15px; background: #2D1B14; color: white; }
+        td { padding: 15px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
@@ -20,54 +19,55 @@
         <div style="text-align: center; margin-bottom: 30px;">
             <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
             <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
-            
-            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
-                <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
-                <form action="/admin/toggle-status" method="POST">
-                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
-                        <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
-                    </button>
-                </form>
-            </div>
         </div>
-
         <nav>
             <a href="/admin/orders" class="nav-item active">Active Orders</a>
             <a href="/admin/categories" class="nav-item">Manage Categories</a>
             <a href="/admin/menu" class="nav-item">Manage Menu</a>
             <a href="/admin/reports" class="nav-item">Daily Reports</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; text-align: center;">View Live Site ↗</a>
             <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
         </nav>
     </div>
 
     <div style="margin-left: 260px; padding: 40px; width: 100%;">
-        <h2 style="color: #2D1B14; margin-bottom: 30px;">Incoming Orders</h2>
-        <% if (orders && orders.length > 0) { %>
-            <% orders.forEach(order => { %>
-                <div class="order-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; color: #2D1B14;">Order #<%= order.id %> - <%= order.customer_name %></h3>
-                        <span class="badge status-<%= order.status %>"><%= order.status %></span>
-                    </div>
-                    <p style="color: #666; margin: 10px 0;"><%= order.items %></p>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="color: #C6A664; font-size: 18px;">₱<%= order.total_amount %></strong>
-                        <form action="/admin/update-order-status/<%= order.id %>" method="POST">
-                            <select name="status" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px; cursor: pointer;">
-                                <option value="Pending" <%= order.status == 'Pending' ? 'selected' : '' %>>Pending</option>
-                                <option value="Preparing" <%= order.status == 'Preparing' ? 'selected' : '' %>>Preparing</option>
-                                <option value="Completed">Mark as Completed</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-            <% }); %>
-        <% } else { %>
-            <div style="text-align: center; margin-top: 50px; color: #888;"><p>No active orders at the moment. Coffee is brewing!</p></div>
-        <% } %>
+        <h2 style="color: #2D1B14;">Incoming Customer Orders</h2>
+        
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (orders.length > 0) { %>
+                        <% orders.forEach(order => { %>
+                            <tr>
+                                <td>#<%= order.id %></td>
+                                <td><%= order.customer_name %></td>
+                                <td><%= order.items %></td>
+                                <td style="font-weight: bold;">₱<%= order.total_price %></td>
+                                <td><span class="status-badge pending"><%= order.status %></span></td>
+                                <td>
+                                    <button style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Complete</button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #888; padding: 40px;">No active orders right now.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>
