@@ -122,15 +122,15 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     const productId = req.params.id;
 
-    // First Query: Get the product details
+    // 1. Get the specific product you want to edit
     db.query("SELECT * FROM products WHERE id = ?", [productId], (err, productResult) => {
         if (err || productResult.length === 0) return res.redirect('/admin/menu');
         
-        // Second Query: Get all categories so the dropdown has options
+        // 2. Get the categories (Same as in the Add Product route)
         db.query("SELECT * FROM categories ORDER BY name ASC", (err, categoryResults) => {
             res.render('edit_product', { 
                 product: productResult[0], 
-                categories: categoryResults || [], // This must be passed!
+                categories: categoryResults || [], // Passing categories to the view
                 storeOpen: storeOpen 
             });
         });

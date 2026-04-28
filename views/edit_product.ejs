@@ -24,7 +24,9 @@
             <input type="text" name="name" value="<%= product.name %>" required>
 
            <label>Category</label>
+<label>Category</label>
 <select name="category" required>
+    <option value="" disabled>Select a Category</option>
     <% if (categories && categories.length > 0) { %>
         <% categories.forEach(cat => { %>
             <option value="<%= cat.name %>" <%= product.category === cat.name ? 'selected' : '' %>>
@@ -32,7 +34,7 @@
             </option>
         <% }); %>
     <% } else { %>
-        <option value="">No categories found - add one first</option>
+        <option value="">No categories found. Please add one first.</option>
     <% } %>
 </select>
 
