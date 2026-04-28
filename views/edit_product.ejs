@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product - Simeon Admin</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
+        .form-card { background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn-save { background: #2D1B14; color: #C6A664; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .current-img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h2>Edit Product</h2>
+        <form action="/admin/update-product/<%= product.id %>" method="POST" enctype="multipart/form-data">
+            <label>Product Name</label>
+            <input type="text" name="name" value="<%= product.name %>" required>
+
+            <label>Category</label>
+            <select name="category">
+                <% categories.forEach(cat => { %>
+                    <option value="<%= cat.name %>" <%= product.category === cat.name ? 'selected' : '' %>>
+                        <%= cat.name %>
+                    </option>
+                <% }); %>
+            </select>
+
+            <label>Price (₱)</label>
+            <input type="number" name="price_1" value="<%= product.price_1 %>" required>
+
+            <label>Current Image</label><br>
+            <img src="/images/<%= product.image %>" class="current-img"><br>
+            
+            <label>Change Image (Optional)</label>
+            <input type="file" name="image">
+
+            <button type="submit" class="btn-save">Update Product</button>
+            <a href="/admin/menu" style="display:block; text-align:center; margin-top:15px; color:#888; text-decoration:none;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
