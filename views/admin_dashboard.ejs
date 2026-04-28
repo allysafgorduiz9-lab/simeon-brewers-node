@@ -8,23 +8,28 @@
         .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-open { background-color: #27ae60; }
         .btn-closed { background-color: #e74c3c; }
-        table { width: 100%; background: white; border-radius: 15px; border-collapse: collapse; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 0; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
         th { background: #2D1B14; color: white; padding: 15px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #eee; }
+        .btn-add { background: #2D1B14; color: #C6A664; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s; }
+        .btn-add:hover { background: #3E2723; }
     </style>
 </head>
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
 
-    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed;">
+    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
         <div style="text-align: center; margin-bottom: 30px;">
             <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
             <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
             
             <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
-                <button id="statusToggleBtn" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
-                    <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
-                </button>
+                <form action="/admin/toggle-status" method="POST">
+                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
+                        <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -34,7 +39,8 @@
             <a href="/admin/menu" class="nav-item active">Manage Menu</a>
             <a href="/admin/reports" class="nav-item">Daily Reports</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; text-align: center;">View Live Site ↗</a>
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
             <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
         </nav>
     </div>
@@ -42,41 +48,44 @@
     <div style="margin-left: 260px; padding: 40px; width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h2 style="color: #2D1B14;">Inventory Management</h2>
-            <a href="/admin/add-product" style="background: #2D1B14; color: #C6A664; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">+ Add New Menu</a>
+            <a href="/admin/add-product" class="btn-add">+ Add New Item</a>
         </div>
 
-        <table>
-            <thead>
-                <tr><th>Product</th><th>Category</th><th>Price</th><th style="text-align: center;">Action</th></tr>
-            </thead>
-            <tbody>
-                <% products.forEach(p => { %>
-                <tr>
-                    <td style="display: flex; align-items: center; gap: 15px;">
-                        <img src="/images/<%= p.image %>" width="50" height="50" style="border-radius: 8px; object-fit: cover;">
-                        <strong><%= p.name %></strong>
-                    </td>
-                    <td><%= p.category %></td>
-                    <td style="color: #C6A664; font-weight: 600;">₱<%= p.price_1 %></td>
-                    <td style="text-align: center;">
-                        <a href="/admin/edit-product/<%= p.id %>" style="color: #3498db; text-decoration: none; font-weight: bold; margin-right: 15px;">Edit</a>
-                        <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Delete?')" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Delete</a>
-                    </td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th style="text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(p => { %>
+                        <tr>
+                            <td style="display: flex; align-items: center; gap: 15px;">
+                                <img src="/images/<%= p.image %>" width="50" height="50" style="border-radius: 8px; object-fit: cover;" onerror="this.src='/images/default.jpg'">
+                                <strong><%= p.name %></strong>
+                            </td>
+                            <td><span style="background: #eee; padding: 4px 10px; border-radius: 15px; font-size: 12px;"><%= p.category %></span></td>
+                            <td style="color: #8D6E63; font-weight: bold;">₱<%= p.price_1 %></td>
+                            <td style="text-align: center;">
+                                <a href="/admin/edit-product/<%= p.id %>" style="color: #3498db; text-decoration: none; font-weight: bold; margin-right: 15px;">Edit</a>
+                                <a href="/admin/delete/<%= p.id %>" onclick="return confirm('Are you sure you want to delete this item?')" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Delete</a>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #888; padding: 40px;">No items found in your menu.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <script>
-        document.getElementById('statusToggleBtn').addEventListener('click', function() {
-            fetch('/admin/toggle-status', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                this.innerText = data.storeOpen ? '● OPEN' : '○ CLOSED';
-                this.className = `status-btn ${data.storeOpen ? 'btn-open' : 'btn-closed'}`;
-            });
-        });
-    </script>
 </body>
 </html>
