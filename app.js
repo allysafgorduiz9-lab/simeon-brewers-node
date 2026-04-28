@@ -37,6 +37,7 @@ app.use(session({
     saveUninitialized: true 
 }));
 
+// SECURITY MIDDLEWARE
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
@@ -51,7 +52,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 4. CUSTOMER ROUTES
+// 4. CUSTOMER SIDE ROUTES
 app.get('/', (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         if (err) return res.status(500).send("Error loading menu.");
@@ -59,8 +60,18 @@ app.get('/', (req, res) => {
     });
 });
 
-// 5. AUTH ROUTES
+app.post('/place-order', (req, res) => {
+    const { customer_name, items, total } = req.body;
+    const sql = "INSERT INTO orders (customer_name, items, total_amount, status) VALUES (?, ?, ?, 'Pending')";
+    db.query(sql, [customer_name, items, total], (err) => {
+        if (err) return res.status(500).send("Order failed.");
+        res.send(`<h2>Thank you, ${customer_name}!</h2><a href="/">Back to Menu</a>`);
+    });
+});
+
+// 5. AUTHENTICATION ROUTES
 app.get('/login', (req, res) => res.render('login', { error: null }));
+
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
@@ -70,9 +81,13 @@ app.post('/login', (req, res) => {
         res.render('login', { error: 'Invalid Credentials' });
     }
 });
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
-// 6. ADMIN ROUTES
+app.get('/logout', (req, res) => { 
+    req.session.destroy(); 
+    res.redirect('/login'); 
+});
+
+// 6. ADMIN - GENERAL & STORE STATUS
 app.get('/admin', isAuthenticated, (req, res) => res.redirect('/admin/menu'));
 
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
@@ -80,13 +95,30 @@ app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     res.redirect('back');
 });
 
+// 7. ADMIN - MENU MANAGEMENT (CRUD)
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         res.render('admin_dashboard', { products: products || [], storeOpen: storeOpen });
     });
 });
 
-// --- EDIT PRODUCT ROUTES ---
+// ADD PRODUCT
+app.get('/admin/add-product', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
+        res.render('add_product', { categories: categories || [], storeOpen: storeOpen });
+    });
+});
+
+app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
+    const { name, category, price_1 } = req.body;
+    const image = req.file ? req.file.filename : 'default.jpg';
+    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)", [name, category, price_1, image], (err) => {
+        if (err) console.log(err);
+        res.redirect('/admin/menu');
+    });
+});
+
+// EDIT PRODUCT
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     const productId = req.params.id;
     db.query("SELECT * FROM products WHERE id = ?", [productId], (err, product) => {
@@ -115,35 +147,58 @@ app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (
     }
 
     db.query(sql, params, (err) => {
-        if (err) { console.error(err); return res.send("Update failed."); }
+        if (err) console.error(err);
         res.redirect('/admin/menu');
     });
 });
 
-// OTHER ADMIN ACTIONS
+// DELETE PRODUCT
 app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => res.redirect('/admin/menu'));
-});
-
-app.get('/admin/orders', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC", (err, orders) => {
-        res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
+    db.query("DELETE FROM products WHERE id = ?", [req.params.id], () => {
+        res.redirect('/admin/menu');
     });
 });
 
+// 8. ADMIN - CATEGORY MANAGEMENT
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
         res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
     });
 });
 
+app.post('/admin/add-category', isAuthenticated, (req, res) => {
+    db.query("INSERT INTO categories (name) VALUES (?)", [req.body.name], () => {
+        res.redirect('/admin/categories');
+    });
+});
+
+app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
+    db.query("DELETE FROM categories WHERE id = ?", [req.params.id], () => {
+        res.redirect('/admin/categories');
+    });
+});
+
+// 9. ADMIN - ORDERS & REPORTS
+app.get('/admin/orders', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC", (err, orders) => {
+        res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
+    });
+});
+
+app.post('/admin/update-order-status/:id', isAuthenticated, (req, res) => {
+    db.query("UPDATE orders SET status = ? WHERE id = ?", [req.body.status, req.params.id], () => {
+        res.redirect('/admin/orders');
+    });
+});
+
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT COUNT(*) as totalOrders, SUM(total_amount) as totalRevenue FROM orders WHERE status = 'Completed'", (err, results) => {
-        const stats = results[0];
+        const stats = results[0] || { totalOrders: 0, totalRevenue: 0 };
         stats.totalRevenue = stats.totalRevenue || 0; 
         res.render('daily_reports', { stats, storeOpen });
     });
 });
 
+// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}/admin`));
+app.listen(PORT, () => console.log(`Simeon Brewers running at http://localhost:${PORT}/admin`));
