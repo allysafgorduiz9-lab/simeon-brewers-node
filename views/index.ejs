@@ -1,125 +1,283 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Simeon Brewers - Menu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simeon Cafe | Premium Coffee Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #F8F4F1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; padding-bottom: 120px; }
-        .header { text-align: center; padding: 40px; background: #2D1B14; color: white; border-radius: 0 0 30px 30px; margin: -20px -20px 40px -20px; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
-        .product-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; padding-bottom: 20px; }
-        .price-tag { color: #C6A664; font-weight: bold; font-size: 20px; margin: 10px 0; }
-        .order-btn { background: #2D1B14; color: #C6A664; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 85%; }
-        
-        /* Floating Cart Bar */
-        .cart-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: #2D1B14; color: white; padding: 15px 30px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000; }
-        .checkout-btn { background: #C6A664; color: #2D1B14; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; }
-        
-        /* Modal Style */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; position: relative; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .grayscale { filter: grayscale(1); opacity: 0.6; pointer-events: none; }
+        :root {
+            --primary-dark: #2D1B14;
+            --accent-gold: #C6A664;
+            --bg-cream: #F8F4F1;
+            --text-gray: #666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--bg-cream);
+            color: var(--primary-dark);
+        }
+
+        /* Header / Navbar */
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-section img { width: 45px; border-radius: 5px; }
+        .logo-text h1 { margin: 0; font-size: 18px; letter-spacing: 1px; color: white; }
+        .logo-text p { margin: 0; font-size: 10px; color: var(--accent-gold); font-weight: bold; }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .open { background-color: #27ae60; color: white; }
+        .closed { background-color: #e74c3c; color: white; }
+
+        nav a { color: white; text-decoration: none; margin-left: 25px; font-size: 14px; font-weight: 500; }
+        .cart-icon { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; position: relative; }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            padding: 40px 50px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            font-size: 18px;
+            margin-bottom: 25px;
+            padding-left: 10px;
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        .category-list { list-style: none; padding: 0; }
+        .category-list li { margin-bottom: 5px; }
+        .category-list a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: var(--text-gray);
+            font-weight: 600;
+            font-size: 13px;
+            border-radius: 10px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        .category-list a:hover, .category-list a.active {
+            background-color: var(--bg-cream);
+            color: var(--primary-dark);
+        }
+
+        /* Content Area */
+        .content { flex: 1; }
+
+        .search-bar {
+            display: flex;
+            background: white;
+            border-radius: 50px;
+            padding: 5px 5px 5px 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            align-items: center;
+        }
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: var(--text-gray);
+        }
+        .search-btn {
+            background: #6D4C41;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Product Cards */
+        .category-title {
+            font-size: 24px;
+            color: #8D6E63;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            transition: 0.3s;
+        }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+
+        .product-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 15px;
+            object-fit: cover;
+            background-color: #f9f9f9;
+        }
+
+        .product-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-info h4 { margin: 0; font-size: 18px; color: var(--primary-dark); }
+        .product-info p { margin: 5px 0; font-size: 12px; color: #aaa; line-height: 1.4; }
+
+        .order-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .qty-input {
+            width: 45px;
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .btn-add {
+            flex: 1;
+            background: #5D4037;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-add:hover { background: #3E2723; }
+
+        /* Store Closed State */
+        .btn-disabled {
+            flex: 1;
+            background: #e0e0e0;
+            color: #999;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: not-allowed;
+        }
+        .qty-input:disabled { background: #f5f5f5; color: #ccc; }
+
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1 style="margin: 0; letter-spacing: 2px;">SIMEON BREWERS</h1>
-        <p style="color: #C6A664; margin-top: 5px;">Excellence in Every Cup</p>
-    </div>
 
-    <div class="menu-grid <%= !storeOpen ? 'grayscale' : '' %>">
-        <% if (products && products.length > 0) { %>
+<header>
+    <div class="logo-section">
+        <img src="/Simeon Cafe.jpg" alt="Logo">
+        <div class="logo-text">
+            <h1>SIMEON CAFE</h1>
+            <p>PREMIUM COFFEE SHOP</p>
+        </div>
+        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>">
+            <%= storeOpen ? 'Open Now' : 'Closed' %>
+        </span>
+    </div>
+    <nav>
+        <a href="/">HOME</a>
+        <a href="#menu">MENU</a>
+        <a href="#">ABOUT</a>
+        <a href="#" class="cart-icon"><i class="fa-solid fa-cart-shopping"></i> <span>0</span></a>
+        <a href="/login"><i class="fa-solid fa-user"></i></a>
+    </nav>
+</header>
+
+<div class="container" id="menu">
+    <aside class="sidebar">
+        <h3>Categories</h3>
+        <ul class="category-list">
+            <li><a href="/" class="active">ALL ITEMS</a></li>
+            <% if (typeof products !== 'undefined') { 
+                let uniqueCats = [...new Set(products.map(p => p.category))];
+                uniqueCats.forEach(cat => { %>
+                    <li><a href="#<%= cat %>"><%= cat %></a></li>
+                <% }); 
+            } %>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <div class="search-bar">
+            <input type="text" placeholder="Search for latte or food...">
+            <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+
+        <h2 class="category-title">Menu Items</h2>
+        
+        <div class="product-grid">
             <% products.forEach(p => { %>
                 <div class="product-card">
-                    <img src="/images/<%= p.image %>" style="width: 100%; height: 220px; object-fit: cover;">
-                    <div style="padding: 15px;">
-                        <span style="font-size: 11px; color: #888; text-transform: uppercase;"><%= p.category %></span>
-                        <h3 style="margin: 5px 0;"><%= p.name %></h3>
-                        <div class="price-tag">₱<%= p.price_1 %></div>
+                    <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
+                    <div class="product-info">
+                        <div>
+                            <h4><%= p.name %></h4>
+                            <p>Handcrafted Simeon signature drink.</p>
+                        </div>
                         
-                        <button class="order-btn" 
-                                data-name="<%= p.name %>" 
-                                data-price="<%= p.price_1 %>"
-                                onclick="addToCart(this)">
-                            Add to Order
-                        </button>
+                        <div style="font-weight: bold; color: #8D6E63; font-size: 16px;">
+                            ₱<%= p.price_1 %>
+                        </div>
+
+                        <div class="order-row">
+                            <input type="number" value="1" min="1" class="qty-input" <%= !storeOpen ? 'disabled' : '' %>>
+                            
+                            <% if (storeOpen) { %>
+                                <button class="btn-add">Add to Cart</button>
+                            <% } else { %>
+                                <button class="btn-disabled" disabled>Closed</button>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             <% }); %>
-        <% } else { %>
-            <p style="text-align: center; grid-column: 1/-1; color: #888; padding: 50px;">The menu is currently empty.</p>
-        <% } %>
-    </div>
-
-    <div id="cartBar" class="cart-bar">
-        <div>
-            <span id="cartCount">0 Items</span> • <strong>₱<span id="cartTotal">0</span></strong>
         </div>
-        <button class="checkout-btn" onclick="showCheckout()">Checkout</button>
-    </div>
+    </main>
+</div>
 
-    <div id="checkoutModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: #2D1B14; margin-top: 0;">Order Summary</h2>
-            <div id="orderList" style="max-height: 150px; overflow-y: auto; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
-            <p style="font-weight: bold; text-align: right; font-size: 18px;">Total: ₱<span id="modalTotal">0</span></p>
-            
-            <form action="/place-order" method="POST">
-                <input type="hidden" name="items" id="itemsInput">
-                <input type="hidden" name="total" id="totalInput">
-                <input type="text" name="customer_name" placeholder="Enter Your Name" required>
-                <button type="submit" class="order-btn" style="width: 100%; margin-top: 10px;">Confirm & Send Order</button>
-                <button type="button" onclick="closeCheckout()" style="background: none; border: none; color: #888; width: 100%; margin-top: 10px; cursor: pointer;">Cancel</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        let cart = [];
-        let total = 0;
-
-        function addToCart(btn) {
-            const name = btn.getAttribute('data-name');
-            const price = Number(btn.getAttribute('data-price'));
-
-            cart.push({ name, price });
-            total += price;
-            
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const cartBar = document.getElementById('cartBar');
-            if (cart.length > 0) {
-                cartBar.style.display = 'flex';
-                document.getElementById('cartCount').innerText = cart.length + (cart.length === 1 ? " Item" : " Items");
-                document.getElementById('cartTotal').innerText = total.toLocaleString();
-            }
-        }
-
-        function showCheckout() {
-            const orderList = document.getElementById('orderList');
-            const itemsInput = document.getElementById('itemsInput');
-            
-            // List items for the user to see
-            orderList.innerHTML = cart.map(item => `
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:14px;">
-                    <span>${item.name}</span>
-                    <span>₱${item.price}</span>
-                </div>
-            `).join('');
-            
-            // Prepare the comma-separated string for your database
-            itemsInput.value = cart.map(item => item.name).join(", ");
-            document.getElementById('totalInput').value = total;
-            document.getElementById('modalTotal').innerText = total.toLocaleString();
-            
-            document.getElementById('checkoutModal').style.display = 'flex';
-        }
-
-        function closeCheckout() {
-            document.getElementById('checkoutModal').style.display = 'none';
-        }
-    </script>
 </body>
 </html>
