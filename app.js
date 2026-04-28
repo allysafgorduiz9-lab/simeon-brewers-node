@@ -121,12 +121,16 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
 // EDIT PRODUCT
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     const productId = req.params.id;
-    db.query("SELECT * FROM products WHERE id = ?", [productId], (err, product) => {
-        if (err || product.length === 0) return res.redirect('/admin/menu');
-        db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
+
+    // First Query: Get the product details
+    db.query("SELECT * FROM products WHERE id = ?", [productId], (err, productResult) => {
+        if (err || productResult.length === 0) return res.redirect('/admin/menu');
+        
+        // Second Query: Get all categories so the dropdown has options
+        db.query("SELECT * FROM categories ORDER BY name ASC", (err, categoryResults) => {
             res.render('edit_product', { 
-                product: product[0], 
-                categories: categories || [], 
+                product: productResult[0], 
+                categories: categoryResults || [], // This must be passed!
                 storeOpen: storeOpen 
             });
         });
