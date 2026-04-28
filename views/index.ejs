@@ -278,6 +278,22 @@
         </div>
     </main>
 </div>
-
+<script>
+// Check the store status every 5 seconds
+setInterval(() => {
+    fetch('/api/status') // You'd need to create this simple GET route in app.js
+        .then(res => res.json())
+        .then(data => {
+            const badge = document.querySelector('.status-badge');
+            if (data.storeOpen) {
+                badge.innerText = 'Open Now';
+                badge.className = 'status-badge open';
+            } else {
+                badge.innerText = 'Closed';
+                badge.className = 'status-badge closed';
+            }
+        });
+}, 5000);
+</script>
 </body>
 </html>

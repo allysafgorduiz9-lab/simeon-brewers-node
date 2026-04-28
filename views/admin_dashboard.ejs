@@ -27,11 +27,36 @@
             
             <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
-               <form action="/admin/toggle-status" method="POST">
-    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
+               <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+    <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
+    <button id="statusToggleBtn" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
         <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
     </button>
-</form>
+</div>
+
+<script>
+document.getElementById('statusToggleBtn').addEventListener('click', function() {
+    const btn = this;
+    
+    // Send a request to the server without refreshing
+    fetch('/admin/toggle-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the button UI based on the response from the server
+        if (data.storeOpen) {
+            btn.innerText = '● OPEN';
+            btn.className = 'status-btn btn-open';
+        } else {
+            btn.innerText = '○ CLOSED';
+            btn.className = 'status-btn btn-closed';
+        }
+    })
+    .catch(err => console.error('Error toggling status:', err));
+});
+</script>
             </div>
         </div>
 
