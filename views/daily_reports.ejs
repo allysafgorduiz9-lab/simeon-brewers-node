@@ -5,9 +5,9 @@
     <style>
         .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
         .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
-        .stat-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; flex: 1; }
+        .stat-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; flex: 1; border-top: 4px solid #C6A664; }
         .stat-number { font-size: 32px; font-weight: bold; color: #2D1B14; margin: 10px 0; }
-        .stat-label { color: #888; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .stat-label { color: #888; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: bold; }
         .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-open { background-color: #27ae60; }
         .btn-closed { background-color: #e74c3c; }
@@ -16,9 +16,10 @@
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
 
     <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="color: #C6A664; margin-bottom: 20px;">SIMEON BREWERS</h3>
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
+            <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
                 <form action="/admin/toggle-status" method="POST">
                     <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
@@ -32,7 +33,8 @@
             <a href="/admin/categories" class="nav-item">Manage Categories</a>
             <a href="/admin/menu" class="nav-item">Manage Menu</a>
             <a href="/admin/reports" class="nav-item active">Daily Reports</a>
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 15px; text-align: center; font-weight: bold;">View Live Site ↗</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
             <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
         </nav>

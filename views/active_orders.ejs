@@ -17,9 +17,11 @@
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
 
     <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="color: #C6A664; margin-bottom: 20px;">SIMEON BREWERS</h3>
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
+            <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
+            
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
                 <form action="/admin/toggle-status" method="POST">
                     <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
@@ -28,19 +30,21 @@
                 </form>
             </div>
         </div>
+
         <nav>
             <a href="/admin/orders" class="nav-item active">Active Orders</a>
             <a href="/admin/categories" class="nav-item">Manage Categories</a>
             <a href="/admin/menu" class="nav-item">Manage Menu</a>
             <a href="/admin/reports" class="nav-item">Daily Reports</a>
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 15px; text-align: center; font-weight: bold;">View Live Site ↗</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
             <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
         </nav>
     </div>
 
     <div style="margin-left: 260px; padding: 40px; width: 100%;">
-        <h2 style="color: #2D1B14;">Incoming Orders</h2>
+        <h2 style="color: #2D1B14; margin-bottom: 30px;">Incoming Orders</h2>
         <% if (orders && orders.length > 0) { %>
             <% orders.forEach(order => { %>
                 <div class="order-card">
@@ -52,7 +56,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <strong style="color: #C6A664; font-size: 18px;">₱<%= order.total_amount %></strong>
                         <form action="/admin/update-order-status/<%= order.id %>" method="POST">
-                            <select name="status" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px;">
+                            <select name="status" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px; cursor: pointer;">
                                 <option value="Pending" <%= order.status == 'Pending' ? 'selected' : '' %>>Pending</option>
                                 <option value="Preparing" <%= order.status == 'Preparing' ? 'selected' : '' %>>Preparing</option>
                                 <option value="Completed">Mark as Completed</option>
