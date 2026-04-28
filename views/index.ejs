@@ -6,209 +6,109 @@
     <title>Simeon Cafe | Premium Coffee Shop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --primary-dark: #1a1a1a; 
-            --accent-gold: #C6A664; 
-            --bg-cream: #F8F4F1; 
-            --card-white: #ffffff;
-            --footer-dark: #0d0d0d;
-        }
-        
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--bg-cream); color: var(--primary-dark); scroll-behavior: smooth; }
-
-        /* Navbar */
-        header { 
-            background-color: var(--primary-dark); 
-            padding: 15px 8%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            color: white; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
+        :root { --primary-dark: #1a1a1a; --accent-gold: #C6A664; --bg-cream: #F8F4F1; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--bg-cream); scroll-behavior: smooth; }
+        header { background-color: var(--primary-dark); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-left: 10px; }
-        .open { background-color: #27ae60; color: white; }
-        .closed { background-color: #e74c3c; color: white; }
-        nav a { color: white; text-decoration: none; margin-left: 25px; font-size: 13px; font-weight: 600; transition: 0.3s; }
-        nav a:hover { color: var(--accent-gold); }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/hero-bg.jpg'); /* Add a nice coffee bg image */
-            background-color: #111;
-            background-size: cover;
-            background-position: center;
-            height: 60vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-            padding: 0 20px;
-        }
-        .hero h1 { font-size: 3rem; margin-bottom: 10px; }
-        .hero h1 span { color: var(--accent-gold); }
-        .hero p { font-size: 1.1rem; max-width: 700px; color: #ccc; line-height: 1.6; }
-
-        /* Layout */
-        .main-content { display: flex; padding: 50px 8%; gap: 40px; max-width: 1400px; margin: auto; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; background: white; border-radius: 20px; padding: 25px; height: fit-content; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .sidebar h3 { font-size: 18px; margin-bottom: 20px; border-left: 4px solid var(--accent-gold); padding-left: 10px; }
-        .category-list { list-style: none; padding: 0; }
-        .category-list a { display: block; padding: 12px 15px; text-decoration: none; color: #555; font-weight: 600; border-radius: 10px; transition: 0.3s; margin-bottom: 5px; }
-        .category-list a:hover, .category-list a.active { background: var(--bg-cream); color: var(--primary-dark); }
-
-        /* Search & Grid */
-        .content-area { flex: 1; }
-        .search-container { position: relative; margin-bottom: 40px; }
-        .search-container input { width: 100%; padding: 15px 25px; border-radius: 50px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); outline: none; font-size: 15px; }
-        
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .product-card { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.02); transition: 0.3s; }
-        .product-card:hover { transform: translateY(-5px); }
-        .product-img { width: 100%; height: 180px; border-radius: 15px; object-fit: cover; margin-bottom: 15px; }
-        
-        .btn-add { background: #5D4037; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; transition: 0.3s; }
-        .btn-add:hover { background: #3E2723; }
-        .btn-disabled { background: #e0e0e0; color: #999; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: not-allowed; flex: 1; }
-
-        /* Footer */
-        footer { background: var(--footer-dark); color: white; padding: 60px 8% 20px; margin-top: 50px; }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; border-bottom: 1px solid #222; padding-bottom: 40px; }
-        .footer-col h4 { color: var(--accent-gold); margin-bottom: 20px; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
-        .footer-col p, .footer-col a { color: #888; text-decoration: none; font-size: 14px; line-height: 1.8; display: block; margin-bottom: 10px; }
-        .footer-col a:hover { color: white; }
-        .social-links a { display: inline-block; margin-right: 15px; font-size: 18px; color: var(--accent-gold); }
-        .copyright { text-align: center; padding-top: 20px; color: #444; font-size: 12px; }
+        .open { background-color: #27ae60; } .closed { background-color: #e74c3c; }
+        nav a { color: white; text-decoration: none; margin-left: 25px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .hero { background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), #111; height: 40vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
+        .main-content { display: flex; padding: 50px 8%; gap: 40px; }
+        .sidebar { width: 260px; background: white; border-radius: 20px; padding: 25px; height: fit-content; }
+        .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .product-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .product-img { width: 100%; height: 180px; border-radius: 15px; object-fit: cover; }
+        .btn-add { background: #5D4037; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-disabled { background: #e0e0e0; color: #999; cursor: not-allowed; padding: 12px; border-radius: 8px; flex: 1; border: none; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="display: flex; align-items: center;">
-        <img src="/Simeon Cafe.jpg" width="45" style="border-radius: 5px;">
+        <img src="/Simeon Cafe.jpg" width="40" style="border-radius: 5px;">
         <div style="margin-left: 12px;">
-            <h1 style="margin: 0; font-size: 18px; letter-spacing: 1px;">SIMEON CAFE</h1>
-            <p style="margin: 0; font-size: 9px; color: var(--accent-gold); font-weight: bold;">PREMIUM COFFEE SHOP</p>
+            <h1 style="margin: 0; font-size: 16px;">SIMEON CAFE</h1>
         </div>
-        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>"><%= storeOpen ? 'Open Now' : 'Closed' %></span>
+        <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>"><%= storeOpen ? 'Open' : 'Closed' %></span>
     </div>
     <nav>
         <a href="/">HOME</a>
-        <a href="#menu">MENU</a>
-        <a href="#">ABOUT</a>
-        <a href="#" style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;"><i class="fas fa-shopping-cart"></i> 0</a>
+        <a onclick="checkout()" style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;">
+            <i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span>
+        </a>
     </nav>
 </header>
 
 <section class="hero">
     <h1>Welcome to <span>Simeon Cafe</span></h1>
-    <p>Experience the finest handcrafted coffee and treats in Silago. From our signature frappes to our premium roasts, we brew every cup with passion.</p>
-    <div style="margin-top: 30px; color: var(--accent-gold); font-weight: bold; letter-spacing: 2px;">DISCOVER OUR FAVORITES</div>
+    <p>Handcrafted Coffee in Silago, Southern Leyte</p>
 </section>
 
-<div class="main-content" id="menu">
+<div class="main-content">
     <aside class="sidebar">
         <h3>Categories</h3>
-        <ul class="category-list">
-            <li><a href="/" class="active">ALL ITEMS</a></li>
-            <% 
-            if (products && products.length > 0) {
-                let uniqueCats = [...new Set(products.map(p => p.category))]; 
-                uniqueCats.forEach(cat => { %>
-                    <li><a href="#<%= cat %>"><%= cat %></a></li>
-                <% }); 
-            } %>
+        <ul style="list-style: none; padding: 0;">
+            <li><a href="/" style="text-decoration: none; color: var(--accent-gold); font-weight: bold;">ALL ITEMS</a></li>
         </ul>
     </aside>
 
-    <main class="content-area">
-        <div class="search-container">
-            <input type="text" placeholder="Search for latte or food...">
-            <button style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #6D4C41; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-
-        <div class="product-grid">
-            <% products.forEach(p => { %>
-                <div class="product-card">
-                    <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
-                    <h4 style="margin: 0 0 5px 0;"><%= p.name %></h4>
-                    <p style="font-size: 12px; color: #888; flex: 1;">Handcrafted Simeon signature drink.</p>
-                    <div style="font-weight: bold; color: #8D6E63; margin: 15px 0;">₱<%= p.price_1 %></div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" value="1" min="1" style="width: 50px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" class="qty-input" <%= !storeOpen ? 'disabled' : '' %>>
-                        <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>" <%= !storeOpen ? 'disabled' : '' %>>
-                            <%= storeOpen ? 'Add to Cart' : 'Closed' %>
-                        </button>
-                    </div>
+    <div class="product-grid">
+        <% products.forEach(p => { %>
+            <div class="product-card">
+                <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='/images/default.jpg'">
+                <h4 style="margin: 15px 0 5px 0;"><%= p.name %></h4>
+                <div style="font-weight: bold; color: #8D6E63; margin-bottom: 15px;">₱<%= p.price_1 %></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" value="1" min="1" id="qty-<%= p.id %>" style="width: 45px; text-align: center; border-radius: 5px; border: 1px solid #ddd;">
+                    <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>" 
+                            onclick="addToCart('<%= p.id %>', '<%= p.name %>', <%= p.price_1 || 0 %>)"
+                            <%= !storeOpen ? 'disabled' : '' %>>
+                        <%= storeOpen ? 'Add' : 'Closed' %>
+                    </button>
                 </div>
-            <% }); %>
-        </div>
-    </main>
+            </div>
+        <% }); %>
+    </div>
 </div>
 
-<footer>
-    <div class="footer-grid">
-        <div class="footer-col">
-            <h4>Simeon Cafe</h4>
-            <p>Dedicated to serving premium coffee and handcrafted snacks. We bring the finest beans to Silago for an unparalleled coffee experience.</p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
-        <div class="footer-col">
-            <h4>Quick Links</h4>
-            <a href="/">Home</a>
-            <a href="#menu">Full Menu</a>
-            <a href="#">My Cart</a>
-            <a href="#">Track Order</a>
-        </div>
-        <div class="footer-col">
-            <h4>Get In Touch</h4>
-            <p><i class="fas fa-map-marker-alt" style="color: var(--accent-gold);"></i> Poblacion District 1, Silago, Southern Leyte</p>
-            <p><i class="fas fa-phone" style="color: var(--accent-gold);"></i> 09771053180</p>
-            <p><i class="fas fa-envelope" style="color: var(--accent-gold);"></i> hersanofritz@gmail.com</p>
-        </div>
-        <div class="footer-col">
-            <h4>Opening Hours</h4>
-            <p>Mon - Sun: 8:00 AM - 10:00 PM</p>
-            <span class="status-badge <%= storeOpen ? 'open' : 'closed' %>" style="margin: 0; display: inline-block; margin-top: 10px;">
-                <%= storeOpen ? 'Open Now' : 'Closed' %>
-            </span>
-        </div>
-    </div>
-    <div class="copyright">
-        © 2026 Simeon Cafe. All Rights Reserved.<br>
-        <a href="/login" style="margin-top: 10px; display: inline-block; color: #444; font-weight: bold; text-decoration: none;">STAFF LOGIN PORTAL</a>
-    </div>
-</footer>
-
 <script>
-    // Live update logic
-    setInterval(() => {
-        fetch('/api/status').then(res => res.json()).then(data => {
-            const badges = document.querySelectorAll('.status-badge');
-            badges.forEach(b => {
-                b.innerText = data.storeOpen ? 'Open Now' : 'Closed';
-                b.className = `status-badge ${data.storeOpen ? 'open' : 'closed'}`;
-            });
-            document.querySelectorAll('.product-card button').forEach(btn => {
-                btn.innerText = data.storeOpen ? 'Add to Cart' : 'Closed';
-                btn.className = data.storeOpen ? 'btn-add' : 'btn-disabled';
-                btn.disabled = !data.storeOpen;
-            });
-            document.querySelectorAll('.qty-input').forEach(i => i.disabled = !data.storeOpen);
+    let cart = [];
+
+    function addToCart(id, name, price) {
+        const qty = parseInt(document.getElementById(`qty-${id}`).value);
+        const existing = cart.find(item => item.id === id);
+        if (existing) { existing.quantity += qty; } 
+        else { cart.push({ id, name, price, quantity: qty }); }
+        
+        document.getElementById('cart-count').innerText = cart.reduce((sum, i) => sum + i.quantity, 0);
+        alert(name + " added!");
+    }
+
+    async function checkout() {
+        if (cart.length === 0) return alert("Cart is empty!");
+        const name = prompt("Enter your name:");
+        if (!name) return;
+
+        const orderData = {
+            customer_name: name,
+            items: cart.map(i => `${i.name} (x${i.quantity})`).join(', '),
+            total_price: cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)
+        };
+
+        const res = await fetch('/api/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
         });
-    }, 5000);
+
+        if (res.ok) {
+            alert("Order Successful!");
+            cart = [];
+            document.getElementById('cart-count').innerText = "0";
+        }
+    }
 </script>
+
 </body>
 </html>
