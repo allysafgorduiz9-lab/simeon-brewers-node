@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simeon Admin - Active Orders</title>
+    <style>
+        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
+        .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
+        .order-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid #C6A664; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .status-Pending { background: #ffeaa7; color: #d35400; }
+        .status-Preparing { background: #81ecec; color: #0097e6; }
+    </style>
+</head>
+<body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
+
+    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
+        <h3 style="color: #C6A664; text-align: center;">SIMEON BREWERS</h3>
+        <nav style="margin-top: 30px;">
+            <a href="/admin/orders" class="nav-item active">Active Orders</a>
+            <a href="/admin/menu" class="nav-item">Manage Menu</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/admin/menu" class="nav-item">Back to Dashboard</a>
+        </nav>
+    </div>
+
+    <div style="margin-left: 260px; padding: 40px; width: 100%;">
+        <h2 style="color: #2D1B14;">Incoming Orders</h2>
+
+        <% if (orders && orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+                <div class="order-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #2D1B14;">Order #<%= order.id %> - <%= order.customer_name %></h3>
+                        <span class="badge status-<%= order.status %>"><%= order.status %></span>
+                    </div>
+                    <p style="color: #666; margin: 10px 0;"><%= order.items %></p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="color: #C6A664; font-size: 18px;">₱<%= order.total_amount %></strong>
+                        
+                        <form action="/admin/update-order-status/<%= order.id %>" method="POST">
+                            <select name="status" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px;">
+                                <option value="Pending" <%= order.status == 'Pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="Preparing" <%= order.status == 'Preparing' ? 'selected' : '' %>>Preparing</option>
+                                <option value="Completed">Mark as Completed</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div style="text-align: center; margin-top: 50px; color: #888;">
+                <p>No active orders at the moment. Coffee is brewing!</p>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

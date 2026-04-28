@@ -10,7 +10,7 @@ const app = express();
 // Global variable for Store Status
 let storeOpen = true; 
 
-// 1. DATABASE CONNECTION
+// 1. DATABASE CONNECTION (Aiven MySQL)
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -22,14 +22,18 @@ const db = mysql.createConnection({
 
 db.connect(err => {
     if (err) { console.error('DB Connection Error:', err); return; }
-    console.log('Simeon Brewers Database Connected!');
+    console.log('Simeon Brewers Database Connected Successfully!');
 });
 
 // 2. MIDDLEWARE & VIEW ENGINE
 app.set('view engine', 'ejs');
 app.use(express.static('public')); 
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'simeon_secret', resave: false, saveUninitialized: true }));
+app.use(session({ 
+    secret: 'simeon_brewers_secret', 
+    resave: false, 
+    saveUninitialized: true 
+}));
 
 // 3. IMAGE UPLOAD CONFIGURATION (Multer)
 const storage = multer.diskStorage({
@@ -42,13 +46,13 @@ const upload = multer({ storage: storage });
 
 // 4. ROUTES
 
-// Toggle Store Status
+// --- STORE STATUS ---
 app.post('/admin/toggle-status', (req, res) => {
     storeOpen = !storeOpen;
     res.redirect('/admin/menu'); 
 });
 
-// Admin Dashboard (Manage Menu)
+// --- MENU MANAGEMENT (DASHBOARD) ---
 app.get('/admin/menu', (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
         res.render('admin_dashboard', { 
@@ -58,17 +62,17 @@ app.get('/admin/menu', (req, res) => {
     });
 });
 
-// Route to SHOW the Add Product Form (Fixes the GET error)
+// Show Add Product Form
 app.get('/admin/add-product', (req, res) => {
     res.render('add_product', { storeOpen: storeOpen });
 });
 
-// Route to SAVE the new product to Database
+// Save New Product
 app.post('/admin/save-product', upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
     const image = req.file ? req.file.filename : 'default.jpg';
-
     const sql = "INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)";
+    
     db.query(sql, [name, category, price_1, image], (err) => {
         if (err) { console.error(err); return res.send("Error saving product."); }
         res.redirect('/admin/menu');
@@ -82,10 +86,32 @@ app.get('/admin/delete/:id', (req, res) => {
     });
 });
 
-// General Redirects
+// --- ACTIVE ORDERS ---
+app.get('/admin/orders', (req, res) => {
+    const sql = "SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC";
+    db.query(sql, (err, orders) => {
+        if (err) { console.error(err); return res.status(500).send("Error loading orders."); }
+        res.render('active_orders', { 
+            orders: orders || [], 
+            storeOpen: storeOpen 
+        });
+    });
+});
+
+// Update Order Status
+app.post('/admin/update-order-status/:id', (req, res) => {
+    const { status } = req.body;
+    db.query("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], () => {
+        res.redirect('/admin/orders');
+    });
+});
+
+// --- REDIRECTS & AUTH ---
 app.get('/admin', (req, res) => res.redirect('/admin/menu'));
 app.get('/', (req, res) => res.send("Simeon Brewers Customer Site Coming Soon"));
 
 // 5. START SERVER
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Simeon Brewers running at http://localhost:${PORT}/admin`));
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}/admin`);
+});
