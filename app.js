@@ -172,6 +172,27 @@ app.post('/admin/add-category', isAuthenticated, (req, res) => {
         res.redirect('/admin/categories');
     });
 });
+// DELETE CATEGORY
+app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
+    const categoryId = req.params.id;
+    
+    // Check if any products are still using this category before deleting
+    db.query("SELECT COUNT(*) as count FROM products WHERE category = (SELECT name FROM categories WHERE id = ?)", [categoryId], (err, result) => {
+        if (result[0].count > 0) {
+            // Optional: You could send an alert here saying "Cannot delete category with active products"
+            return res.redirect('/admin/categories?error=category_in_use');
+        }
+
+        db.query("DELETE FROM categories WHERE id = ?", [categoryId], (err) => {
+            if (err) {
+                console.error("Error deleting category:", err);
+                return res.status(500).send("Error deleting category");
+            }
+            res.redirect('/admin/categories');
+        });
+    });
+});
+
 
 // START SERVER
 const PORT = process.env.PORT || 3000;
