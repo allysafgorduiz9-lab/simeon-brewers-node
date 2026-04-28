@@ -9,7 +9,7 @@ const app = express();
 
 // --- CONFIGURATION ---
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'password123'; // Change this for your Capstone defense!
+const ADMIN_PASSWORD = 'password123'; 
 let storeOpen = true; 
 
 // 1. DATABASE CONNECTION
@@ -37,7 +37,7 @@ app.use(session({
     saveUninitialized: true 
 }));
 
-// SECURITY MIDDLEWARE (The Bouncer)
+// SECURITY MIDDLEWARE
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) {
         return next();
@@ -54,9 +54,41 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 4. ROUTES
+// 4. CUSTOMER ROUTES
 
-// --- AUTH ROUTES ---
+// Home Menu
+app.get('/', (req, res) => {
+    const sql = "SELECT * FROM products ORDER BY category ASC";
+    db.query(sql, (err, products) => {
+        if (err) return res.status(500).send("Error loading menu.");
+        res.render('index', { 
+            products: products || [], 
+            storeOpen: storeOpen 
+        });
+    });
+});
+
+// Order Submission
+app.post('/place-order', (req, res) => {
+    const { customer_name, items, total } = req.body;
+    const sql = "INSERT INTO orders (customer_name, items, total_amount, status) VALUES (?, ?, ?, 'Pending')";
+    
+    db.query(sql, [customer_name, items, total], (err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Order failed. Please try again.");
+        }
+        res.send(`
+            <div style="text-align:center; padding:50px; font-family:sans-serif;">
+                <h2>Thank you, ${customer_name}!</h2>
+                <p>Your coffee is being prepared.</p>
+                <a href="/">Back to Menu</a>
+            </div>
+        `);
+    });
+});
+
+// 5. AUTH ROUTES
 app.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
@@ -76,40 +108,25 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-// --- CUSTOMER FRONT-END ---
-app.get('/', (req, res) => {
-    const sql = "SELECT * FROM products ORDER BY category ASC";
-    db.query(sql, (err, products) => {
-        if (err) return res.status(500).send("Error loading menu.");
-        res.render('index', { 
-            products: products || [], 
-            storeOpen: storeOpen 
-        });
-    });
-});
-
-// --- ADMIN ROUTES (ALL PROTECTED) ---
+// 6. ADMIN ROUTES (PROTECTED)
 
 app.get('/admin', isAuthenticated, (req, res) => res.redirect('/admin/menu'));
 
-// Store Status Toggle
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
-    res.redirect('back'); // Returns to whatever admin page you were on
+    res.redirect('back');
 });
 
-// Menu Management
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
-        res.render('admin_dashboard', { 
-            products: products || [], 
-            storeOpen: storeOpen 
-        });
+        res.render('admin_dashboard', { products: products || [], storeOpen: storeOpen });
     });
 });
 
 app.get('/admin/add-product', isAuthenticated, (req, res) => {
-    res.render('add_product', { storeOpen: storeOpen });
+    db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
+        res.render('add_product', { categories: categories || [], storeOpen: storeOpen });
+    });
 });
 
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
@@ -128,15 +145,11 @@ app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// Active Orders
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     const sql = "SELECT * FROM orders WHERE status != 'Completed' ORDER BY created_at DESC";
     db.query(sql, (err, orders) => {
-        if (err) { console.error(err); return res.status(500).send("Error loading orders."); }
-        res.render('active_orders', { 
-            orders: orders || [], 
-            storeOpen: storeOpen 
-        });
+        if (err) return res.status(500).send("Error loading orders.");
+        res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
     });
 });
 
@@ -147,21 +160,14 @@ app.post('/admin/update-order-status/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// Category Management
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-        if (err) { console.error(err); return res.status(500).send("Error loading categories."); }
-        res.render('manage_categories', { 
-            categories: categories || [], 
-            storeOpen: storeOpen 
-        });
+        res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
     });
 });
 
 app.post('/admin/add-category', isAuthenticated, (req, res) => {
-    const { name } = req.body;
-    db.query("INSERT INTO categories (name) VALUES (?)", [name], (err) => {
-        if (err) console.error(err);
+    db.query("INSERT INTO categories (name) VALUES (?)", [req.body.name], () => {
         res.redirect('/admin/categories');
     });
 });
@@ -172,38 +178,19 @@ app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// Daily Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     const sql = "SELECT COUNT(*) as totalOrders, SUM(total_amount) as totalRevenue FROM orders WHERE status = 'Completed'";
     db.query(sql, (err, results) => {
-        if (err) { console.error(err); return res.status(500).send("Error generating reports."); }
+        if (err) return res.status(500).send("Error generating reports.");
         const stats = results[0];
-        res.render('daily_reports', { 
-            stats: stats,
-            storeOpen: storeOpen 
-        });
+        // Ensure revenue isn't null if there are 0 completed orders
+        stats.totalRevenue = stats.totalRevenue || 0; 
+        res.render('daily_reports', { stats, storeOpen });
     });
 });
 
-// 5. START SERVER
+// START SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/admin`);
-});
-
-// --- PLACE ORDER (CUSTOMER SIDE) ---
-app.post('/place-order', (req, res) => {
-    const { customer_name, items, total } = req.body;
-    const status = 'Pending';
-
-    const sql = "INSERT INTO orders (customer_name, items, total_amount, status) VALUES (?, ?, ?, ?)";
-    
-    db.query(sql, [customer_name, items, total, status], (err) => {
-        if (err) {
-            console.error(err);
-            return res.send("Order failed. Please try again.");
-        }
-        // Redirect to a "Thank You" or back to menu
-        res.send(`<h2>Thank you, ${customer_name}! Your coffee is being prepared.</h2><a href="/">Back to Menu</a>`);
-    });
 });
