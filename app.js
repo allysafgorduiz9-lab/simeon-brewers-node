@@ -140,3 +140,19 @@ app.get('/admin/delete-category/:id', (req, res) => {
         res.redirect('/admin/categories');
     });
 });
+
+// --- DAILY REPORTS ---
+app.get('/admin/reports', (req, res) => {
+    // This query gets total orders and total money made
+    const sql = "SELECT COUNT(*) as totalOrders, SUM(total_amount) as totalRevenue FROM orders WHERE status = 'Completed'";
+    
+    db.query(sql, (err, results) => {
+        if (err) { console.error(err); return res.status(500).send("Error generating reports."); }
+        
+        const stats = results[0];
+        res.render('daily_reports', { 
+            stats: stats,
+            storeOpen: storeOpen 
+        });
+    });
+});

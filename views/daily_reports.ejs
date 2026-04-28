@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simeon Admin - Daily Reports</title>
+    <style>
+        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
+        .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
+        .stat-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; flex: 1; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #2D1B14; margin: 10px 0; }
+        .stat-label { color: #888; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+    </style>
+</head>
+<body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
+
+    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
+        <h3 style="color: #C6A664; text-align: center;">SIMEON BREWERS</h3>
+        <nav style="margin-top: 30px;">
+            <a href="/admin/orders" class="nav-item">Active Orders</a>
+            <a href="/admin/categories" class="nav-item">Manage Categories</a>
+            <a href="/admin/menu" class="nav-item">Manage Menu</a>
+            <a href="/admin/reports" class="nav-item active">Daily Reports</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/admin/menu" class="nav-item">Back to Dashboard</a>
+        </nav>
+    </div>
+
+    <div style="margin-left: 260px; padding: 40px; width: 100%;">
+        <h2 style="color: #2D1B14; margin-bottom: 30px;">Daily Business Overview</h2>
+
+        <div style="display: flex; gap: 25px;">
+            <div class="stat-card">
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-number" style="color: #C6A664;">₱<%= stats.totalRevenue || '0.00' %></div>
+                <div style="font-size: 12px; color: #27ae60;">↑ Successfully Completed</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Orders Completed</div>
+                <div class="stat-number"><%= stats.totalOrders || 0 %></div>
+                <div style="font-size: 12px; color: #888;">Today's Volume</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; background: white; padding: 30px; border-radius: 15px; border: 1px dashed #ddd; text-align: center; color: #888;">
+            <p>Advanced charts and printable PDF reports will be available in Phase 5.</p>
+        </div>
+    </div>
+</body>
+</html>
