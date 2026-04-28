@@ -190,3 +190,20 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/admin`);
 });
+
+// --- PLACE ORDER (CUSTOMER SIDE) ---
+app.post('/place-order', (req, res) => {
+    const { customer_name, items, total } = req.body;
+    const status = 'Pending';
+
+    const sql = "INSERT INTO orders (customer_name, items, total_amount, status) VALUES (?, ?, ?, ?)";
+    
+    db.query(sql, [customer_name, items, total, status], (err) => {
+        if (err) {
+            console.error(err);
+            return res.send("Order failed. Please try again.");
+        }
+        // Redirect to a "Thank You" or back to menu
+        res.send(`<h2>Thank you, ${customer_name}! Your coffee is being prepared.</h2><a href="/">Back to Menu</a>`);
+    });
+});
