@@ -236,3 +236,20 @@ app.post('/api/place-order', (req, res) => {
         res.status(200).send("Order Placed");
     });
 });
+
+app.post('/api/place-order', (req, res) => {
+    console.log("Order received:", req.body); // Check if data is arriving
+
+    const { customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price } = req.body;
+
+    const sql = `INSERT INTO orders (customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`;
+
+    db.query(sql, [customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price], (err, result) => {
+        if (err) {
+            console.error("DATABASE ERROR:", err); // This prints the real error in your terminal
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(200).send("Order Placed");
+    });
+});
