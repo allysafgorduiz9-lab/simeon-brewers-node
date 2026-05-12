@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simeon Cafe | Checkout</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f0f;
+            --card-dark: #1a1a1a;
+            --accent-gold: #C6A664;
+            --accent-hover: #e0c285;
+            --text-light: #ffffff;
+            --text-dim: #b3b3b3;
+            --emerald: #2d5a4c;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px 8%;
+        }
+
+        header {
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 40px;
+        }
+
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+        }
+
+        h2 { font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-top: 0; }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Form Styling */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); font-size: 13px; }
+        .form-control {
+            width: 100%;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: white;
+            font-family: inherit;
+            outline: none;
+        }
+        .form-control:focus { border-color: var(--accent-gold); }
+
+        /* Order Summary Table */
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        .item-details h4 { margin: 0; font-size: 16px; color: var(--text-light); }
+        .item-details p { margin: 5px 0 0; font-size: 12px; color: var(--accent-gold); }
+
+        .total-box {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #444;
+        }
+        .flex-between { display: flex; justify-content: space-between; }
+
+        .btn-order {
+            width: 100%;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: 0.3s;
+        }
+        .btn-order:hover { background: var(--accent-hover); transform: translateY(-3px); }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { color: var(--accent-gold); }
+
+        @media (max-width: 900px) {
+            .checkout-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="back-link"><i class="fas fa-chevron-left"></i> Back to Menu</a>
+        <h2>Checkout Your Order</h2>
+    </header>
+
+    <div class="checkout-layout">
+        <!-- Customer Form -->
+        <div class="card">
+            <h3>Customer Details</h3>
+            <form id="orderForm" action="/place-order" method="POST">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="customer_name" class="form-control" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" name="contact" class="form-control" placeholder="09XX XXX XXXX" required>
+                </div>
+                <div class="form-group">
+                    <label>Special Instructions</label>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="Any specific requests (e.g. less sugar, delivery instructions)"></textarea>
+                </div>
+                
+                <!-- Hidden input to pass cart data to server -->
+                <input type="hidden" name="cart_items" id="cartItemsInput">
+                <input type="hidden" name="total_amount" id="totalAmountInput">
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="card">
+            <h3>Order Summary</h3>
+            <div id="orderItemsContainer">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="total-box">
+                <div class="flex-between" style="color: var(--text-dim); margin-bottom: 10px;">
+                    <span>Subtotal</span>
+                    <span id="summarySubtotal">₱0.00</span>
+                </div>
+                <div class="flex-between" style="font-size: 20px; font-weight: 600; color: var(--accent-gold);">
+                    <span>Total</span>
+                    <span id="summaryTotal">₱0.00</span>
+                </div>
+            </div>
+
+            <button type="submit" form="orderForm" class="btn-order">CONFIRM ORDER</button>
+        </div>
+    </div>
+
+    <script>
+        // Load cart from localStorage
+        const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+        const container = document.getElementById('orderItemsContainer');
+        const itemsInput = document.getElementById('cartItemsInput');
+        const totalInput = document.getElementById('totalAmountInput');
+
+        function renderSummary() {
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim);">Your cart is empty.</p>';
+                return;
+            }
+
+            let grandTotal = 0;
+            container.innerHTML = cart.map(item => {
+                const total = item.price * item.quantity;
+                grandTotal += total;
+                return `
+                    <div class="order-item">
+                        <div class="item-details">
+                            <h4>${item.name}</h4>
+                            <p>${item.quantity} x ₱${item.price.toFixed(2)}</p>
+                        </div>
+                        <div style="font-weight: 600;">₱${total.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('summarySubtotal').innerText = '₱' + grandTotal.toFixed(2);
+            document.getElementById('summaryTotal').innerText = '₱' + grandTotal.toFixed(2);
+            
+            // Prepare data for the server
+            itemsInput.value = JSON.stringify(cart);
+            totalInput.value = grandTotal.toFixed(2);
+        }
+
+        // On form submit, clear the cart
+        document.getElementById('orderForm').onsubmit = function() {
+            localStorage.removeItem('simeon_cart');
+        };
+
+        renderSummary();
+    </script>
+</body>
+</html>
