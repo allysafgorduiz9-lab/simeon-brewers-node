@@ -220,3 +220,19 @@ app.get('/checkout', (req, res) => {
         storeOpen: true // You can replace this with your actual time-checking logic
     });
 });
+
+// Route to handle order submission
+app.post('/api/place-order', (req, res) => {
+    const { customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price } = req.body;
+
+    const sql = `INSERT INTO orders (customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`;
+
+    db.query(sql, [customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Database Error");
+        }
+        res.status(200).send("Order Placed");
+    });
+});
