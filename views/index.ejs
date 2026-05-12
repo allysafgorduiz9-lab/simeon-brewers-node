@@ -389,9 +389,8 @@
     }
 
     function checkout() {
-        localStorage.setItem('simeon_cart', JSON.stringify(cart));
-        window.location.href = '/checkout.ejs'; // Updated for EJS routing
-    }
+    window.location.href = '/checkout'; // Correct: Points to your Express route
+}
 </script>
 
 </body>
