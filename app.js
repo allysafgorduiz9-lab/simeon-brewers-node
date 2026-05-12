@@ -211,3 +211,12 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Simeon Brewers running on http://localhost:${PORT}`);
 });
+
+// This tells Express what to do when someone clicks "Checkout"
+app.get('/checkout', (req, res) => {
+    // Make sure 'checkout' matches the name of your file in the /views folder
+    // We pass storeOpen so the header styling doesn't break
+    res.render('checkout', { 
+        storeOpen: true // You can replace this with your actual time-checking logic
+    });
+});
