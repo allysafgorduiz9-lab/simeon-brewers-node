@@ -238,50 +238,7 @@
             localStorage.removeItem('simeon_cart');
             window.location.href = '/';
         }
-
-        async function placeOrder() {
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    const orderType = document.getElementById('order-type').value;
-    const notes = document.getElementById('cust-notes').value;
-    const payMethod = document.querySelector('input[name="payment"]:checked').value;
-    const ref = document.getElementById('ref-num').value;
-
-    if (!name || !phone) {
-        alert("Please fill in your name and contact number.");
-        return;
-    }
-
-    // Prepare the data to send to the server
-    const orderData = {
-        customer_name: name,
-        contact_number: phone,
-        order_type: orderType,
-        notes: notes,
-        payment_method: payMethod,
-        reference_number: ref,
-        items: JSON.stringify(cart), // Convert cart array to string
-        total_price: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-    };
-
-    try {
-        const response = await fetch('/api/place-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
-
-        if (response.ok) {
-            alert("Order placed successfully!");
-            localStorage.removeItem('simeon_cart');
-            window.location.href = '/';
-        } else {
-            alert("Failed to place order.");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
+        
 
         renderOrder();
     </script>
