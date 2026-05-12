@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simeon Cafe | Checkout</title>
+    <title>Checkout | Simeon Cafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -11,10 +11,9 @@
             --bg-dark: #0f0f0f;
             --card-dark: #1a1a1a;
             --accent-gold: #C6A664;
-            --accent-hover: #e0c285;
+            --emerald: #2ecc71;
             --text-light: #ffffff;
             --text-dim: #b3b3b3;
-            --emerald: #2d5a4c;
         }
 
         body {
@@ -22,190 +21,238 @@
             background-color: var(--bg-dark);
             color: var(--text-light);
             margin: 0;
-            padding: 20px 8%;
-        }
-
-        header {
-            padding: 30px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 40px;
+            padding: 40px 8%;
         }
 
         .checkout-layout {
             display: grid;
             grid-template-columns: 1fr 400px;
             gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        h2 { font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-top: 0; }
+        @media (max-width: 900px) {
+            .checkout-layout { grid-template-columns: 1fr; }
+        }
 
         .card {
             background: var(--card-dark);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        /* Form Styling */
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); font-size: 13px; }
-        .form-control {
-            width: 100%;
-            background: #252525;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 12px 15px;
-            color: white;
-            font-family: inherit;
-            outline: none;
-        }
-        .form-control:focus { border-color: var(--accent-gold); }
+        h2, h3 { font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-top: 0; }
 
-        /* Order Summary Table */
-        .order-item {
+        /* --- Order Summary --- */
+        .cart-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 0;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .item-details h4 { margin: 0; font-size: 16px; color: var(--text-light); }
-        .item-details p { margin: 5px 0 0; font-size: 12px; color: var(--accent-gold); }
 
-        .total-box {
+        .item-info h4 { margin: 0; font-weight: 400; }
+        .item-info p { margin: 0; font-size: 12px; color: var(--text-dim); }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
             margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px dashed #444;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-gold);
         }
-        .flex-between { display: flex; justify-content: space-between; }
+
+        /* --- Form Styling --- */
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-radio { display: none; }
+        .payment-label {
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            display: block;
+            font-weight: 600;
+        }
+
+        .payment-radio:checked + .payment-label {
+            border-color: var(--accent-gold);
+            background: rgba(198, 166, 100, 0.1);
+            color: var(--accent-gold);
+        }
+
+        /* --- GCash Section --- */
+        #gcash-details {
+            display: none;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+            border: 5px solid white;
+            border-radius: 10px;
+        }
+
+        .input-group { margin-top: 15px; text-align: left; }
+        label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+        }
+        input:focus { border-color: var(--accent-gold); }
 
         .btn-order {
-            width: 100%;
             background: var(--accent-gold);
-            color: #000;
+            color: black;
             border: none;
             padding: 18px;
-            border-radius: 15px;
-            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 30px;
-            transition: 0.3s;
+            margin-top: 25px;
+            text-transform: uppercase;
         }
-        .btn-order:hover { background: var(--accent-hover); transform: translateY(-3px); }
 
-        .back-link {
-            text-decoration: none;
-            color: var(--text-dim);
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
+        .btn-order:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(198, 166, 100, 0.2); }
+
+        .back-link { color: var(--text-dim); text-decoration: none; font-size: 14px; margin-bottom: 20px; display: inline-block; }
         .back-link:hover { color: var(--accent-gold); }
-
-        @media (max-width: 900px) {
-            .checkout-layout { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
 <body>
 
-    <header>
-        <a href="/" class="back-link"><i class="fas fa-chevron-left"></i> Back to Menu</a>
-        <h2>Checkout Your Order</h2>
-    </header>
+    <a href="/" class="back-link"><i class="fas fa-chevron-left"></i> Back to Menu</a>
 
     <div class="checkout-layout">
-        <!-- Customer Form -->
+        <!-- Left Side: Order Review -->
         <div class="card">
-            <h3>Customer Details</h3>
-            <form id="orderForm" action="/place-order" method="POST">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="customer_name" class="form-control" placeholder="Enter your name" required>
-                </div>
-                <div class="form-group">
-                    <label>Contact Number</label>
-                    <input type="tel" name="contact" class="form-control" placeholder="09XX XXX XXXX" required>
-                </div>
-                <div class="form-group">
-                    <label>Special Instructions</label>
-                    <textarea name="notes" class="form-control" rows="4" placeholder="Any specific requests (e.g. less sugar, delivery instructions)"></textarea>
-                </div>
-                
-                <!-- Hidden input to pass cart data to server -->
-                <input type="hidden" name="cart_items" id="cartItemsInput">
-                <input type="hidden" name="total_amount" id="totalAmountInput">
-            </form>
-        </div>
-
-        <!-- Order Summary -->
-        <div class="card">
-            <h3>Order Summary</h3>
-            <div id="orderItemsContainer">
+            <h2>Order Review</h2>
+            <div id="cart-items-container">
                 <!-- Injected via JS -->
             </div>
+            
+            <div class="total-row">
+                <span>Total Amount</span>
+                <span>₱<span id="grand-total">0.00</span></span>
+            </div>
+        </div>
 
-            <div class="total-box">
-                <div class="flex-between" style="color: var(--text-dim); margin-bottom: 10px;">
-                    <span>Subtotal</span>
-                    <span id="summarySubtotal">₱0.00</span>
+        <!-- Right Side: Payment -->
+        <div class="card">
+            <h3>Payment Method</h3>
+            
+            <div class="payment-options">
+                <div>
+                    <input type="radio" name="payment" id="cash" value="Cash" class="payment-radio" checked onchange="togglePayment()">
+                    <label for="cash" class="payment-label">
+                        <i class="fas fa-money-bill-wave"></i><br>Cash
+                    </label>
                 </div>
-                <div class="flex-between" style="font-size: 20px; font-weight: 600; color: var(--accent-gold);">
-                    <span>Total</span>
-                    <span id="summaryTotal">₱0.00</span>
+                <div>
+                    <input type="radio" name="payment" id="gcash" value="GCash" class="payment-radio" onchange="togglePayment()">
+                    <label for="gcash" class="payment-label">
+                        <i class="fas fa-mobile-alt"></i><br>GCash
+                    </label>
                 </div>
             </div>
 
-            <button type="submit" form="orderForm" class="btn-order">CONFIRM ORDER</button>
+            <!-- GCash Hidden Area -->
+            <div id="gcash-details">
+                <p style="font-size: 13px;">Scan the QR code to pay</p>
+                <img src="/images/gcash-qr.png" alt="GCash QR Code" class="qr-code" onerror="this.src='https://placehold.co/200x200?text=GCash+QR'">
+                
+                <div class="input-group">
+                    <label for="ref-num">GCash Reference Number (Required)</label>
+                    <input type="text" id="ref-num" placeholder="Enter 13-digit number">
+                </div>
+            </div>
+
+            <button class="btn-order" onclick="placeOrder()">Place Order</button>
         </div>
     </div>
 
     <script>
-        // Load cart from localStorage
         const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-        const container = document.getElementById('orderItemsContainer');
-        const itemsInput = document.getElementById('cartItemsInput');
-        const totalInput = document.getElementById('totalAmountInput');
+        
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            let total = 0;
 
-        function renderSummary() {
             if (cart.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-dim);">Your cart is empty.</p>';
+                container.innerHTML = `<p style="color: var(--text-dim);">Your cart is empty.</p>`;
                 return;
             }
 
-            let grandTotal = 0;
             container.innerHTML = cart.map(item => {
-                const total = item.price * item.quantity;
-                grandTotal += total;
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
                 return `
-                    <div class="order-item">
-                        <div class="item-details">
+                    <div class="cart-item">
+                        <div class="item-info">
                             <h4>${item.name}</h4>
-                            <p>${item.quantity} x ₱${item.price.toFixed(2)}</p>
+                            <p>Quantity: ${item.quantity}</p>
                         </div>
-                        <div style="font-weight: 600;">₱${total.toFixed(2)}</div>
+                        <div style="font-weight: 600;">₱${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                     </div>
                 `;
             }).join('');
 
-            document.getElementById('summarySubtotal').innerText = '₱' + grandTotal.toFixed(2);
-            document.getElementById('summaryTotal').innerText = '₱' + grandTotal.toFixed(2);
-            
-            // Prepare data for the server
-            itemsInput.value = JSON.stringify(cart);
-            totalInput.value = grandTotal.toFixed(2);
+            document.getElementById('grand-total').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
         }
 
-        // On form submit, clear the cart
-        document.getElementById('orderForm').onsubmit = function() {
-            localStorage.removeItem('simeon_cart');
-        };
+        function togglePayment() {
+            const gcashArea = document.getElementById('gcash-details');
+            const isGCash = document.getElementById('gcash').checked;
+            gcashArea.style.display = isGCash ? 'block' : 'none';
+        }
 
-        renderSummary();
+        function placeOrder() {
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            const refNum = document.getElementById('ref-num').value.trim();
+
+            if (cart.length === 0) {
+                alert("Please add items to your cart first.");
+                return;
+            }
+
+            if (paymentMethod === 'GCash' && refNum === '') {
+                alert("Please enter the GCash Reference Number to confirm your payment.");
+                return;
+            }
+
+            // Here you would typically send the data to your server via fetch()
+            // For now, we simulate a success:
+            alert(`Success! Your order via ${paymentMethod} has been placed.\nRef: ${refNum || 'N/A'}`);
+            
+            localStorage.removeItem('simeon_cart');
+            window.location.href = '/';
+        }
+
+        // Initialize
+        renderCart();
     </script>
 </body>
 </html>
