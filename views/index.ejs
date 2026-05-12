@@ -14,6 +14,7 @@
             --accent-hover: #e0c285;
             --text-light: #ffffff;
             --text-dim: #b3b3b3;
+            --primary-brown: #5D4037;
             --status-green: #27ae60;
             --danger: #e74c3c;
         }
@@ -44,7 +45,7 @@
 
         .logo-section { display: flex; align-items: center; }
         .logo-section img { border-radius: 8px; margin-right: 15px; border: 1px solid var(--accent-gold); }
-        .brand-name h1 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0; letter-spacing: 1px; }
+        .brand-name h1 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0; letter-spacing: 1px; color: var(--text-light); }
         .brand-name p { font-size: 9px; margin: 0; color: var(--accent-gold); font-weight: 600; text-transform: uppercase; }
 
         .status-pill {
@@ -61,7 +62,8 @@
 
         nav { display: flex; align-items: center; gap: 25px; }
         nav a { color: var(--text-light); text-decoration: none; font-size: 13px; font-weight: 600; }
-        
+        nav a:hover { color: var(--accent-gold); }
+
         .nav-actions { display: flex; align-items: center; gap: 12px; }
 
         .login-btn, .cart-btn {
@@ -77,17 +79,27 @@
             text-decoration: none;
         }
 
-        .cart-btn #cart-count {
-            background: var(--accent-gold);
-            color: #000;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 50%;
+        .login-btn:hover, .cart-btn:hover {
+            border-color: var(--accent-gold);
+            background: rgba(198, 166, 100, 0.05);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            height: 65vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=1920'); 
+            background-size: cover;
+            background-position: center;
+            padding: 0 10%;
         }
 
         /* --- Menu Section --- */
-        .menu-container { padding: 60px 8%; }
+        .menu-container { padding: 80px 8%; }
         .section-title { text-align: center; margin-bottom: 50px; }
         .section-title h3 { color: var(--accent-gold); letter-spacing: 3px; font-size: 14px; text-transform: uppercase; }
 
@@ -103,7 +115,9 @@
             border-radius: 20px;
             padding: 25px;
             text-align: center;
+            position: relative;
         }
+        .product-card:hover { transform: translateY(-8px); border-color: var(--accent-gold); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .product-img {
             width: 100%;
@@ -113,7 +127,7 @@
             margin-bottom: 20px;
         }
 
-        .product-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; }
+        .product-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; color: var(--text-light); }
         .product-price { color: var(--accent-gold); font-size: 18px; font-weight: 600; margin-bottom: 20px; }
 
         .btn-add {
@@ -126,16 +140,9 @@
             font-weight: 600;
             cursor: pointer;
         }
-
-        .btn-disabled {
-            background: #2a2a2a;
-            color: #555;
-            cursor: not-allowed;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-        }
+        .btn-add:hover { background: var(--accent-hover); transform: scale(1.02); }
+        
+        .btn-disabled { background: #2a2a2a; color: #555; cursor: not-allowed; width: 100%; padding: 14px; border-radius: 12px; border: none; }
 
         .qty-input {
             width: 60px;
@@ -145,7 +152,42 @@
             padding: 12px;
             border-radius: 12px;
             text-align: center;
+            font-family: inherit;
         }
+
+        .view-more-btn {
+            background: transparent;
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 12px 35px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 40px;
+            transition: 0.3s;
+        }
+        .view-more-btn:hover { background: var(--accent-gold); color: #000; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            background: #000;
+            padding: 80px 8% 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 80px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+        .footer-col h4 { color: var(--accent-gold); margin-bottom: 25px; font-size: 16px; letter-spacing: 1px; }
+        .footer-col p, .footer-col a { color: var(--text-dim); font-size: 14px; text-decoration: none; line-height: 1.8; margin-bottom: 12px; }
+        .footer-bottom { text-align: center; border-top: 1px solid #1a1a1a; padding-top: 30px; font-size: 11px; color: #444; }
     </style>
 </head>
 <body>
@@ -164,6 +206,8 @@
     <nav>
         <a href="/">HOME</a>
         <a href="#menu">MENU</a>
+        <a href="#about">ABOUT</a>
+        
         <div class="nav-actions">
             <a href="/login" class="login-btn" title="Staff Login">
                 <i class="fas fa-user-circle"></i>
@@ -176,22 +220,26 @@
     </nav>
 </header>
 
+<section class="hero">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 48px;">Welcome to <span style="color: var(--accent-gold);">Simeon Cafe</span></h2>
+    <p style="color: var(--text-dim); max-width: 600px;">Experience handcrafted coffee brewed with heart and passion in Silago.</p>
+</section>
+
 <div class="menu-container" id="menu">
     <div class="section-title">
-        <h3>Our Menu</h3>
+        <h3>Discover Our Favorites</h3>
     </div>
 
-    <div class="product-grid">
+    <div class="product-grid" id="productGrid">
         <% if (products && products.length > 0) { %>
-            <% products.forEach(p => { %>
-                <div class="product-card">
+            <% products.forEach((p, index) => { %>
+                <div class="product-card product-item" 
+                     style="<%= index >= 10 ? 'display: none;' : '' %>">
                     <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400'">
                     <div class="product-name"><%= p.name %></div>
                     
-                    <!-- Fixed Price Display -->
-                    <div class="product-price">
-                        ₱<%= (parseFloat(p.price_1) || 0).toFixed(2) %>
-                    </div>
+                    <!-- CORRECTED PRICE DISPLAY -->
+                    <div class="product-price">₱<%= (parseFloat(p.price_1) || 0).toFixed(2) %></div>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="number" value="1" min="1" id="qty-<%= p.id %>" class="qty-input">
@@ -208,20 +256,52 @@
                 </div>
             <% }); %>
         <% } else { %>
-            <p style="grid-column: 1/-1; text-align: center; color: var(--text-dim);">No items available.</p>
+            <p style="grid-column: 1/-1; text-align: center; color: var(--text-dim);">No items available in the menu currently.</p>
         <% } %>
     </div>
+
+    <% if (products && products.length > 10) { %>
+        <div style="text-align: center;">
+            <button class="view-more-btn" id="loadMoreBtn" onclick="showMoreProducts()">VIEW ALL PRODUCTS</button>
+        </div>
+    <% } %>
 </div>
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>OUR STORY</h4>
+            <p>Bringing the finest beans to Silago for an unparalleled coffee experience.</p>
+        </div>
+        <div class="footer-col">
+            <h4>CONTACT</h4>
+            <p>Poblacion District 1, Silago, Southern Leyte</p>
+            <p>0977 105 3180</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; 2026 SIMEON CAFE. ALL RIGHTS RESERVED.
+    </div>
+</footer>
 
 <script>
     let cart = [];
+
+    // Function to handle "Load More" logic
+    function showMoreProducts() {
+        const items = document.querySelectorAll('.product-item');
+        items.forEach(item => {
+            item.style.display = 'block';
+            item.style.animation = 'fadeInUp 0.5s ease forwards';
+        });
+        document.getElementById('loadMoreBtn').style.display = 'none';
+    }
 
     function addToCart(button) {
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const price = parseFloat(button.getAttribute('data-price')) || 0;
-        const qtyInput = document.getElementById('qty-' + id);
-        const qty = parseInt(qtyInput.value) || 1;
+        const qty = parseInt(document.getElementById('qty-' + id).value) || 1;
 
         const existing = cart.find(item => item.id === id);
         if (existing) {
@@ -240,9 +320,7 @@
     }
 
     function checkout() {
-        // You can pass the cart data via localStorage or a form post
-        localStorage.setItem('simeon_cart', JSON.stringify(cart));
-        window.location.href = '/checkout';
+        window.location.href = 'checkout.php';
     }
 </script>
 
