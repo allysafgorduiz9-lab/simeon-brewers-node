@@ -14,7 +14,6 @@
             --accent-hover: #e0c285;
             --text-light: #ffffff;
             --text-dim: #b3b3b3;
-            --primary-brown: #5D4037;
             --status-green: #27ae60;
             --danger: #e74c3c;
         }
@@ -29,7 +28,7 @@
             scroll-behavior: smooth;
         }
 
-        /* --- Header & Navigation --- */
+        /* --- Header --- */
         header {
             background-color: rgba(15, 15, 15, 0.98);
             padding: 15px 8%;
@@ -45,7 +44,7 @@
 
         .logo-section { display: flex; align-items: center; }
         .logo-section img { border-radius: 8px; margin-right: 15px; border: 1px solid var(--accent-gold); }
-        .brand-name h1 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0; letter-spacing: 1px; color: var(--text-light); }
+        .brand-name h1 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0; letter-spacing: 1px; }
         .brand-name p { font-size: 9px; margin: 0; color: var(--accent-gold); font-weight: 600; text-transform: uppercase; }
 
         .status-pill {
@@ -62,8 +61,7 @@
 
         nav { display: flex; align-items: center; gap: 25px; }
         nav a { color: var(--text-light); text-decoration: none; font-size: 13px; font-weight: 600; }
-        nav a:hover { color: var(--accent-gold); }
-
+        
         .nav-actions { display: flex; align-items: center; gap: 12px; }
 
         .login-btn, .cart-btn {
@@ -79,31 +77,17 @@
             text-decoration: none;
         }
 
-        .login-btn:hover, .cart-btn:hover {
-            border-color: var(--accent-gold);
-            background: rgba(198, 166, 100, 0.05);
+        .cart-btn #cart-count {
+            background: var(--accent-gold);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 50%;
         }
-
-        /* --- Hero Section --- */
-        .hero {
-            height: 65vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=1920'); 
-            background-size: cover;
-            background-position: center;
-            padding: 0 10%;
-        }
-
-        .hero h2 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px); margin-bottom: 15px; }
-        .hero h2 span { color: var(--accent-gold); }
-        .hero p { color: var(--text-dim); line-height: 1.8; max-width: 650px; font-weight: 300; }
 
         /* --- Menu Section --- */
-        .menu-container { padding: 80px 8%; }
+        .menu-container { padding: 60px 8%; }
         .section-title { text-align: center; margin-bottom: 50px; }
         .section-title h3 { color: var(--accent-gold); letter-spacing: 3px; font-size: 14px; text-transform: uppercase; }
 
@@ -119,9 +103,7 @@
             border-radius: 20px;
             padding: 25px;
             text-align: center;
-            position: relative;
         }
-        .product-card:hover { transform: translateY(-8px); border-color: var(--accent-gold); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .product-img {
             width: 100%;
@@ -131,7 +113,7 @@
             margin-bottom: 20px;
         }
 
-        .product-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; color: var(--text-light); }
+        .product-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; }
         .product-price { color: var(--accent-gold); font-size: 18px; font-weight: 600; margin-bottom: 20px; }
 
         .btn-add {
@@ -144,8 +126,16 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-add:hover { background: var(--accent-hover); transform: scale(1.02); }
-        .btn-disabled { background: #2a2a2a; color: #555; cursor: not-allowed; width: 100%; padding: 14px; border-radius: 12px; border: none; }
+
+        .btn-disabled {
+            background: #2a2a2a;
+            color: #555;
+            cursor: not-allowed;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+        }
 
         .qty-input {
             width: 60px;
@@ -155,26 +145,7 @@
             padding: 12px;
             border-radius: 12px;
             text-align: center;
-            font-family: inherit;
         }
-
-        /* --- Footer --- */
-        footer {
-            background: #000;
-            padding: 80px 8% 30px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            margin-top: 80px;
-        }
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 50px;
-            margin-bottom: 50px;
-        }
-        .footer-col h4 { color: var(--accent-gold); margin-bottom: 25px; font-size: 16px; letter-spacing: 1px; }
-        .footer-col p, .footer-col a { color: var(--text-dim); font-size: 14px; text-decoration: none; line-height: 1.8; margin-bottom: 12px; }
-        .footer-col a:hover { color: var(--accent-gold); padding-left: 5px; }
-        .footer-bottom { text-align: center; border-top: 1px solid #1a1a1a; padding-top: 30px; font-size: 11px; color: #444; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -193,14 +164,10 @@
     <nav>
         <a href="/">HOME</a>
         <a href="#menu">MENU</a>
-        <a href="#about">ABOUT</a>
-        
         <div class="nav-actions">
-            <!-- Login Icon -->
             <a href="/login" class="login-btn" title="Staff Login">
                 <i class="fas fa-user-circle"></i>
             </a>
-            <!-- Cart Button -->
             <div class="cart-btn" onclick="checkout()">
                 <i class="fas fa-shopping-cart" style="color: var(--accent-gold);"></i>
                 <span id="cart-count">0</span>
@@ -209,14 +176,9 @@
     </nav>
 </header>
 
-<section class="hero">
-    <h2>Welcome to <span>Simeon Cafe</span></h2>
-    <p>Experience the finest handcrafted coffee and treats in Silago. From our signature roasts to our cozy atmosphere, we brew every cup with heart and passion.</p>
-</section>
-
 <div class="menu-container" id="menu">
     <div class="section-title">
-        <h3>Discover Our Favorites</h3>
+        <h3>Our Menu</h3>
     </div>
 
     <div class="product-grid">
@@ -225,7 +187,11 @@
                 <div class="product-card">
                     <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400'">
                     <div class="product-name"><%= p.name %></div>
-                    <div class="product-price">₱<?= number_format(p.price_1 || 0, 2) ?></div>
+                    
+                    <!-- Fixed Price Display -->
+                    <div class="product-price">
+                        ₱<%= (parseFloat(p.price_1) || 0).toFixed(2) %>
+                    </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="number" value="1" min="1" id="qty-<%= p.id %>" class="qty-input">
@@ -233,7 +199,7 @@
                         <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>"
                                 data-id="<%= p.id %>"
                                 data-name="<%= p.name %>"
-                                data-price="<%= p.price_1 || 0 %>"
+                                data-price="<%= p.price_1 %>"
                                 onclick="addToCart(this)"
                                 <%= !storeOpen ? 'disabled' : '' %>>
                             <%= storeOpen ? 'ADD TO CART' : 'CLOSED' %>
@@ -242,44 +208,10 @@
                 </div>
             <% }); %>
         <% } else { %>
-            <p style="grid-column: 1/-1; text-align: center; color: var(--text-dim);">No items available in the menu currently.</p>
+            <p style="grid-column: 1/-1; text-align: center; color: var(--text-dim);">No items available.</p>
         <% } %>
     </div>
 </div>
-
-<footer>
-    <div class="footer-grid">
-        <div class="footer-col">
-            <h4>OUR STORY</h4>
-            <p>Simeon Cafe is dedicated to serving premium coffee and handcrafted snacks. We bring the finest beans to Silago for an unparalleled coffee experience.</p>
-            <a href="https://www.facebook.com/profile.php?id=100092630560572" target="_blank">
-                <i class="fab fa-facebook" style="margin-right: 8px;"></i> Follow our journey
-            </a>
-        </div>
-        <div class="footer-col">
-            <h4>EXPLORE</h4>
-            <a href="/">Home</a>
-            <a href="#menu">Full Menu</a>
-            <a href="#about">About Us</a>
-            <a onclick="checkout()" style="cursor: pointer;">My Cart</a>
-        </div>
-        <div class="footer-col">
-            <h4>CONTACT</h4>
-            <p><i class="fas fa-map-marker-alt" style="color: var(--accent-gold); margin-right: 10px;"></i> Poblacion District 1, Silago, Southern Leyte</p>
-            <p><i class="fas fa-phone" style="color: var(--accent-gold); margin-right: 10px;"></i> 0977 105 3180</p>
-            <p><i class="fas fa-envelope" style="color: var(--accent-gold); margin-right: 10px;"></i> hersanofritz@gmail.com</p>
-        </div>
-        <div class="footer-col">
-            <h4>VISIT US</h4>
-            <p>Monday - Sunday</p>
-            <p>8:00 AM - 10:00 PM</p>
-            <span class="status-pill">OPEN NOW</span>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        &copy; 2026 SIMEON CAFE. ALL RIGHTS RESERVED. | <a href="/login" style="color: #444; text-decoration: none;">STAFF PORTAL</a>
-    </div>
-</footer>
 
 <script>
     let cart = [];
@@ -287,8 +219,9 @@
     function addToCart(button) {
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
-        const price = parseFloat(button.getAttribute('data-price'));
-        const qty = parseInt(document.getElementById('qty-' + id).value) || 1;
+        const price = parseFloat(button.getAttribute('data-price')) || 0;
+        const qtyInput = document.getElementById('qty-' + id);
+        const qty = parseInt(qtyInput.value) || 1;
 
         const existing = cart.find(item => item.id === id);
         if (existing) {
@@ -298,7 +231,7 @@
         }
         
         updateCartCount();
-        showNotification(name + " added to cart!");
+        alert(name + " added to cart!");
     }
 
     function updateCartCount() {
@@ -306,13 +239,10 @@
         document.getElementById('cart-count').innerText = total;
     }
 
-    function showNotification(msg) {
-        // Simple non-intrusive alert replacement can go here
-        alert(msg);
-    }
-
     function checkout() {
-        window.location.href = 'checkout.php';
+        // You can pass the cart data via localStorage or a form post
+        localStorage.setItem('simeon_cart', JSON.stringify(cart));
+        window.location.href = '/checkout';
     }
 </script>
 
