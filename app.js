@@ -4,6 +4,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
+const fs = require('fs'); // File system for JSON storage
 
 const app = express();
 
@@ -287,4 +288,46 @@ app.post('/api/orders', (req, res) => {
     orders.push(order);
     
     res.json(order);
+});
+
+// ADD THIS COMPLETE ROUTE to your main server file (app.js/server.js)
+app.post('/api/orders', (req, res) => {
+    try {
+        const orderData = req.body;
+        console.log('New order:', orderData); // Debug log
+        
+        // Calculate total
+        const total = orderData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        // Create order
+        const order = {
+            orderNumber: 'ORD-' + Date.now().toString().slice(-6),
+            items: orderData.cart,
+            total: total,
+            status: 'pending',
+            customer: orderData.customer,
+            payment: orderData.payment,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Save order (choose ONE method below)
+        
+        // METHOD 1: Simple array (add this if you don't have `orders` array)
+        let orders = [];
+        if (fs.existsSync('./orders.json')) {
+            orders = JSON.parse(fs.readFileSync('./orders.json'));
+        }
+        orders.unshift(order); // Add to front
+        fs.writeFileSync('./orders.json', JSON.stringify(orders, null, 2));
+        
+        // METHOD 2: Your database (uncomment if you have one)
+        // db.collection('orders').insertOne(order);
+        
+        console.log('✅ Order created:', order.orderNumber);
+        res.json(order); // SUCCESS!
+        
+    } catch (error) {
+        console.error('❌ Order error:', error);
+        res.status(500).json({ error: 'Server error: ' + error.message });
+    }
 });
