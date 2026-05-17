@@ -145,8 +145,13 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-add:hover { background: var(--accent-hover); transform: scale(1.02); }
-        .btn-disabled { background: #2a2a2a; color: #555; cursor: not-allowed; width: 100%; padding: 14px; border-radius: 12px; border: none; }
+        .btn-add:hover:not(:disabled) { background: var(--accent-hover); transform: scale(1.02); }
+        .btn-add:disabled { 
+            background: #2a2a2a !important; 
+            color: #666 !important; 
+            cursor: not-allowed !important; 
+            opacity: 0.5;
+        }
 
         .qty-input {
             width: 60px;
@@ -158,6 +163,7 @@
             text-align: center;
             font-family: inherit;
         }
+        .qty-input:disabled { background: #1a1a1a; opacity: 0.5; }
 
         /* --- Pagination Styling --- */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 50px; }
@@ -227,7 +233,7 @@
         <div class="brand-name">
             <h1>SIMEON CAFE</h1>
             <p>Premium Coffee Shop</p>
-            <span class="status-pill <%= storeOpen ? '' : 'closed' %>">
+            <span class="status-pill" id="status-pill">
                 <%= storeOpen ? 'OPEN NOW' : 'CLOSED' %>
             </span>
         </div>
@@ -263,7 +269,7 @@
         <% if (products && products.length > 0) { %>
             <% 
                const itemsPerPage = 8;
-               const currentPage = typeof page !== 'undefined' ? parseInt(page) : 1;
+               const currentPage = typeof page !== '' ? parseInt(page) : 1;
                const start = (currentPage - 1) * itemsPerPage;
                const end = start + itemsPerPage;
                const paginatedItems = products.slice(start, end);
@@ -282,13 +288,13 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="number" value="1" min="1" id="qty-<%= p.id %>" class="qty-input">
                         
-                        <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>"
+                        <button class="btn-add"
                                 data-id="<%= p.id %>"
                                 data-name="<%= p.name %>"
                                 data-price="<%= p.price_1 || p.price || 0 %>"
                                 onclick="addToCart(this)"
-                                <%= !storeOpen ? 'disabled' : '' %>>
-                            <%= storeOpen ? 'ADD TO CART' : 'CLOSED' %>
+                                id="btn-<%= p.id %>">
+                            ADD TO CART
                         </button>
                     </div>
                 </div>
@@ -337,7 +343,7 @@
             <h4>EXPLORE</h4>
             <a href="/">Home</a>
             <a href="#menu">Full Menu</a>
-            <a onclick="checkout()" style="cursor: pointer;">My Cart</a>
+            <a onclick="checkout()" style="cursor: pointer;" id="cart-footer-link">My Cart</a>
             <a href="/login">Staff Portal</a>
         </div>
         <div class="footer-col">
@@ -362,9 +368,72 @@
 
 <script>
     let cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+    let storeOpen = <%= storeOpen %>; // Initial server value
     updateCartCount();
+    updateStoreStatus(); // Initial check
+
+    // 🔥 REAL-TIME STORE STATUS
+    async function updateStoreStatus() {
+        try {
+            const response = await fetch('/api/status');
+            const data = await response.json();
+            storeOpen = data.storeOpen;
+            
+            // Update status pill
+            const statusPill = document.getElementById('status-pill');
+            if (statusPill) {
+                statusPill.textContent = data.storeOpen ? 'OPEN NOW' : 'CLOSED';
+                statusPill.className = data.storeOpen ? 'status-pill' : 'status-pill closed';
+            }
+            
+            // Update ALL add to cart buttons & qty inputs
+            document.querySelectorAll('.btn-add').forEach(btn => {
+                if (!data.storeOpen) {
+                    btn.disabled = true;
+                    btn.textContent = 'STORE CLOSED';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'ADD TO CART';
+                }
+            });
+            
+            document.querySelectorAll('.qty-input').forEach(input => {
+                input.disabled = !data.storeOpen;
+            });
+            
+            // Update cart links
+            const cartLinks = document.querySelectorAll('#cart-footer-link, .cart-btn');
+            cartLinks.forEach(link => {
+                if (!data.storeOpen) {
+                    link.style.opacity = '0.5';
+                    link.style.pointerEvents = 'none';
+                } else {
+                    link.style.opacity = '1';
+                    link.style.pointerEvents = 'auto';
+                }
+            });
+            
+            console.log('✅ Status updated:', data.storeOpen ? 'OPEN' : 'CLOSED');
+            
+        } catch (error) {
+            console.error('Status check failed:', error);
+        }
+    }
+
+    // Check status every 30 seconds
+    setInterval(updateStoreStatus, 30000);
+    
+    // Check when user returns to tab
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) updateStoreStatus();
+    });
 
     function addToCart(button) {
+        if (!storeOpen) {
+            alert('Store is currently closed!');
+            return;
+        }
+        
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const price = parseFloat(button.getAttribute('data-price'));
@@ -389,7 +458,10 @@
     }
 
     function checkout() {
-        // This must match your Express route (e.g., app.get('/checkout', ...))
+        if (!storeOpen) {
+            alert('Store is closed! Cannot checkout.');
+            return;
+        }
         window.location.href = '/checkout';
     }
 </script>
