@@ -268,3 +268,23 @@ app.post('/login', (req, res) => {
         res.render('login', { error: 'Invalid credentials' });
     }
 });
+
+app.post('/api/orders', (req, res) => {
+    const orderData = req.body;
+    const total = orderData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const order = {
+        orderNumber: 'ORD' + Date.now().toString().slice(-6),
+        items: orderData.cart,
+        total: total,
+        status: 'pending',
+        customer: orderData.customer,
+        payment: orderData.payment,
+        createdAt: new Date()
+    };
+    
+    // Save to your orders array/database
+    orders.push(order);
+    
+    res.json(order);
+});

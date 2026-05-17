@@ -118,8 +118,55 @@
             font-size: 16px;
             cursor: pointer;
             margin-top: 10px;
+            transition: all 0.3s;
         }
+        .btn-order:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(198,166,100,0.3); }
+        .btn-order:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
         .back-link { color: var(--text-dim); text-decoration: none; display: inline-block; margin-bottom: 20px; }
+
+        /* 🎯 NEW: Receipt Modal */
+        .receipt-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); z-index: 10000; display: none; 
+            align-items: center; justify-content: center; backdrop-filter: blur(10px);
+        }
+        .receipt-card {
+            background: var(--card-dark); width: 90%; max-width: 420px; border-radius: 20px; 
+            padding: 35px; border: 3px solid var(--accent-gold); position: relative; 
+            max-height: 90vh; overflow-y: auto; animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn {
+            from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; background: none; 
+            border: none; color: white; font-size: 28px; cursor: pointer; padding: 0;
+        }
+        .order-number {
+            background: var(--accent-gold); color: #000; padding: 15px 30px; 
+            border-radius: 35px; font-weight: bold; font-size: 22px; 
+            margin: 0 auto 25px; display: block; text-align: center; letter-spacing: 2px;
+        }
+        .receipt-item {
+            display: flex; justify-content: space-between; padding: 12px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px;
+        }
+        .receipt-total {
+            font-size: 26px; font-weight: bold; color: var(--accent-gold); 
+            margin: 20px 0 15px; padding-top: 15px; border-top: 2px solid var(--accent-gold);
+            display: flex; justify-content: space-between;
+        }
+        .status-badge {
+            display: inline-block; padding: 10px 25px; border-radius: 30px; 
+            font-weight: 700; font-size: 14px; margin: 15px auto; text-align: center;
+        }
+        .status-pending { background: linear-gradient(45deg, #f39c12, #e67e22); color: white; }
+        .status-preparing { background: linear-gradient(45deg, #3498db, #2980b9); color: white; }
+        .status-ready { background: linear-gradient(45deg, #27ae60, #229954); color: white; }
+        .status-completed { background: linear-gradient(45deg, #95a5a6, #7f8c8d); color: white; }
+        .print-btn { background: #27ae60 !important; color: white !important; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -142,74 +189,122 @@
             <div class="card">
                 <h3>Customer Details</h3>
                 <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="cust-name" placeholder="Juan Dela Cruz" required>
+                    <label>Full Name <span style="color: var(--accent-gold);">*</span></label>
+                    <input type="text" id="cust-name" placeholder="Enter your full name" required>
                 </div>
                 <div class="form-group">
-                    <label>Contact Number</label>
-                    <input type="tel" id="cust-phone" placeholder="0912 345 6789" required>
+                    <label>Contact Number <span style="color: var(--accent-gold);">*</span></label>
+                    <input type="tel" id="cust-phone" placeholder="09XXXXXXXXX" required>
                 </div>
                 <div class="form-group">
                     <label>Order Type</label>
                     <select id="order-type">
-                        <option value="Pickup">Pickup</option>
-                        <option value="Dine-in">Dine-in</option>
-                        <option value="Delivery">Delivery</option>
+                        <option value="Pickup">🏃 Pickup</option>
+                        <option value="Dine-in">🍽️ Dine-in</option>
+                        <option value="Delivery">🚚 Delivery (+₱50)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Notes / Address (if delivery)</label>
-                    <textarea id="cust-notes" rows="2" placeholder="Ex: Extra sugar, or your complete address..."></textarea>
+                    <label>Special Instructions</label>
+                    <textarea id="cust-notes" rows="3" placeholder="Less ice, extra sugar, table number, delivery address..."></textarea>
                 </div>
             </div>
 
             <div class="card">
-                <h3>Payment</h3>
+                <h3>Payment Method</h3>
                 <div class="payment-options">
                     <div>
                         <input type="radio" name="payment" id="cash" value="Cash" class="payment-radio" checked onchange="togglePayment()">
-                        <label for="cash" class="payment-label"><i class="fas fa-wallet"></i> Cash</label>
+                        <label for="cash" class="payment-label">
+                            <i class="fas fa-wallet" style="margin-right: 5px;"></i> Cash
+                        </label>
                     </div>
                     <div>
                         <input type="radio" name="payment" id="gcash" value="GCash" class="payment-radio" onchange="togglePayment()">
-                        <label for="gcash" class="payment-label"><i class="fas fa-mobile-alt"></i> GCash</label>
+                        <label for="gcash" class="payment-label">
+                            <i class="fas fa-mobile-alt" style="margin-right: 5px;"></i> GCash
+                        </label>
                     </div>
                 </div>
 
                 <div id="gcash-details">
-                    <p style="font-size: 12px; margin-bottom: 5px;">Scan to Pay</p>
-                    <img src="/images/gcash-qr.png" alt="QR" class="qr-code" onerror="this.src='https://placehold.co/180x180?text=GCash+QR'">
-                    <div class="form-group" style="text-align: left;">
-                        <label>GCash Reference Number</label>
-                        <input type="text" id="ref-num" placeholder="13-digit code">
+                    <p style="font-size: 14px; margin-bottom: 10px; font-weight: 600;">Scan QR Code</p>
+                    <img src="/images/gcash-qr.png" alt="GCash QR" class="qr-code" 
+                         onerror="this.src='https://via.placeholder.com/180x180/1a1a1a/cccccc?text=GCash+QR'">
+                    <div class="form-group">
+                        <label>Reference Number (13 digits)</label>
+                        <input type="text" id="ref-num" placeholder="1234567890123" maxlength="13">
                     </div>
                 </div>
 
-                <button class="btn-order" onclick="placeOrder()">Confirm Order</button>
+                <button class="btn-order" id="placeOrderBtn" onclick="placeOrder()">
+                    <i class="fas fa-check"></i> Place Order
+                </button>
             </div>
+        </div>
+    </div>
+
+    <!-- 🎯 RECEIPT MODAL -->
+    <div class="receipt-modal" id="receiptModal">
+        <div class="receipt-card">
+            <button class="close-btn" onclick="closeReceipt()">&times;</button>
+            
+            <div class="order-number" id="orderNumber">#ORD-001</div>
+            
+            <div id="receiptItems" style="margin: 25px 0;"></div>
+            
+            <div class="receipt-total">
+                <span>TOTAL:</span>
+                <span id="receiptTotal">₱0.00</span>
+            </div>
+            
+            <div class="status-badge status-pending" id="orderStatus">PENDING</div>
+            
+            <p style="font-size: 14px; color: var(--text-dim); text-align: center; margin: 20px 0;">
+                📋 Show this order number to staff<br>
+                <small>Status updates in real-time</small>
+            </p>
+            
+            <button class="btn-order print-btn" onclick="printReceipt()">
+                🖨️ Print Receipt & Track Order
+            </button>
         </div>
     </div>
 
     <script>
         const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+        let currentOrder = null;
         
         function renderOrder() {
             const container = document.getElementById('cart-items-container');
             let total = 0;
+            
             if (cart.length === 0) {
-                container.innerHTML = `<p>Cart is empty</p>`;
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">Cart is empty. <a href="/">Continue shopping</a></p>';
+                document.querySelector('.checkout-layout').style.opacity = '0.5';
                 return;
             }
+            
             container.innerHTML = cart.map(item => {
-                total += item.price * item.quantity;
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
                 return `
                     <div class="cart-item">
-                        <span>${item.name} x ${item.quantity}</span>
-                        <span>₱${(item.price * item.quantity).toLocaleString()}</span>
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            <small>x${item.quantity} • ₱${item.price.toLocaleString()}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            ₱${itemTotal.toLocaleString()}<br>
+                            <small style="color: var(--accent-gold); font-weight: 600;">
+                                each: ₱${item.price.toLocaleString()}
+                            </small>
+                        </div>
                     </div>
                 `;
             }).join('');
-            document.getElementById('grand-total').innerText = total.toLocaleString();
+            
+            document.getElementById('grand-total').textContent = total.toLocaleString('en-PH', {minimumFractionDigits: 2});
         }
 
         function togglePayment() {
@@ -217,30 +312,89 @@
             document.getElementById('gcash-details').style.display = isGCash ? 'block' : 'none';
         }
 
-        function placeOrder() {
-            const name = document.getElementById('cust-name').value;
-            const phone = document.getElementById('cust-phone').value;
-            const payMethod = document.querySelector('input[name="payment"]:checked').value;
-            const ref = document.getElementById('ref-num').value;
+        async function placeOrder() {
+            const btn = document.getElementById('placeOrderBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const orderData = {
+                    cart: cart,
+                    customer: {
+                        name: document.getElementById('cust-name').value,
+                        phone: document.getElementById('cust-phone').value,
+                        type: document.getElementById('order-type').value,
+                        notes: document.getElementById('cust-notes').value
+                    },
+                    payment: {
+                        method: document.querySelector('input[name="payment"]:checked').value,
+                        refNumber: document.getElementById('ref-num').value
+                    }
+                };
 
-            if (!name || !phone) {
-                alert("Please fill in your name and contact number.");
-                return;
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (!response.ok) throw new Error('Order failed');
+
+                currentOrder = await response.json();
+                showReceipt(currentOrder);
+                
+                // Clear cart
+                localStorage.removeItem('simeon_cart');
+                
+            } catch (error) {
+                alert('Order failed: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Place Order';
             }
-
-            if (payMethod === 'GCash' && !ref) {
-                alert("Please provide the GCash Reference Number.");
-                return;
-            }
-
-            // In a real app, you'd send this via fetch('/api/order', { method: 'POST', body: ... })
-            alert(`Thank you, ${name}! Your ${payMethod} order is being processed.`);
-            localStorage.removeItem('simeon_cart');
-            window.location.href = '/';
         }
-        
 
+        function showReceipt(order) {
+            document.getElementById('orderNumber').textContent = '#' + order.orderNumber;
+            document.getElementById('receiptTotal').textContent = '₱' + order.total.toLocaleString('en-PH', {minimumFractionDigits: 2});
+            
+            let itemsHTML = '';
+            order.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                itemsHTML += `
+                    <div class="receipt-item">
+                        <span>${item.name}<br><small style="color: var(--text-dim);">x${item.quantity}</small></span>
+                        <span>₱${itemTotal.toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('receiptItems').innerHTML = itemsHTML;
+            
+            // Set status
+            const statusEl = document.getElementById('orderStatus');
+            statusEl.textContent = order.status.toUpperCase();
+            statusEl.className = `status-badge status-${order.status}`;
+            
+            document.getElementById('receiptModal').style.display = 'flex';
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptModal').style.display = 'none';
+        }
+
+        function printReceipt() {
+            window.print();
+            // Auto-close after print
+            setTimeout(closeReceipt, 1000);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('receiptModal').onclick = (e) => {
+            if (e.target.id === 'receiptModal') closeReceipt();
+        };
+
+        // Initialize
         renderOrder();
+        togglePayment();
     </script>
 </body>
 </html>
