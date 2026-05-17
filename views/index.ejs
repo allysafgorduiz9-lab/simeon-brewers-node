@@ -368,7 +368,7 @@
 
 <script>
     let cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-    let storeOpen = <%= storeOpen %>; // Initial server value
+    let isStoreOpen = <%- !!storeOpen %>; // ✅ FIXED: Proper EJS boolean conversion
     updateCartCount();
     updateStoreStatus(); // Initial check
 
@@ -377,7 +377,7 @@
         try {
             const response = await fetch('/api/status');
             const data = await response.json();
-            storeOpen = data.storeOpen;
+            isStoreOpen = data.storeOpen;
             
             // Update status pill
             const statusPill = document.getElementById('status-pill');
@@ -429,7 +429,7 @@
     });
 
     function addToCart(button) {
-        if (!storeOpen) {
+        if (!isStoreOpen) {
             alert('Store is currently closed!');
             return;
         }
@@ -458,13 +458,12 @@
     }
 
     function checkout() {
-        if (!storeOpen) {
+        if (!isStoreOpen) {
             alert('Store is closed! Cannot checkout.');
             return;
         }
         window.location.href = '/checkout';
     }
 </script>
-
 </body>
 </html>
