@@ -5,66 +5,435 @@
     <title>Simeon Admin - Active Orders</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
-        .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-open { background-color: #27ae60; }
-        .btn-closed { background-color: #e74c3c; }
-        .status-badge { 
-            padding: 5px 12px; 
-            border-radius: 20px; 
-            font-size: 11px; 
-            font-weight: bold; 
-            text-transform: uppercase;
-            display: inline-block;
+        * { box-sizing: border-box; }
+        body { 
+            background: linear-gradient(135deg, #F8F4F1 0%, #F5EDE3 100%); 
+            margin: 0; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            min-height: 100vh;
+            display: flex;
         }
-        .status-pending { background: #ffeaa7; color: #d63031; }
-        .status-preparing { background: #fdcb6e; color: #e17055; }
-        .status-ready { background: #55efc4; color: #00b894; }
-        .status-completed { background: #00b894; color: white; }
-        .status-cancelled { background: #ff7675; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 15px; background: #2D1B14; color: white; font-weight: 600; }
-        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; }
-        .btn-complete, .btn-next, .btn-cancel { 
-            background: #27ae60; 
+        
+        .sidebar {
+            width: 280px; 
+            background: linear-gradient(180deg, #2D1B14 0%, #1A0F0A 100%);
+            height: 100vh; 
+            color: white; 
+            padding: 30px 25px;
+            position: fixed;
+            box-shadow: 4px 0 20px rgba(45, 27, 20, 0.3);
+            overflow-y: auto;
+        }
+        
+        .logo-section {
+            text-align: center; 
+            margin-bottom: 35px; 
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .logo-img {
+            width: 65px; 
+            height: 65px; 
+            border-radius: 50%; 
+            border: 3px solid #C6A664;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(198, 166, 100, 0.3);
+        }
+        
+        .logo-title {
+            color: #C6A664; 
+            margin: 0 0 15px 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .store-status {
+            background: rgba(255,255,255,0.08); 
+            padding: 20px; 
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .status-label {
+            font-size: 12px; 
+            margin-bottom: 12px; 
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-btn { 
+            border: none; 
+            padding: 14px 20px; 
+            border-radius: 25px; 
+            color: white; 
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer; 
+            width: 100%; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .btn-open { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71); 
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .btn-closed { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b); 
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .nav-section {
+            margin-top: 25px;
+        }
+        
+        .nav-item { 
+            color: rgba(255,255,255,0.75); 
+            text-decoration: none; 
+            padding: 14px 18px; 
+            border-radius: 12px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px; 
+            font-weight: 500;
+            display: block; 
+            margin-bottom: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 0;
+            background: #C6A664;
+            transition: height 0.3s ease;
+        }
+        
+        .nav-item:hover::before,
+        .nav-item.active::before {
+            height: 100%;
+        }
+        
+        .nav-item:hover, 
+        .nav-item.active { 
+            background: rgba(255,255,255,0.12); 
+            color: white; 
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-divider {
+            border: 0; 
+            border-top: 1px solid rgba(255,255,255,0.12); 
+            margin: 25px 0;
+        }
+        
+        .live-site-link {
+            color: #C6A664 !important;
+            border: 2px solid rgba(198, 166, 100, 0.3);
+            background: rgba(198, 166, 100, 0.1);
+            text-align: center;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .live-site-link:hover {
+            background: rgba(198, 166, 100, 0.2);
+            border-color: rgba(198, 166, 100, 0.6);
+            transform: translateX(4px) !important;
+        }
+        
+        .logout-link {
+            color: #ff7675 !important;
+            font-weight: 600;
+        }
+        
+        .logout-link:hover {
+            background: rgba(255, 118, 117, 0.1);
+            border-color: rgba(255, 118, 117, 0.3);
+        }
+        
+        .main-content {
+            margin-left: 280px; 
+            padding: 50px; 
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            max-width: 1600px;
+        }
+        
+        .page-header {
+            color: #2D1B14; 
+            margin-bottom: 40px;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+        }
+        
+        .order-count-badge {
+            background: linear-gradient(135deg, #C6A664, #D4B085);
+            color: white; 
+            padding: 12px 20px; 
+            border-radius: 25px; 
+            font-size: 16px; 
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(198, 166, 100, 0.3);
+        }
+        
+        .card { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 0;
+            border-radius: 24px; 
+            box-shadow: 0 20px 60px rgba(45, 27, 20, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .status-badge { 
+            padding: 8px 16px; 
+            border-radius: 25px; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .status-pending { 
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e); 
+            color: #d63031; 
+        }
+        .status-preparing { 
+            background: linear-gradient(135deg, #fdcb6e, #fd79a8); 
+            color: #e17055; 
+        }
+        .status-ready { 
+            background: linear-gradient(135deg, #55efc4, #00cec9); 
+            color: #00b894; 
+        }
+        .status-completed { 
+            background: linear-gradient(135deg, #00b894, #00a085); 
+            color: white; 
+        }
+        .status-cancelled { 
+            background: linear-gradient(135deg, #ff7675, #e17055); 
+            color: white; 
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0;
+        }
+        
+        th { 
+            text-align: left; 
+            padding: 25px 20px; 
+            background: linear-gradient(135deg, #2D1B14, #3A271C);
+            color: white; 
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(232, 220, 202, 0.3);
+            vertical-align: top;
+            transition: all 0.2s ease;
+        }
+        
+        tr:hover td {
+            background: rgba(198, 166, 100, 0.06);
+            transform: translateX(4px);
+        }
+        
+        .btn-next, .btn-cancel { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71); 
             color: white; 
             border: none; 
-            padding: 8px 15px; 
-            border-radius: 8px; 
+            padding: 12px 24px; 
+            border-radius: 16px; 
             cursor: pointer; 
-            font-weight: bold; 
-            font-size: 12px;
-            transition: 0.3s;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            border: none;
         }
-        .btn-complete:hover, .btn-next:hover { background: #219a52; transform: translateY(-1px); }
-        .btn-cancel { background: #e74c3c; }
-        .btn-cancel:hover { background: #c0392b; }
-        .order-time { font-size: 12px; color: #8D6E63; }
-        .payment-info { font-size: 12px; color: #636e72; }
-        .notes-badge {
-            background: #C6A664; 
-            color: white; 
-            padding: 4px 10px; 
-            border-radius: 12px; 
-            font-size: 11px; 
+        
+        .btn-next:hover, .btn-cancel:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(39, 174, 96, 0.4);
+        }
+        
+        .btn-cancel { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3) !important;
+        }
+        
+        .btn-cancel:hover { 
+            box-shadow: 0 12px 30px rgba(231, 76, 60, 0.4) !important;
+        }
+        
+        .completed-badge {
+            color: #27ae60; 
+            font-weight: 700;
+            font-size: 14px;
+            background: rgba(39, 174, 96, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #27ae60;
+        }
+        
+        .order-time { 
+            font-size: 13px; 
+            color: #8D6E63; 
             font-weight: 500;
-            display: inline-block;
-            margin-top: 5px;
         }
-        .empty-state { text-align: center; color: #888; padding: 50px; }
-        .empty-state i { font-size: 48px; display: block; margin-bottom: 20px; opacity: 0.3; }
+        
+        .payment-info { 
+            font-size: 13px; 
+            color: #636e72; 
+            background: rgba(99, 110, 114, 0.1);
+            padding: 6px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        
+        .notes-badge {
+            background: linear-gradient(135deg, #C6A664, #D4B085); 
+            color: white; 
+            padding: 6px 12px; 
+            border-radius: 16px; 
+            font-size: 12px; 
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(198, 166, 100, 0.3);
+        }
+        
+        .delivery-badge {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e); 
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(253, 121, 168, 0.3);
+        }
+        
+        .price {
+            color: #2D1B14; 
+            font-weight: 700; 
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        
+        .delivery-fee {
+            font-size: 13px;
+            color: #8D6E63;
+        }
+        
+        .empty-state { 
+            text-align: center; 
+            padding: 80px 40px;
+            color: #8D6E63;
+        }
+        
+        .empty-state i { 
+            font-size: 64px; 
+            display: block; 
+            margin-bottom: 25px; 
+            opacity: 0.4;
+            color: #C6A664;
+        }
+        
+        .empty-state h3 {
+            color: #2D1B14;
+            margin-bottom: 15px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .empty-cta {
+            background: linear-gradient(135deg, #C6A664, #D4B085);
+            color: white;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 16px;
+            display: inline-block;
+            margin-top: 25px;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 0 8px 25px rgba(198, 166, 100, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .empty-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(198, 166, 100, 0.4);
+        }
+        
+        .auto-refresh {
+            margin-top: 40px; 
+            text-align: center; 
+            color: #8D6E63;
+            font-size: 14px;
+            padding: 20px;
+            background: rgba(198, 166, 100, 0.05);
+            border-radius: 16px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content { padding: 40px 30px; }
+            th, td { padding: 20px 15px; }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 260px; }
+            .main-content { margin-left: 260px; padding: 30px 20px; }
+        }
     </style>
 </head>
-<body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
-
-    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;" onerror="this.src='https://via.placeholder.com/60x60/2D1B14/C6A664?text=S'">
-            <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
-            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
-                <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
+<body>
+    <div class="sidebar">
+        <div class="logo-section">
+            <img src="/Simeon Cafe.jpg" class="logo-img" alt="Simeon Brewers" onerror="this.src='https://via.placeholder.com/65x65/2D1B14/C6A664?text=S'">
+            <h3 class="logo-title">SIMEON BREWERS</h3>
+            <div class="store-status">
+                <div class="status-label">STORE STATUS</div>
                 <form action="/admin/toggle-status" method="POST">
                     <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
                         <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
@@ -72,41 +441,57 @@
                 </form>
             </div>
         </div>
-        <nav>
-            <a href="/admin/orders" class="nav-item active"><i class="fas fa-list"></i> Active Orders</a>
-            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
-            <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
-            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Daily Reports</a>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">
+        
+        <div class="nav-section">
+            <a href="/admin/orders" class="nav-item active">
+                <i class="fas fa-list"></i> Active Orders
+            </a>
+            <a href="/admin/categories" class="nav-item">
+                <i class="fas fa-tags"></i> Manage Categories
+            </a>
+            <a href="/admin/menu" class="nav-item">
+                <i class="fas fa-utensils"></i> Manage Menu
+            </a>
+            <a href="/admin/reports" class="nav-item">
+                <i class="fas fa-chart-bar"></i> Daily Reports
+            </a>
+            
+            <hr class="nav-divider">
+            
+            <a href="/" target="_blank" class="nav-item live-site-link">
                 <i class="fas fa-external-link-alt"></i> View Live Site ↗
             </a>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/logout" class="nav-item" style="color: #ff7675;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </nav>
+            
+            <hr class="nav-divider">
+            
+            <a href="/logout" class="nav-item logout-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
     </div>
 
-    <div style="margin-left: 260px; padding: 40px; width: 100%; max-width: 1400px;">
-        <h2 style="color: #2D1B14; margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-receipt"></i> Active Customer Orders 
+    <div class="main-content">
+        <h2 class="page-header">
+            <i class="fas fa-receipt"></i> 
+            Active Customer Orders 
             <% if (orders && orders.length > 0) { %>
-                <span style="background: #C6A664; color: white; padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+                <span class="order-count-badge">
                     <%= orders.length %> Order<%= orders.length > 1 ? 's' : '' %>
                 </span>
             <% } %>
         </h2>
         
-        <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="card">
             <% if (orders && orders.length > 0) { %>
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 120px;">Order ID</th>
-                            <th style="width: 180px;">Customer</th>
+                            <th style="width: 140px;">Order ID</th>
+                            <th style="width: 200px;">Customer</th>
                             <th>Order Details</th>
-                            <th style="width: 120px;">Total</th>
-                            <th style="width: 120px;">Status</th>
-                            <th style="width: 160px; text-align: center;">Action</th>
+                            <th style="width: 140px;">Total</th>
+                            <th style="width: 140px;">Status</th>
+                            <th style="width: 180px; text-align: center;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,8 +515,10 @@
                                                 order.status === 'ready' ? 'Complete' : 'Done';
                             %>
                             <tr>
-                                <td style="font-weight: bold; color: #2D1B14;">
-                                    #<%= order.order_number || order.id %>
+                                <td>
+                                    <div style="font-weight: 700; color: #2D1B14; font-size: 18px;">
+                                        #<%= order.order_number || order.id %>
+                                    </div>
                                     <div class="order-time">
                                         <% const date = new Date(order.created_at || order.createdAt); %>
                                         <%= date.toLocaleString('en-PH', { 
@@ -140,33 +527,43 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <strong><%= order.customer_name %></strong><br>
-                                    <small style="color: #636e72;"><%= order.contact_number %></small>
+                                    <div style="font-weight: 700; color: #2D1B14; margin-bottom: 6px;">
+                                        <%= order.customer_name %>
+                                    </div>
+                                    <div style="color: #636e72; font-size: 13px;">
+                                        <%= order.contact_number %>
+                                    </div>
                                     <% if (order.order_type === 'Delivery') { %>
-                                        <div class="notes-badge">🚚 Delivery</div>
+                                        <div class="delivery-badge">🚚 Delivery</div>
                                     <% } %>
                                 </td>
-                                <td style="font-size: 13px;">
+                                <td style="font-size: 14px;">
                                     <% items.slice(0, 3).forEach((item, idx) => { %>
-                                        <%= item.name %> (x<%= item.quantity %>)<br>
+                                        <div style="color: #2D1B14; margin-bottom: 2px;">
+                                            <%= item.name %> <span style="color: #8D6E63;">(x<%= item.quantity %>)</span>
+                                        </div>
                                     <% }); %>
                                     <% if (items.length > 3) { %>
-                                        <small style="color: #8D6E63;">... +<%= items.length - 3 %> more</small>
-                                    <% } %>
-                                    <% if (order.notes) { %>
-                                        <div class="notes-badge" style="margin-top: 5px; background: #fd79a8;">
-                                            📝 <%= order.notes.substring(0, 30) %><%= order.notes.length > 30 ? '...' : '' %>
+                                        <div style="color: #8D6E63; font-size: 13px;">
+                                            ... +<%= items.length - 3 %> more
                                         </div>
                                     <% } %>
-                                    <div class="payment-info">
-                                        💳 <%= order.payment_method || 'Cash' %>
-                                        <% if (order.reference_number) { %> | <%= order.reference_number %><% } %>
-                                    </div>
+                                    <% if (order.notes) { %>
+                                        <div class="notes-badge">
+                                            📝 <%= order.notes.substring(0, 35) %><%= order.notes.length > 35 ? '...' : '' %>
+                                        </div>
+                                    <% } %>
+                                    <% if (order.payment_method || order.reference_number) { %>
+                                        <div class="payment-info">
+                                            💳 <%= order.payment_method || 'Cash' %>
+                                            <% if (order.reference_number) { %> | <%= order.reference_number %><% } %>
+                                        </div>
+                                    <% } %>
                                 </td>
-                                <td style="color: #8D6E63; font-weight: bold; font-size: 18px;">
-                                    ₱<%= total %>
+                                <td>
+                                    <div class="price">₱<%= total %></div>
                                     <% if (deliveryFee > 0) { %>
-                                        <br><small>+₱<%= deliveryFee %> delivery</small>
+                                        <div class="delivery-fee">+₱<%= deliveryFee %> delivery</div>
                                     <% } %>
                                 </td>
                                 <td>
@@ -183,11 +580,14 @@
                                             </button>
                                         </form>
                                     <% } else { %>
-                                        <span style="color: #27ae60; font-weight: bold;">✓ Completed</span>
+                                        <span class="completed-badge">
+                                            <i class="fas fa-check"></i> Completed
+                                        </span>
                                     <% } %>
                                     <% if (order.status !== 'cancelled') { %>
-                                        <form method="POST" action="/admin/cancel-order/<%= order.id %>" style="display: inline-block; margin-top: 5px;">
-                                            <button type="submit" class="btn-cancel" onclick="return confirm('Cancel this order?')" style="width: 100%; margin-top: 5px;">
+                                        <form method="POST" action="/admin/cancel-order/<%= order.id %>" style="display: inline-block; margin-top: 12px;">
+                                            <button type="submit" class="btn-cancel" 
+                                                    onclick="return confirm('Are you sure you want to cancel this order?')">
                                                 <i class="fas fa-times"></i> Cancel
                                             </button>
                                         </form>
@@ -200,18 +600,20 @@
             <% } else { %>
                 <div class="empty-state">
                     <i class="fas fa-clipboard-list-check"></i>
-                    <h3 style="color: #2D1B14; margin-bottom: 10px;">No Active Orders</h3>
-                    <p>All customer orders will appear here automatically</p>
-                    <a href="/" target="_blank" style="background: #C6A664; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px;">
-                        👀 View Live Customer Site
+                    <h3>No Active Orders</h3>
+                    <p style="font-size: 16px; margin-bottom: 30px;">All customer orders will appear here automatically when received</p>
+                    <a href="/" target="_blank" class="empty-cta">
+                        <i class="fas fa-eye"></i> View Live Customer Site
                     </a>
                 </div>
             <% } %>
         </div>
 
         <% if (orders && orders.length > 0) { %>
-            <div style="margin-top: 30px; text-align: center; color: #8D6E63;">
-                <small>🕒 Page auto-refreshes every 10 seconds | Last updated: <%= new Date().toLocaleTimeString('en-PH') %></small>
+            <div class="auto-refresh">
+                <i class="fas fa-sync-alt"></i> 
+                Page auto-refreshes every 10 seconds | 
+                Last updated: <%= new Date().toLocaleTimeString('en-PH') %>
             </div>
         <% } %>
     </div>
@@ -224,8 +626,14 @@
 
         // Smooth hover effects
         document.querySelectorAll('tr').forEach(row => {
-            row.addEventListener('mouseenter', () => row.style.background = 'rgba(198,166,100,0.05)');
-            row.addEventListener('mouseleave', () => row.style.background = '');
+            row.addEventListener('mouseenter', () => {
+                row.style.background = 'rgba(198,166,100,0.06)';
+                row.style.transform = 'translateX(4px)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.background = '';
+                row.style.transform = '';
+            });
         });
     </script>
 </body>
