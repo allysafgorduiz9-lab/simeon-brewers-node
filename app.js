@@ -104,7 +104,7 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         req.session.loggedIn = true;
-        res.redirect('/admin/menu');
+        res.redirect('/admin/active_orders');
     } else {
         res.render('login', { error: 'Invalid Credentials' });
     }
