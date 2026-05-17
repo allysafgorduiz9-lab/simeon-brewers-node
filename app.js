@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
-const fs = require('fs'); // File system for JSON storage
+const fs = require('fs');
 
 const app = express();
 
@@ -15,50 +15,63 @@ let storeOpen = true;
 
 // 1. DATABASE CONNECTION
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'simeon_brewers',
+    port: process.env.DB_PORT || 3306,
     ssl: { rejectUnauthorized: false } 
 });
 
 db.connect(err => {
-    if (err) { console.error('DB Connection Error:', err); return; }
-    console.log('✅ Simeon Brewers Database Connected Successfully!');
+    if (err) { 
+        console.error('❌ DB Connection Error:', err); 
+        console.log('🚀 Server still starting (using fallback storage)...');
+    } else {
+        console.log('✅ Simeon Brewers Database Connected!');
+    }
 });
 
-// 2. MIDDLEWARE & VIEW ENGINE
+// 2. MIDDLEWARE
 app.set('view engine', 'ejs');
 app.use(express.static('public')); 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(session({ 
-    secret: 'simeon_brewers_secret', 
+    secret: 'simeon_brewers_secret_2024', 
     resave: false, 
-    saveUninitialized: true 
+    saveUninitialized: true,
+    cookie: { secure: false }
 }));
 
-// Protects admin pages from unauthorized access
+// Auth middleware
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
 };
 
-// 3. IMAGE UPLOAD CONFIGURATION
+// 3. IMAGE UPLOAD
 const storage = multer.diskStorage({
     destination: './public/images/',
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+        cb(null, Date.now() + '-' + Math.random().toString(36).substr(2, 9) + path.extname(file.originalname));
     }
 });
 const upload = multer({ storage: storage });
 
-// --- CUSTOMER SIDE ROUTES ---
+// Ensure images directory exists
+if (!fs.existsSync('./public/images')) {
+    fs.mkdirSync('./public/images', { recursive: true });
+}
 
-// 4. CUSTOMER SIDE (HOME PAGE)
+// --- CUSTOMER ROUTES ---
+
 app.get('/', (req, res) => {
-    db.query("SELECT * FROM products ORDER BY category ASC", (err, products) => {
+    if (!db.connected) {
+        return res.render('index', { products: [], storeOpen: storeOpen });
+    }
+    
+    db.query("SELECT * FROM products WHERE active = 1 ORDER BY category ASC, name ASC", (err, products) => {
         if (err) {
             console.error('Home page products error:', err);
             return res.render('index', { products: [], storeOpen: storeOpen });
@@ -67,44 +80,104 @@ app.get('/', (req, res) => {
     });
 });
 
-// 5. ADD TO CART / PLACE ORDER API (SINGLE ROUTE ONLY)
-app.post('/api/place-order', (req, res) => {
-    console.log("Order received:", req.body);
-    
-    const { customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price } = req.body;
-
-    const sql = `INSERT INTO orders (customer_name, contact_number, order_type, notes, payment_method, reference_number, items, total_price, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`;
-
-    db.query(sql, [customer_name, contact_number || '', order_type || '', notes || '', payment_method || '', reference_number || '', items, parseFloat(total_price || 0)], (err, result) => {
-        if (err) {
-            console.error("DATABASE ERROR:", err);
-            return res.status(500).json({ success: false, error: err.message });
-        }
-        console.log(`✅ New order from ${customer_name}! Order ID: ${result.insertId}`);
-        res.json({ success: true });
-    });
-});
-
-// Live Status API for Footer/Header Badges
-app.get('/api/status', (req, res) => {
-    res.json({ storeOpen: storeOpen });
-});
-
-// Checkout page
 app.get('/checkout', (req, res) => {
     res.render('checkout', { storeOpen: storeOpen });
 });
 
-// --- ADMIN SIDE ROUTES ---
+// 🎯 FIXED: Multiple order endpoints that work with your checkout page
+app.post('/api/orders', express.json(), (req, res) => {
+    try {
+        const orderData = req.body;
+        console.log('📦 New order received:', orderData.customer?.name || 'Unknown');
+        
+        // Calculate total with delivery fee
+        let subtotal = 0;
+        orderData.cart.forEach(item => {
+            subtotal += item.price * item.quantity;
+        });
+        const deliveryFee = orderData.customer?.type === 'Delivery' ? 50 : 0;
+        const total = subtotal + deliveryFee;
+        
+        // Generate order number
+        const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
+        
+        const order = {
+            orderNumber,
+            items: orderData.cart,
+            subtotal,
+            deliveryFee,
+            total,
+            status: 'pending',
+            customer: orderData.customer,
+            payment: orderData.payment,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Save to database (if connected)
+        if (db.connected) {
+            const sql = `INSERT INTO orders (
+                order_number, customer_name, contact_number, order_type, notes, 
+                payment_method, reference_number, subtotal, delivery_fee, total_price, 
+                status, items_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            
+            db.query(sql, [
+                orderNumber,
+                order.customer.name,
+                order.customer.phone,
+                order.customer.type,
+                order.customer.notes,
+                order.payment.method,
+                order.payment.refNumber || '',
+                subtotal,
+                deliveryFee,
+                total,
+                'pending',
+                JSON.stringify(orderData.cart),
+                new Date()
+            ], (err) => {
+                if (err) {
+                    console.error('❌ DB Order Save Error:', err);
+                    // Still return success - fallback to file
+                } else {
+                    console.log('✅ Order saved to DB:', orderNumber);
+                }
+            });
+        }
+        
+        // Fallback: Save to JSON file
+        let orders = [];
+        if (fs.existsSync('./orders.json')) {
+            orders = JSON.parse(fs.readFileSync('./orders.json'));
+        }
+        orders.unshift(order);
+        fs.writeFileSync('./orders.json', JSON.stringify(orders.slice(0, 500), null, 2));
+        
+        console.log('✅ Order processed:', orderNumber, 'Total: ₱' + total.toFixed(2));
+        res.json(order);
+        
+    } catch (error) {
+        console.error('❌ Order processing error:', error);
+        res.status(500).json({ error: 'Order failed: ' + error.message });
+    }
+});
 
-// 6. AUTHENTICATION (STAFF PORTAL)
-app.get('/login', (req, res) => res.render('login', { error: null }));
+// Status API
+app.get('/api/status', (req, res) => {
+    res.json({ storeOpen: storeOpen });
+});
+
+// --- ADMIN ROUTES ---
+
+app.get('/login', (req, res) => {
+    res.render('login', { error: null });
+});
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         req.session.loggedIn = true;
+        req.session.user = { username };
         res.redirect('/admin/orders');
     } else {
         res.render('login', { error: 'Invalid Credentials' });
@@ -112,62 +185,61 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => { 
-    req.session.destroy(); 
-    res.redirect('/login'); 
+    req.session.destroy(err => {
+        if (err) console.error('Session destroy error:', err);
+        res.redirect('/login'); 
+    });
 });
 
-// 7. ADMIN - STORE STATUS TOGGLE
+// Store status toggle
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
-    console.log('Store status toggled:', storeOpen ? 'OPEN' : 'CLOSED');
-    res.json({ storeOpen: storeOpen });
+    console.log('🏪 Store status:', storeOpen ? 'OPEN' : 'CLOSED');
+    res.json({ storeOpen });
 });
 
-// 8. ADMIN - ACTIVE ORDERS
+// Admin Dashboard
 app.get('/admin/orders', isAuthenticated, (req, res) => {
-    const sql = "SELECT * FROM orders ORDER BY created_at DESC";
-    db.query(sql, (err, orders) => {
-        if (err) console.error('Orders fetch error:', err);
-        res.render('active_orders', { orders: orders || [], storeOpen: storeOpen });
-    });
-});
-
-// 9. ADMIN - MENU MANAGEMENT (✅ FIXED FOR admin_dashboard.ejs)
-app.get('/admin/menu', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM products ORDER BY id DESC", (err, products) => {
+    if (!db.connected) {
+        return res.render('active_orders', { orders: [], storeOpen });
+    }
+    
+    db.query("SELECT * FROM orders ORDER BY created_at DESC LIMIT 100", (err, orders) => {
         if (err) {
-            console.error('Menu products error:', err);
-            return res.render('admin_dashboard', { products: [], storeOpen: storeOpen });
+            console.error('Orders fetch error:', err);
+            return res.render('active_orders', { orders: [], storeOpen });
         }
-        console.log(`✅ Menu loaded: ${products.length} products`);
-        res.render('admin_dashboard', { products: products || [], storeOpen: storeOpen });
+        res.render('active_orders', { orders: orders || [], storeOpen });
     });
 });
 
+app.get('/admin/menu', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM products WHERE active = 1 ORDER BY category ASC, id DESC", (err, products) => {
+        if (err) {
+            console.error('Menu fetch error:', err);
+            return res.render('admin_dashboard', { products: [], storeOpen });
+        }
+        res.render('admin_dashboard', { products: products || [], storeOpen });
+    });
+});
+
+// Product CRUD
 app.get('/admin/add-product', isAuthenticated, (req, res) => {
     db.query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL AND category != '' ORDER BY category ASC", (err, results) => {
-        const categories = results.map(row => row.category).filter(Boolean);
-        res.render('add_product', { categories, storeOpen: storeOpen });
+        const categories = results ? results.map(row => row.category).filter(Boolean) : [];
+        res.render('add_product', { categories, storeOpen });
     });
 });
 
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1 } = req.body;
+    const { name, category, price_1, price_2, price_3, description } = req.body;
     const image = req.file ? req.file.filename : 'default.jpg';
     
-    console.log('🆕 Adding product:', { name, category, price_1, image });
-    
-    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)", 
-        [name, category, parseFloat(price_1), image], 
-        (err, result) => {
-            if (err) {
-                console.error('❌ SAVE PRODUCT ERROR:', err);
-                return res.redirect('/admin/menu');
-            }
-            console.log('✅ Product saved! ID:', result.insertId);
-            res.redirect('/admin/menu');
-        }
-    );
+    const sql = "INSERT INTO products (name, category, price_1, price_2, price_3, description, image, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
+    db.query(sql, [name, category || 'General', parseFloat(price_1) || 0, parseFloat(price_2) || 0, parseFloat(price_3) || 0, description || '', image], (err) => {
+        if (err) console.error('Product save error:', err);
+        res.redirect('/admin/menu');
+    });
 });
 
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
@@ -175,47 +247,37 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
         if (err || !product[0]) return res.redirect('/admin/menu');
         
         db.query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category ASC", (err, results) => {
-            const categories = results.map(row => row.category).filter(Boolean);
-            res.render('edit_product', { 
-                product: product[0], 
-                categories, 
-                storeOpen: storeOpen 
-            });
+            const categories = results ? results.map(row => row.category).filter(Boolean) : [];
+            res.render('edit_product', { product: product[0], categories, storeOpen });
         });
     });
 });
 
 app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1 } = req.body;
+    const { name, category, price_1, price_2, price_3, description, active } = req.body;
     const id = req.params.id;
     
     if (req.file) {
-        // Update with new image
-        db.query("UPDATE products SET name = ?, category = ?, price_1 = ?, image = ? WHERE id = ?", 
-            [name, category, parseFloat(price_1), req.file.filename, id], () => {
-                res.redirect('/admin/menu');
-            });
+        db.query("UPDATE products SET name=?, category=?, price_1=?, price_2=?, price_3=?, description=?, image=?, active=? WHERE id=?", 
+            [name, category, parseFloat(price_1), parseFloat(price_2), parseFloat(price_3), description, req.file.filename, active === 'on' ? 1 : 0, id]);
     } else {
-        // Update without image change
-        db.query("UPDATE products SET name = ?, category = ?, price_1 = ? WHERE id = ?", 
-            [name, category, parseFloat(price_1), id], () => {
-                res.redirect('/admin/menu');
-            });
+        db.query("UPDATE products SET name=?, category=?, price_1=?, price_2=?, price_3=?, description=?, active=? WHERE id=?", 
+            [name, category, parseFloat(price_1), parseFloat(price_2), parseFloat(price_3), description, active === 'on' ? 1 : 0, id]);
     }
+    res.redirect('/admin/menu');
 });
 
 app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id], (err) => {
-        if (err) console.error('Delete error:', err);
+    db.query("UPDATE products SET active = 0 WHERE id = ?", [req.params.id], (err) => {
+        if (err) console.error('Soft delete error:', err);
         res.redirect('/admin/menu');
     });
 });
 
-// 10. CATEGORY MANAGEMENT
+// Categories
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-        if (err) console.error('Categories error:', err);
-        res.render('manage_categories', { categories: categories || [], storeOpen: storeOpen });
+        res.render('manage_categories', { categories: categories || [], storeOpen });
     });
 });
 
@@ -225,109 +287,21 @@ app.post('/admin/add-category', isAuthenticated, (req, res) => {
     });
 });
 
-app.get('/admin/delete-category/:id', isAuthenticated, (req, res) => {
-    const categoryId = req.params.id;
-    db.query("SELECT name FROM categories WHERE id = ?", [categoryId], (err, results) => {
-        if (err || results.length === 0) return res.redirect('/admin/categories');
-        const categoryName = results[0].name;
-
-        db.query("SELECT COUNT(*) as count FROM products WHERE category = ?", [categoryName], (err, result) => {
-            if (result[0].count > 0) {
-                return res.send("<script>alert('Error: This category has active products!'); window.location='/admin/categories';</script>");
-            }
-            db.query("DELETE FROM categories WHERE id = ?", [categoryId], () => res.redirect('/admin/categories'));
-        });
-    });
-});
-
-// 11. REPORTS
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
-    res.render('reports', { storeOpen: storeOpen });
+    res.render('reports', { storeOpen });
 });
 
-// --- SERVER START ---
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).render('404', { storeOpen });
+});
+
+// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Simeon Brewers running on http://localhost:${PORT}`);
-    console.log(`📱 Admin: http://localhost:${PORT}/login`);
-});
-
-app.post('/login', (req, res) => {
-    const { username, password, redirect } = req.body;
-    
-    // Your login validation...
-    if (username === 'admin' && password === 'password123') { // your logic
-        req.session.user = { loggedIn: true };
-        
-        // ✅ AFTER SUCCESSFUL LOGIN:
-        if (redirect === 'active_orders') {
-            return res.redirect('/active_orders');
-        }
-        
-        res.redirect('/active_orders'); // default
-    } else {
-        res.render('login', { error: 'Invalid credentials' });
-    }
-});
-
-app.post('/api/orders', (req, res) => {
-    const orderData = req.body;
-    const total = orderData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    const order = {
-        orderNumber: 'ORD' + Date.now().toString().slice(-6),
-        items: orderData.cart,
-        total: total,
-        status: 'pending',
-        customer: orderData.customer,
-        payment: orderData.payment,
-        createdAt: new Date()
-    };
-    
-    // Save to your orders array/database
-    orders.push(order);
-    
-    res.json(order);
-});
-
-// ADD THIS COMPLETE ROUTE to your main server file (app.js/server.js)
-app.post('/api/orders', (req, res) => {
-    try {
-        const orderData = req.body;
-        console.log('New order:', orderData); // Debug log
-        
-        // Calculate total
-        const total = orderData.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
-        // Create order
-        const order = {
-            orderNumber: 'ORD-' + Date.now().toString().slice(-6),
-            items: orderData.cart,
-            total: total,
-            status: 'pending',
-            customer: orderData.customer,
-            payment: orderData.payment,
-            createdAt: new Date().toISOString()
-        };
-        
-        // Save order (choose ONE method below)
-        
-        // METHOD 1: Simple array (add this if you don't have `orders` array)
-        let orders = [];
-        if (fs.existsSync('./orders.json')) {
-            orders = JSON.parse(fs.readFileSync('./orders.json'));
-        }
-        orders.unshift(order); // Add to front
-        fs.writeFileSync('./orders.json', JSON.stringify(orders, null, 2));
-        
-        // METHOD 2: Your database (uncomment if you have one)
-        // db.collection('orders').insertOne(order);
-        
-        console.log('✅ Order created:', order.orderNumber);
-        res.json(order); // SUCCESS!
-        
-    } catch (error) {
-        console.error('❌ Order error:', error);
-        res.status(500).json({ error: 'Server error: ' + error.message });
-    }
+    console.log(`🚀 Simeon Brewers Server running on http://localhost:${PORT}`);
+    console.log(`🔐 Admin Login: http://localhost:${PORT}/login`);
+    console.log(`👤 Username: ${ADMIN_USERNAME} | Password: ${ADMIN_PASSWORD}`);
+    console.log(`🏪 Store Status: ${storeOpen ? 'OPEN' : 'CLOSED'}`);
 });
