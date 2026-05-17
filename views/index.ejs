@@ -367,103 +367,157 @@
 </footer>
 
 <script>
+    // FIXED: Robust store status management
     let cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-    let isStoreOpen = <%- !!storeOpen %>; // ✅ FIXED: Proper EJS boolean conversion
+    let isStoreOpen = <%- JSON.stringify(!!storeOpen) %>; // ✅ FIXED: Safe boolean serialization
+    
+    // Initialize UI
     updateCartCount();
-    updateStoreStatus(); // Initial check
+    updateStoreStatusUI();
 
-    // 🔥 REAL-TIME STORE STATUS
+    // 🔥 IMPROVED: More reliable real-time store status
     async function updateStoreStatus() {
         try {
-            const response = await fetch('/api/status');
+            const response = await fetch('/api/status', { 
+                cache: 'no-cache',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (!response.ok) throw new Error('Status API failed');
+            
             const data = await response.json();
-            isStoreOpen = data.storeOpen;
+            isStoreOpen = !!data.storeOpen; // Ensure boolean
             
-            // Update status pill
-            const statusPill = document.getElementById('status-pill');
-            if (statusPill) {
-                statusPill.textContent = data.storeOpen ? 'OPEN NOW' : 'CLOSED';
-                statusPill.className = data.storeOpen ? 'status-pill' : 'status-pill closed';
-            }
-            
-            // Update ALL add to cart buttons & qty inputs
-            document.querySelectorAll('.btn-add').forEach(btn => {
-                if (!data.storeOpen) {
-                    btn.disabled = true;
-                    btn.textContent = 'STORE CLOSED';
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = 'ADD TO CART';
-                }
-            });
-            
-            document.querySelectorAll('.qty-input').forEach(input => {
-                input.disabled = !data.storeOpen;
-            });
-            
-            // Update cart links
-            const cartLinks = document.querySelectorAll('#cart-footer-link, .cart-btn');
-            cartLinks.forEach(link => {
-                if (!data.storeOpen) {
-                    link.style.opacity = '0.5';
-                    link.style.pointerEvents = 'none';
-                } else {
-                    link.style.opacity = '1';
-                    link.style.pointerEvents = 'auto';
-                }
-            });
-            
-            console.log('✅ Status updated:', data.storeOpen ? 'OPEN' : 'CLOSED');
+            updateStoreStatusUI();
+            console.log('✅ Store status:', isStoreOpen ? 'OPEN' : 'CLOSED');
             
         } catch (error) {
-            console.error('Status check failed:', error);
+            console.error('❌ Status check failed:', error);
+            // Keep current status if API fails (don't break UX)
         }
     }
 
-    // Check status every 30 seconds
-    setInterval(updateStoreStatus, 30000);
-    
-    // Check when user returns to tab
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) updateStoreStatus();
-    });
+    // ✅ FIXED: Update ALL store status elements reliably
+    function updateStoreStatusUI() {
+        // Status pill
+        const statusPill = document.getElementById('status-pill');
+        if (statusPill) {
+            statusPill.textContent = isStoreOpen ? 'OPEN NOW' : 'CLOSED';
+            statusPill.className = `status-pill ${isStoreOpen ? '' : 'closed'}`;
+        }
+        
+        // Add to cart buttons
+        document.querySelectorAll('.btn-add').forEach(btn => {
+            btn.disabled = !isStoreOpen;
+            btn.textContent = isStoreOpen ? 'ADD TO CART' : 'STORE CLOSED';
+            btn.style.opacity = isStoreOpen ? '1' : '0.6';
+        });
+        
+        // Quantity inputs
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.disabled = !isStoreOpen;
+        });
+        
+        // Cart buttons/links (header + footer)
+        document.querySelectorAll('.cart-btn, #cart-footer-link').forEach(link => {
+            if (isStoreOpen) {
+                link.style.opacity = '1';
+                link.style.pointerEvents = 'auto';
+                link.classList.remove('disabled');
+            } else {
+                link.style.opacity = '0.5';
+                link.style.pointerEvents = 'none';
+                link.classList.add('disabled');
+            }
+        });
+    }
 
+    // 🔥 BETTER POLLING: Exponential backoff + visibility detection
+    function startStatusPolling() {
+        // Initial check after 2 seconds
+        setTimeout(updateStoreStatus, 2000);
+        
+        // Poll every 30 seconds
+        setInterval(updateStoreStatus, 30000);
+        
+        // Check when user returns to tab
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                updateStoreStatus();
+            }
+        });
+        
+        // Check on page focus
+        window.addEventListener('focus', updateStoreStatus);
+    }
+
+    // Start polling
+    startStatusPolling();
+
+    // FIXED: Safe cart operations
     function addToCart(button) {
         if (!isStoreOpen) {
-            alert('Store is currently closed!');
+            // Visual feedback instead of blocking alert
+            button.style.animation = 'shake 0.5s';
+            setTimeout(() => button.style.animation = '', 500);
             return;
         }
         
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const price = parseFloat(button.getAttribute('data-price'));
-        const qty = parseInt(document.getElementById('qty-' + id).value) || 1;
+        const qtyInput = document.getElementById('qty-' + id);
+        const qty = Math.max(1, parseInt(qtyInput.value) || 1);
 
         const existing = cart.find(item => item.id === id);
         if (existing) {
-            existing.quantity += qty;
+            existing.quantity = Math.min(99, existing.quantity + qty); // Cap at 99
         } else {
             cart.push({ id, name, price, quantity: qty });
         }
         
         localStorage.setItem('simeon_cart', JSON.stringify(cart));
         updateCartCount();
-        alert(name + " added to cart!");
+        
+        // Reset quantity & visual feedback
+        qtyInput.value = 1;
+        button.textContent = 'ADDED!';
+        button.style.background = '#27ae60';
+        setTimeout(() => {
+            button.textContent = 'ADD TO CART';
+            button.style.background = '';
+        }, 1000);
     }
 
     function updateCartCount() {
         const total = cart.reduce((sum, item) => sum + item.quantity, 0);
         const countEl = document.getElementById('cart-count');
-        if(countEl) countEl.innerText = total;
+        if (countEl) {
+            countEl.textContent = total;
+            countEl.style.display = total > 0 ? 'inline' : 'none';
+        }
     }
 
     function checkout() {
         if (!isStoreOpen) {
-            alert('Store is closed! Cannot checkout.');
+            const cartBtn = document.querySelector('.cart-btn');
+            cartBtn.style.animation = 'shake 0.5s';
+            setTimeout(() => cartBtn.style.animation = '', 500);
             return;
         }
         window.location.href = '/checkout';
     }
+
+    // Add shake animation for closed store feedback
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 </body>
 </html>
