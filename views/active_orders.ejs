@@ -3,6 +3,7 @@
 <head>
     <script src="/js/admin.js"></script>
     <title>Simeon Admin - Active Orders</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
         .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
@@ -10,19 +11,57 @@
         .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-open { background-color: #27ae60; }
         .btn-closed { background-color: #e74c3c; }
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .pending { background: #ffeaa7; color: #d63031; }
+        .status-badge { 
+            padding: 5px 12px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .status-pending { background: #ffeaa7; color: #d63031; }
+        .status-preparing { background: #fdcb6e; color: #e17055; }
+        .status-ready { background: #55efc4; color: #00b894; }
+        .status-completed { background: #00b894; color: white; }
+        .status-cancelled { background: #ff7675; color: white; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 15px; background: #2D1B14; color: white; }
-        td { padding: 15px; border-bottom: 1px solid #eee; }
-        .btn-complete { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        th { text-align: left; padding: 15px; background: #2D1B14; color: white; font-weight: 600; }
+        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; }
+        .btn-complete, .btn-next, .btn-cancel { 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 12px;
+            transition: 0.3s;
+        }
+        .btn-complete:hover, .btn-next:hover { background: #219a52; transform: translateY(-1px); }
+        .btn-cancel { background: #e74c3c; }
+        .btn-cancel:hover { background: #c0392b; }
+        .order-time { font-size: 12px; color: #8D6E63; }
+        .payment-info { font-size: 12px; color: #636e72; }
+        .notes-badge {
+            background: #C6A664; 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .empty-state { text-align: center; color: #888; padding: 50px; }
+        .empty-state i { font-size: 48px; display: block; margin-bottom: 20px; opacity: 0.3; }
     </style>
 </head>
 <body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
 
     <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
         <div style="text-align: center; margin-bottom: 30px;">
-            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
+            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;" onerror="this.src='https://via.placeholder.com/60x60/2D1B14/C6A664?text=S'">
             <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
             <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
                 <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
@@ -34,57 +73,160 @@
             </div>
         </div>
         <nav>
-            <a href="/admin/orders" class="nav-item active">Active Orders</a>
-            <a href="/admin/categories" class="nav-item">Manage Categories</a>
-            <a href="/admin/menu" class="nav-item">Manage Menu</a>
-            <a href="/admin/reports" class="nav-item">Daily Reports</a>
+            <a href="/admin/orders" class="nav-item active"><i class="fas fa-list"></i> Active Orders</a>
+            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
+            <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
+            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Daily Reports</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">
+                <i class="fas fa-external-link-alt"></i> View Live Site ↗
+            </a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-            <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
+            <a href="/logout" class="nav-item" style="color: #ff7675;"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
     </div>
 
-    <div style="margin-left: 260px; padding: 40px; width: 100%;">
-        <h2 style="color: #2D1B14; margin-bottom: 30px;">Active Customer Orders</h2>
+    <div style="margin-left: 260px; padding: 40px; width: 100%; max-width: 1400px;">
+        <h2 style="color: #2D1B14; margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-receipt"></i> Active Customer Orders 
+            <% if (orders && orders.length > 0) { %>
+                <span style="background: #C6A664; color: white; padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+                    <%= orders.length %> Order<%= orders.length > 1 ? 's' : '' %>
+                </span>
+            <% } %>
+        </h2>
         
         <div class="card" style="padding: 0; overflow: hidden;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Order Details</th>
-                        <th>Total Amount</th>
-                        <th>Status</th>
-                        <th style="text-align: center;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (orders && orders.length > 0) { %>
+            <% if (orders && orders.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Order ID</th>
+                            <th style="width: 180px;">Customer</th>
+                            <th>Order Details</th>
+                            <th style="width: 120px;">Total</th>
+                            <th style="width: 120px;">Status</th>
+                            <th style="width: 160px; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         <% orders.forEach(order => { %>
+                            <% 
+                                let items = [];
+                                let subtotal = 0;
+                                try {
+                                    items = JSON.parse(order.items_json || order.items || '[]');
+                                    subtotal = parseFloat(order.subtotal || 0);
+                                } catch(e) {
+                                    items = [];
+                                }
+                                const deliveryFee = parseFloat(order.delivery_fee || 0);
+                                const total = parseFloat(order.total_price || 0).toFixed(2);
+                                const nextStatus = order.status === 'pending' ? 'preparing' : 
+                                                 order.status === 'preparing' ? 'ready' : 
+                                                 order.status === 'ready' ? 'completed' : 'completed';
+                                const nextLabel = order.status === 'pending' ? 'Start Prep' : 
+                                                order.status === 'preparing' ? 'Mark Ready' : 
+                                                order.status === 'ready' ? 'Complete' : 'Done';
+                            %>
                             <tr>
-                                <td>#<%= order.id %></td>
-                                <td><strong><%= order.customer_name %></strong></td>
-                                <td><%= order.items %></td>
-                                <td style="color: #8D6E63; font-weight: bold;">₱<%= order.total_price %></td>
-                                <td><span class="status-badge pending"><%= order.status %></span></td>
+                                <td style="font-weight: bold; color: #2D1B14;">
+                                    #<%= order.order_number || order.id %>
+                                    <div class="order-time">
+                                        <% const date = new Date(order.created_at || order.createdAt); %>
+                                        <%= date.toLocaleString('en-PH', { 
+                                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                                        }) %>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong><%= order.customer_name %></strong><br>
+                                    <small style="color: #636e72;"><%= order.contact_number %></small>
+                                    <% if (order.order_type === 'Delivery') { %>
+                                        <div class="notes-badge">🚚 Delivery</div>
+                                    <% } %>
+                                </td>
+                                <td style="font-size: 13px;">
+                                    <% items.slice(0, 3).forEach((item, idx) => { %>
+                                        <%= item.name %> (x<%= item.quantity %>)<br>
+                                    <% }); %>
+                                    <% if (items.length > 3) { %>
+                                        <small style="color: #8D6E63;">... +<%= items.length - 3 %> more</small>
+                                    <% } %>
+                                    <% if (order.notes) { %>
+                                        <div class="notes-badge" style="margin-top: 5px; background: #fd79a8;">
+                                            📝 <%= order.notes.substring(0, 30) %><%= order.notes.length > 30 ? '...' : '' %>
+                                        </div>
+                                    <% } %>
+                                    <div class="payment-info">
+                                        💳 <%= order.payment_method || 'Cash' %>
+                                        <% if (order.reference_number) { %> | <%= order.reference_number %><% } %>
+                                    </div>
+                                </td>
+                                <td style="color: #8D6E63; font-weight: bold; font-size: 18px;">
+                                    ₱<%= total %>
+                                    <% if (deliveryFee > 0) { %>
+                                        <br><small>+₱<%= deliveryFee %> delivery</small>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-<%= order.status || 'pending' %>">
+                                        <%= order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending' %>
+                                    </span>
+                                </td>
                                 <td style="text-align: center;">
-                                    <button class="btn-complete">Mark as Done</button>
+                                    <% if (order.status !== 'completed' && order.status !== 'cancelled') { %>
+                                        <form method="POST" action="/admin/update-order/<%= order.id %>" style="display: inline;">
+                                            <input type="hidden" name="status" value="<%= nextStatus %>">
+                                            <button type="submit" class="btn-next">
+                                                <i class="fas fa-forward"></i> <%= nextLabel %>
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <span style="color: #27ae60; font-weight: bold;">✓ Completed</span>
+                                    <% } %>
+                                    <% if (order.status !== 'cancelled') { %>
+                                        <form method="POST" action="/admin/cancel-order/<%= order.id %>" style="display: inline-block; margin-top: 5px;">
+                                            <button type="submit" class="btn-cancel" onclick="return confirm('Cancel this order?')" style="width: 100%; margin-top: 5px;">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </form>
+                                    <% } %>
                                 </td>
                             </tr>
-                        <% }); %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #888; padding: 50px;">
-                                <i class="fas fa-coffee" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
-                                No active orders right now.
-                            </td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list-check"></i>
+                    <h3 style="color: #2D1B14; margin-bottom: 10px;">No Active Orders</h3>
+                    <p>All customer orders will appear here automatically</p>
+                    <a href="/" target="_blank" style="background: #C6A664; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px;">
+                        👀 View Live Customer Site
+                    </a>
+                </div>
+            <% } %>
         </div>
+
+        <% if (orders && orders.length > 0) { %>
+            <div style="margin-top: 30px; text-align: center; color: #8D6E63;">
+                <small>🕒 Page auto-refreshes every 10 seconds | Last updated: <%= new Date().toLocaleTimeString('en-PH') %></small>
+            </div>
+        <% } %>
     </div>
+
+    <script>
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            location.reload();
+        }, 10000);
+
+        // Smooth hover effects
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => row.style.background = 'rgba(198,166,100,0.05)');
+            row.addEventListener('mouseleave', () => row.style.background = '');
+        });
+    </script>
 </body>
 </html>
