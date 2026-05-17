@@ -86,6 +86,53 @@
             </table>
         </div>
     </div>
-
+<!-- Add this RIGHT BEFORE </body> tag in your admin_dashboard.ejs -->
+<script>
+    // Real-time store status toggle
+    document.querySelector('.status-btn').addEventListener('click', async function(e) {
+        e.preventDefault(); // Prevent page refresh
+        
+        const btn = this;
+        const wasOpen = btn.classList.contains('btn-open');
+        
+        // Show loading
+        btn.textContent = '⏳ UPDATING...';
+        btn.style.opacity = '0.7';
+        
+        try {
+            const response = await fetch('/admin/toggle-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            // Update button instantly
+            if (data.storeOpen) {
+                btn.className = 'status-btn btn-open';
+                btn.textContent = '● OPEN';
+            } else {
+                btn.className = 'status-btn btn-closed';
+                btn.textContent = '○ CLOSED';
+            }
+            
+            // Update global storeOpen for other parts of page
+            window.storeOpen = data.storeOpen;
+            console.log('✅ Store status updated:', data.storeOpen ? 'OPEN' : 'CLOSED');
+            
+        } catch (error) {
+            console.error('Status update failed:', error);
+            // Revert on error
+            if (wasOpen) {
+                btn.className = 'status-btn btn-open';
+                btn.textContent = '● OPEN';
+            } else {
+                btn.className = 'status-btn btn-closed';
+                btn.textContent = '○ CLOSED';
+            }
+        }
+        
+        btn.style.opacity = '1';
+    });
+</script>
 </body>
 </html>
