@@ -145,13 +145,8 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-add:hover:not(:disabled) { background: var(--accent-hover); transform: scale(1.02); }
-        .btn-add:disabled { 
-            background: #2a2a2a !important; 
-            color: #666 !important; 
-            cursor: not-allowed !important; 
-            opacity: 0.5;
-        }
+        .btn-add:hover { background: var(--accent-hover); transform: scale(1.02); }
+        .btn-disabled { background: #2a2a2a; color: #555; cursor: not-allowed; width: 100%; padding: 14px; border-radius: 12px; border: none; }
 
         .qty-input {
             width: 60px;
@@ -163,7 +158,6 @@
             text-align: center;
             font-family: inherit;
         }
-        .qty-input:disabled { background: #1a1a1a; opacity: 0.5; }
 
         /* --- Pagination Styling --- */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 50px; }
@@ -233,7 +227,7 @@
         <div class="brand-name">
             <h1>SIMEON CAFE</h1>
             <p>Premium Coffee Shop</p>
-            <span class="status-pill" id="status-pill">
+            <span class="status-pill <%= storeOpen ? '' : 'closed' %>">
                 <%= storeOpen ? 'OPEN NOW' : 'CLOSED' %>
             </span>
         </div>
@@ -269,7 +263,7 @@
         <% if (products && products.length > 0) { %>
             <% 
                const itemsPerPage = 8;
-               const currentPage = typeof page !== '' ? parseInt(page) : 1;
+               const currentPage = typeof page !== 'undefined' ? parseInt(page) : 1;
                const start = (currentPage - 1) * itemsPerPage;
                const end = start + itemsPerPage;
                const paginatedItems = products.slice(start, end);
@@ -288,13 +282,13 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="number" value="1" min="1" id="qty-<%= p.id %>" class="qty-input">
                         
-                        <button class="btn-add"
+                        <button class="<%= storeOpen ? 'btn-add' : 'btn-disabled' %>"
                                 data-id="<%= p.id %>"
                                 data-name="<%= p.name %>"
                                 data-price="<%= p.price_1 || p.price || 0 %>"
                                 onclick="addToCart(this)"
-                                id="btn-<%= p.id %>">
-                            ADD TO CART
+                                <%= !storeOpen ? 'disabled' : '' %>>
+                            <%= storeOpen ? 'ADD TO CART' : 'CLOSED' %>
                         </button>
                     </div>
                 </div>
@@ -343,7 +337,7 @@
             <h4>EXPLORE</h4>
             <a href="/">Home</a>
             <a href="#menu">Full Menu</a>
-            <a onclick="checkout()" style="cursor: pointer;" id="cart-footer-link">My Cart</a>
+            <a onclick="checkout()" style="cursor: pointer;">My Cart</a>
             <a href="/login">Staff Portal</a>
         </div>
         <div class="footer-col">
@@ -367,157 +361,38 @@
 </footer>
 
 <script>
-    // FIXED: Robust store status management
     let cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-    let isStoreOpen = <%- JSON.stringify(!!storeOpen) %>; // ✅ FIXED: Safe boolean serialization
-    
-    // Initialize UI
     updateCartCount();
-    updateStoreStatusUI();
 
-    // 🔥 IMPROVED: More reliable real-time store status
-    async function updateStoreStatus() {
-        try {
-            const response = await fetch('/api/status', { 
-                cache: 'no-cache',
-                headers: { 'Cache-Control': 'no-cache' }
-            });
-            
-            if (!response.ok) throw new Error('Status API failed');
-            
-            const data = await response.json();
-            isStoreOpen = !!data.storeOpen; // Ensure boolean
-            
-            updateStoreStatusUI();
-            console.log('✅ Store status:', isStoreOpen ? 'OPEN' : 'CLOSED');
-            
-        } catch (error) {
-            console.error('❌ Status check failed:', error);
-            // Keep current status if API fails (don't break UX)
-        }
-    }
-
-    // ✅ FIXED: Update ALL store status elements reliably
-    function updateStoreStatusUI() {
-        // Status pill
-        const statusPill = document.getElementById('status-pill');
-        if (statusPill) {
-            statusPill.textContent = isStoreOpen ? 'OPEN NOW' : 'CLOSED';
-            statusPill.className = `status-pill ${isStoreOpen ? '' : 'closed'}`;
-        }
-        
-        // Add to cart buttons
-        document.querySelectorAll('.btn-add').forEach(btn => {
-            btn.disabled = !isStoreOpen;
-            btn.textContent = isStoreOpen ? 'ADD TO CART' : 'STORE CLOSED';
-            btn.style.opacity = isStoreOpen ? '1' : '0.6';
-        });
-        
-        // Quantity inputs
-        document.querySelectorAll('.qty-input').forEach(input => {
-            input.disabled = !isStoreOpen;
-        });
-        
-        // Cart buttons/links (header + footer)
-        document.querySelectorAll('.cart-btn, #cart-footer-link').forEach(link => {
-            if (isStoreOpen) {
-                link.style.opacity = '1';
-                link.style.pointerEvents = 'auto';
-                link.classList.remove('disabled');
-            } else {
-                link.style.opacity = '0.5';
-                link.style.pointerEvents = 'none';
-                link.classList.add('disabled');
-            }
-        });
-    }
-
-    // 🔥 BETTER POLLING: Exponential backoff + visibility detection
-    function startStatusPolling() {
-        // Initial check after 2 seconds
-        setTimeout(updateStoreStatus, 2000);
-        
-        // Poll every 30 seconds
-        setInterval(updateStoreStatus, 30000);
-        
-        // Check when user returns to tab
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                updateStoreStatus();
-            }
-        });
-        
-        // Check on page focus
-        window.addEventListener('focus', updateStoreStatus);
-    }
-
-    // Start polling
-    startStatusPolling();
-
-    // FIXED: Safe cart operations
     function addToCart(button) {
-        if (!isStoreOpen) {
-            // Visual feedback instead of blocking alert
-            button.style.animation = 'shake 0.5s';
-            setTimeout(() => button.style.animation = '', 500);
-            return;
-        }
-        
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const price = parseFloat(button.getAttribute('data-price'));
-        const qtyInput = document.getElementById('qty-' + id);
-        const qty = Math.max(1, parseInt(qtyInput.value) || 1);
+        const qty = parseInt(document.getElementById('qty-' + id).value) || 1;
 
         const existing = cart.find(item => item.id === id);
         if (existing) {
-            existing.quantity = Math.min(99, existing.quantity + qty); // Cap at 99
+            existing.quantity += qty;
         } else {
             cart.push({ id, name, price, quantity: qty });
         }
         
         localStorage.setItem('simeon_cart', JSON.stringify(cart));
         updateCartCount();
-        
-        // Reset quantity & visual feedback
-        qtyInput.value = 1;
-        button.textContent = 'ADDED!';
-        button.style.background = '#27ae60';
-        setTimeout(() => {
-            button.textContent = 'ADD TO CART';
-            button.style.background = '';
-        }, 1000);
+        alert(name + " added to cart!");
     }
 
     function updateCartCount() {
         const total = cart.reduce((sum, item) => sum + item.quantity, 0);
         const countEl = document.getElementById('cart-count');
-        if (countEl) {
-            countEl.textContent = total;
-            countEl.style.display = total > 0 ? 'inline' : 'none';
-        }
+        if(countEl) countEl.innerText = total;
     }
 
     function checkout() {
-        if (!isStoreOpen) {
-            const cartBtn = document.querySelector('.cart-btn');
-            cartBtn.style.animation = 'shake 0.5s';
-            setTimeout(() => cartBtn.style.animation = '', 500);
-            return;
-        }
+        // This must match your Express route (e.g., app.get('/checkout', ...))
         window.location.href = '/checkout';
     }
-
-    // Add shake animation for closed store feedback
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-    `;
-    document.head.appendChild(style);
 </script>
+
 </body>
 </html>
