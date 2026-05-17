@@ -76,7 +76,8 @@
             outline: none;
             box-sizing: border-box;
         }
-        input:focus { border-color: var(--accent-gold); }
+        input:focus, select:focus { border-color: var(--accent-gold); }
+        .error { border-color: #e74c3c !important; box-shadow: 0 0 5px rgba(231,76,60,0.3); }
 
         /* --- Payment Toggle --- */
         .payment-options { display: flex; gap: 10px; margin: 15px 0; }
@@ -90,6 +91,7 @@
             cursor: pointer;
             display: block;
             font-size: 14px;
+            transition: all 0.3s;
         }
         .payment-radio:checked + .payment-label {
             border-color: var(--accent-gold);
@@ -124,6 +126,7 @@
         .btn-order:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .back-link { color: var(--text-dim); text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .back-link:hover { color: var(--accent-gold); }
 
         /* 🎯 NEW: Receipt Modal */
         .receipt-modal {
@@ -198,7 +201,7 @@
                 </div>
                 <div class="form-group">
                     <label>Order Type</label>
-                    <select id="order-type">
+                    <select id="order-type" onchange="updateTotal()">
                         <option value="Pickup">🏃 Pickup</option>
                         <option value="Dine-in">🍽️ Dine-in</option>
                         <option value="Delivery">🚚 Delivery (+₱50)</option>
@@ -275,19 +278,35 @@
         const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
         let currentOrder = null;
         
+        function calculateTotal() {
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            
+            const orderType = document.getElementById('order-type').value;
+            const deliveryFee = orderType === 'Delivery' ? 50 : 0;
+            const grandTotal = subtotal + deliveryFee;
+            
+            return { subtotal, deliveryFee, grandTotal };
+        }
+
         function renderOrder() {
             const container = document.getElementById('cart-items-container');
-            let total = 0;
+            const totals = calculateTotal();
             
             if (cart.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">Cart is empty. <a href="/">Continue shopping</a></p>';
+                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">Cart is empty. <a href="/" style="color: var(--accent-gold);">Continue shopping</a></p>';
                 document.querySelector('.checkout-layout').style.opacity = '0.5';
+                document.getElementById('placeOrderBtn').disabled = true;
                 return;
             }
             
+            document.querySelector('.checkout-layout').style.opacity = '1';
+            document.getElementById('placeOrderBtn').disabled = false;
+            
             container.innerHTML = cart.map(item => {
                 const itemTotal = item.price * item.quantity;
-                total += itemTotal;
                 return `
                     <div class="cart-item">
                         <div>
@@ -304,7 +323,12 @@
                 `;
             }).join('');
             
-            document.getElementById('grand-total').textContent = total.toLocaleString('en-PH', {minimumFractionDigits: 2});
+            document.getElementById('grand-total').textContent = totals.grandTotal.toLocaleString('en-PH', {minimumFractionDigits: 2});
+            return totals;
+        }
+
+        function updateTotal() {
+            renderOrder();
         }
 
         function togglePayment() {
@@ -312,35 +336,92 @@
             document.getElementById('gcash-details').style.display = isGCash ? 'block' : 'none';
         }
 
+        function validateForm() {
+            // Clear previous errors
+            document.querySelectorAll('input, select').forEach(el => el.classList.remove('error'));
+            
+            const name = document.getElementById('cust-name').value.trim();
+            const phone = document.getElementById('cust-phone').value.trim();
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            
+            let isValid = true;
+            
+            if (!name) {
+                document.getElementById('cust-name').classList.add('error');
+                isValid = false;
+            }
+            
+            if (!phone || !/^09\d{9}$/.test(phone)) {
+                document.getElementById('cust-phone').classList.add('error');
+                isValid = false;
+            }
+            
+            if (paymentMethod === 'GCash') {
+                const refNum = document.getElementById('ref-num').value.trim();
+                if (!refNum || refNum.length !== 13 || !/^\d{13}$/.test(refNum)) {
+                    document.getElementById('ref-num').classList.add('error');
+                    isValid = false;
+                }
+            }
+            
+            return isValid;
+        }
+
+        function generateOrderNumber() {
+            const now = new Date();
+            const year = now.getFullYear().toString().slice(-2);
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `ORD-${year}${month}${day}-${random}`;
+        }
+
         async function placeOrder() {
+            if (!validateForm()) {
+                alert('Please fill all required fields correctly.');
+                return;
+            }
+
             const btn = document.getElementById('placeOrderBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
             try {
-                const orderData = {
-                    cart: cart,
+                const totals = calculateTotal();
+                const orderNumber = generateOrderNumber();
+                
+                currentOrder = {
+                    orderNumber: orderNumber,
+                    items: cart.map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity
+                    })),
+                    total: totals.grandTotal,
+                    subtotal: totals.subtotal,
+                    deliveryFee: totals.deliveryFee,
                     customer: {
-                        name: document.getElementById('cust-name').value,
-                        phone: document.getElementById('cust-phone').value,
+                        name: document.getElementById('cust-name').value.trim(),
+                        phone: document.getElementById('cust-phone').value.trim(),
                         type: document.getElementById('order-type').value,
-                        notes: document.getElementById('cust-notes').value
+                        notes: document.getElementById('cust-notes').value.trim()
                     },
                     payment: {
                         method: document.querySelector('input[name="payment"]:checked').value,
-                        refNumber: document.getElementById('ref-num').value
-                    }
+                        refNumber: document.getElementById('ref-num').value.trim()
+                    },
+                    status: 'pending',
+                    timestamp: new Date().toISOString()
                 };
 
-                const response = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (!response.ok) throw new Error('Order failed');
-
-                currentOrder = await response.json();
+                // Save to localStorage for persistence
+                const orders = JSON.parse(localStorage.getItem('simeon_orders')) || [];
+                orders.unshift(currentOrder);
+                localStorage.setItem('simeon_orders', JSON.stringify(orders.slice(0, 100))); // Keep last 100 orders
+                
                 showReceipt(currentOrder);
                 
                 // Clear cart
@@ -348,6 +429,7 @@
                 
             } catch (error) {
                 alert('Order failed: ' + error.message);
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check"></i> Place Order';
             }
@@ -367,6 +449,16 @@
                     </div>
                 `;
             });
+            
+            if (order.deliveryFee > 0) {
+                itemsHTML += `
+                    <div class="receipt-item">
+                        <span>Delivery Fee<br><small style="color: var(--text-dim);">🚚</small></span>
+                        <span>₱${order.deliveryFee.toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
+                    </div>
+                `;
+            }
+            
             document.getElementById('receiptItems').innerHTML = itemsHTML;
             
             // Set status
@@ -383,14 +475,15 @@
 
         function printReceipt() {
             window.print();
-            // Auto-close after print
-            setTimeout(closeReceipt, 1000);
         }
 
         // Close modal on backdrop click
         document.getElementById('receiptModal').onclick = (e) => {
             if (e.target.id === 'receiptModal') closeReceipt();
         };
+
+        // Prevent zoom on iOS
+        document.addEventListener('touchstart', function() {}, true);
 
         // Initialize
         renderOrder();
