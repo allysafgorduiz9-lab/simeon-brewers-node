@@ -250,3 +250,21 @@ app.listen(PORT, () => {
     console.log(`🚀 Simeon Brewers running on http://localhost:${PORT}`);
     console.log(`📱 Admin: http://localhost:${PORT}/login`);
 });
+
+app.post('/login', (req, res) => {
+    const { username, password, redirect } = req.body;
+    
+    // Your login validation...
+    if (username === 'admin' && password === 'password123') { // your logic
+        req.session.user = { loggedIn: true };
+        
+        // ✅ AFTER SUCCESSFUL LOGIN:
+        if (redirect === 'active_orders') {
+            return res.redirect('/active_orders');
+        }
+        
+        res.redirect('/active_orders'); // default
+    } else {
+        res.render('login', { error: 'Invalid credentials' });
+    }
+});
