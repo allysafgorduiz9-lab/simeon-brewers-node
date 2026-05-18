@@ -455,12 +455,25 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    showReceipt(orderData);
-                    localStorage.removeItem('simeonCart');
-                    cart = [];
-                } else {
-                    alert('Order failed: ' + result.message);
-                }
+    showReceipt(orderData);
+    
+    // Save to order history
+    let history = JSON.parse(localStorage.getItem('orderHistory')) || [];
+    history.unshift({
+        orderNumber: orderData.orderNumber,
+        customerName: orderData.customerName,
+        customerPhone: orderData.customerPhone,
+        totalAmount: orderData.totalAmount,
+        items: orderData.items,
+        status: 'Pending',
+        date: new Date().toISOString()
+    });
+    if (history.length > 10) history = history.slice(0, 10);
+    localStorage.setItem('orderHistory', JSON.stringify(history));
+    
+    localStorage.removeItem('simeonCart');
+    cart = [];
+}
             })
             .catch(error => {
                 alert('Error placing order. Please try again.');
