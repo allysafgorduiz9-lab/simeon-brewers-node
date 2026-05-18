@@ -18,7 +18,7 @@
         .status-pill { background: var(--status-green); color: white; padding: 3px 10px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-top: 5px; display: inline-block; }
         .status-pill.closed { background: var(--danger); }
         nav { display: flex; align-items: center; gap: 25px; }
-        nav a { color: var(--text-light); text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+        nav a { color: var(--text-light); text-decoration: none; font-size: 13px; font-weight: 600; }
         nav a:hover { color: var(--accent-gold); }
         .nav-actions { display: flex; align-items: center; gap: 12px; }
         .login-btn, .cart-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); text-decoration: none; }
@@ -74,7 +74,7 @@
     </div>
     <nav>
         <a href="/">HOME</a>
-        <a onclick="smoothScroll('about-section')">ABOUT</a>
+        <a href="#about">ABOUT</a>
         <a href="#menu">MENU</a>
         <div class="nav-actions">
             <a href="/login" class="login-btn"><i class="fas fa-user-circle"></i></a>
@@ -149,7 +149,7 @@
     <% } %>
 </div>
 
-<footer id="about-section">
+<footer id="about">
     <div class="footer-grid">
         <div class="footer-col">
             <h4>ABOUT</h4>
@@ -159,7 +159,7 @@
         <div class="footer-col">
             <h4>QUICK LINKS</h4>
             <a href="/">Home</a>
-            <a onclick="smoothScroll('about-section')">About</a>
+            <a href="#about">About</a>
             <a href="#menu">Menu</a>
             <a href="/login">Staff Login</a>
         </div>
@@ -195,7 +195,7 @@ function addToCart(button) {
     alert(name + " added to cart!");
 }
 
-function updateCartCount () {
+function updateCartCount() {
     var count = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
     document.getElementById('cart-count').textContent = count;
 }
@@ -231,21 +231,6 @@ function checkStoreStatus() {
             btn.textContent = 'CLOSED';
         });
         inputs.forEach(function(input) { input.disabled = true; });
-    }
-}
-
-function smoothScroll(targetId) {
-    var target = document.getElementById(targetId);
-    var header = document.querySelector('header');
-    
-    if (target && header) {
-        var headerHeight = header.offsetHeight;
-        var targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
-        
-        window.scrollTo({
-            top: targetPosition - headerHeight - 20,
-            behavior: 'smooth'
-        });
     }
 }
 
