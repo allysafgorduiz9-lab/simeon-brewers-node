@@ -240,6 +240,70 @@ app.use((req, res) => {
     res.status(404).send('Page Not Found');
 });
 
+// ========================
+// API: Place Order
+// ========================
+app.post('/api/orders', (req, res) => {
+    const { 
+        orderNumber, customerName, customerPhone, orderType, 
+        items, subtotal, totalAmount, paymentMethod, refNumber, specialInstructions 
+    } = req.body;
+
+    const sql = `
+        INSERT INTO active_orders 
+        (order_number, customer_name, customer_phone, order_type, items, subtotal, total_amount, payment_method, ref_number, special_instructions, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+    `;
+
+    const values = [
+        orderNumber, customerName, customerPhone, orderType,
+        JSON.stringify(items), subtotal, totalAmount, paymentMethod, refNumber, specialInstructions
+    ];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Database Error:', err);
+            return res.status(500).json({ success: false, message: 'Failed to place order' });
+        }
+        res.json({ success: true, message: 'Order placed successfully', orderId: result.insertId });
+    });
+});
+
+// ========================
+// Admin: View Orders
+// ========================
+app.get('/admin/orders', (req, res) => {
+    const sql = 'SELECT * FROM active_orders ORDER BY created_at DESC';
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error loading orders');
+        }
+
+        const orders = results.map(order => {
+            try {
+                order.items = JSON.parse(order.items);
+            } catch (e) {
+                order.items = [];
+            }
+            return order;
+        });
+
+        res.render('admin/orders', { orders });
+    });
+});
+
+// ========================
+// API: Update Order Status
+// ========================
+app.post('/api/orders/update-status', (req, res) => {
+    const { orderId, status } = req.body;
+    db.query('UPDATE active_orders SET status = ? WHERE id = ?', [status, orderId], (err, result) => {
+        if (err) return res.json({ success: false });
+        res.json({ success: true });
+    });
+});
+
 // ========== SERVER START ==========
 
 app.listen(PORT, () => {
