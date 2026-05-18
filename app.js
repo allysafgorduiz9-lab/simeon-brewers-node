@@ -179,11 +179,23 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     });
 });
 
-app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
+// Update Product with Image Upload
+app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1, active } = req.body;
-    db.query("UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?",
-        [name, category, price_1, active ? 1 : 0, req.params.id]);
-    res.redirect('/admin/menu');
+    const activeValue = active === '1' ? 1 : 0;
+    
+    // Get image filename (or keep old one)
+    const image = req.file ? req.file.filename : req.body.existing_image;
+    
+    const sql = `UPDATE products SET name = ?, category = ?, price_1 = ?, active = ?, image = ? WHERE id = ?`;
+    
+    db.query(sql, [name, category, price_1, activeValue, image, req.params.id], (err) => {
+        if (err) {
+            console.error('Update Error:', err);
+            return res.redirect('/admin/menu');
+        }
+        res.redirect('/admin/menu');
+    });
 });
 
 app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
