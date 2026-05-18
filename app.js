@@ -49,7 +49,6 @@ const upload = multer({ dest: './public/images/' });
 
 // ========== PUBLIC ROUTES ==========
 
-// Home - with pagination
 app.get('/', (req, res) => {
     var page = parseInt(req.query.page) || 1;
     db.query("SELECT * FROM products WHERE active = 1 ORDER BY id ASC", (err, products) => {
@@ -62,22 +61,18 @@ app.get('/', (req, res) => {
     });
 });
 
-// About page
 app.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Checkout
 app.get('/checkout', (req, res) => {
     res.render('checkout');
 });
 
-// Login page
 app.get('/login', (req, res) => {
     res.render('login', { error: null });
 });
 
-// Login handler
 app.post('/login', (req, res) => {
     if (req.body.username === ADMIN_USERNAME && req.body.password === ADMIN_PASSWORD) {
         req.session.loggedIn = true;
@@ -87,7 +82,6 @@ app.post('/login', (req, res) => {
     }
 });
 
-// Logout
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
@@ -95,7 +89,6 @@ app.get('/logout', (req, res) => {
 
 // ========== ADMIN ROUTES (Protected) ==========
 
-// Admin Menu
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
         res.render('admin/menu', { 
@@ -106,7 +99,6 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
     });
 });
 
-// Save Product
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
     if (!name || !price_1) return res.redirect('/admin/menu');
@@ -116,14 +108,12 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
     res.redirect('/admin/menu');
 });
 
-// Toggle Product
 app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     const { productId, active } = req.body;
     db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId]);
     res.json({ success: true });
 });
 
-// Edit Product
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
@@ -138,7 +128,6 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// Update Product
 app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     const { name, category, price_1, active } = req.body;
     db.query("UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?",
@@ -146,13 +135,11 @@ app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     res.redirect('/admin/menu');
 });
 
-// Delete Product
 app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
     res.redirect('/admin/menu');
 });
 
-// Categories
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY id ASC", (err, categories) => {
         res.render('admin/categories', { 
@@ -177,41 +164,56 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
     res.redirect('/admin/categories');
 });
 
-// Toggle Store Status
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     storeStatus = storeOpen ? "OPEN" : "CLOSED";
     res.json({ success: true, storeOpen, storeStatus });
 });
 
-// Orders
+// ========== ORDERS ROUTES ==========
+
+// View Orders (Admin)
 app.get('/admin/orders', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
+    db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.render('admin/orders', { 
+                orders: [], 
+                storeOpen: storeOpen, 
+                storeStatus: storeStatus 
+            });
+        }
+
+        const orders = results.map(order => {
+            try {
+                order.items = JSON.parse(order.items);
+            } catch (e) {
+                order.items = [];
+            }
+            return order;
+        });
+
         res.render('admin/orders', { 
-            orders: orders || [], 
+            orders, 
             storeOpen: storeOpen, 
             storeStatus: storeStatus 
         });
     });
 });
 
+// Update Order Status (Admin Form Submit)
 app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
     const { orderId, status } = req.body;
-    db.query("UPDATE orders SET status = ? WHERE id = ?", [status, orderId]);
-    res.redirect('/admin/orders');
-});
-
-// Reports
-app.get('/admin/reports', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM orders", (err, orders) => {
-        const total = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
-        res.render('admin/reports', { 
-            orders: orders || [], 
-            totalOrders: orders.length, 
-            totalRevenue: total.toFixed(2), 
-            storeOpen: storeOpen, 
-            storeStatus: storeStatus 
-        });
+    
+    // Validate status
+    const validStatuses = ['Pending', 'Preparing', 'Completed'];
+    if (!validStatuses.includes(status)) {
+        return res.redirect('/admin/orders');
+    }
+    
+    db.query("UPDATE active_orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
+        if (err) console.error(err);
+        res.redirect('/admin/orders');
     });
 });
 
@@ -221,28 +223,7 @@ app.get('/api/status', (req, res) => {
     res.json({ storeOpen: storeOpen });
 });
 
-app.post('/api/orders', express.json(), (req, res) => {
-    const { cart, customer } = req.body;
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
-    
-    db.query(
-        "INSERT INTO orders (order_number, customer_name, contact_number, total_price, status, items_json) VALUES (?, ?, ?, ?, 'pending', ?)",
-        [orderNumber, customer.name, customer.phone, total, JSON.stringify(cart)]
-    );
-    
-    res.json({ orderNumber, total });
-});
-
-// ========== 404 CATCH-ALL (Must be last) ==========
-
-app.use((req, res) => {
-    res.status(404).send('Page Not Found');
-});
-
-// ========================
-// API: Place Order
-// ========================
+// Place Order (From Checkout Page)
 app.post('/api/orders', (req, res) => {
     const { 
         orderNumber, customerName, customerPhone, orderType, 
@@ -269,18 +250,38 @@ app.post('/api/orders', (req, res) => {
     });
 });
 
-// ========================
-// Admin: View Orders
-// ========================
-app.get('/admin/orders', (req, res) => {
-    const sql = 'SELECT * FROM active_orders ORDER BY created_at DESC';
-    db.query(sql, (err, results) => {
+// Update Order Status (API - For AJAX calls)
+app.post('/api/orders/update-status', (req, res) => {
+    const { orderId, status } = req.body;
+    
+    const validStatuses = ['Pending', 'Preparing', 'Completed'];
+    if (!validStatuses.includes(status)) {
+        return res.json({ success: false, message: 'Invalid status' });
+    }
+    
+    db.query("UPDATE active_orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
+        if (err) return res.json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+// ========== REPORTS ROUTE ==========
+
+app.get('/admin/reports', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, orders) => {
         if (err) {
             console.error(err);
-            return res.status(500).send('Error loading orders');
+            return res.render('admin/reports', { 
+                orders: [], 
+                totalOrders: 0, 
+                totalRevenue: '0.00', 
+                storeOpen: storeOpen, 
+                storeStatus: storeStatus 
+            });
         }
 
-        const orders = results.map(order => {
+        // Parse items for each order
+        const parsedOrders = orders.map(order => {
             try {
                 order.items = JSON.parse(order.items);
             } catch (e) {
@@ -289,19 +290,22 @@ app.get('/admin/orders', (req, res) => {
             return order;
         });
 
-        res.render('admin/orders', { orders });
+        const total = parsedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        
+        res.render('admin/reports', { 
+            orders: parsedOrders, 
+            totalOrders: parsedOrders.length, 
+            totalRevenue: total.toFixed(2), 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus 
+        });
     });
 });
 
-// ========================
-// API: Update Order Status
-// ========================
-app.post('/api/orders/update-status', (req, res) => {
-    const { orderId, status } = req.body;
-    db.query('UPDATE active_orders SET status = ? WHERE id = ?', [status, orderId], (err, result) => {
-        if (err) return res.json({ success: false });
-        res.json({ success: true });
-    });
+// ========== 404 CATCH-ALL ==========
+
+app.use((req, res) => {
+    res.status(404).send('Page Not Found');
 });
 
 // ========== SERVER START ==========
