@@ -3,7 +3,6 @@ const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 const session = require('express-session');
-const fs = require('fs');
 
 const app = express();
 
@@ -11,19 +10,35 @@ const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'password123'; 
 let storeOpen = true; 
 
-// DATABASE
+console.log('=== SIMEON BREWERS ===');
+console.log('DB:', process.env.DB_NAME);
+
+// DATABASE - Added connection timeout and retry
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    ssl: { rejectUnauthorized: false } 
+    ssl: { rejectUnauthorized: false },
+    connectTimeout: 10000
 });
 
 db.connect((err) => {
-    if (err) console.log('❌ DB Error:', err.message);
-    else console.log('✅ DB Connected!');
+    if (err) {
+        console.log('❌ DB Error:', err.message);
+    } else {
+        console.log('✅ DB Connected!');
+    }
+});
+
+// Error handler for database
+db.on('error', (err) => {
+    console.log('DB Error:', err.message);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.log('Reconnecting...');
+        db.connect();
+    }
 });
 
 // MIDDLEWARE
@@ -31,7 +46,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'simeon2024', resave: false, saveUninitialized: true }));
+app.use(session({ secret: 'simeon2024', resave: false, saveUninitialized: true, cookie: { maxAge: 3600000 } }));
 
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
@@ -63,27 +78,41 @@ app.post('/login', (req, res) => {
 
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
 
-// ADMIN MENU - SHOW ALL PRODUCTS (NO FILTER)
+// ADMIN MENU
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     const sql = "SELECT * FROM products ORDER BY id ASC";
     db.query(sql, (err, products) => {
-        console.log('Products loaded:', products ? products.length : 0);
+        if (err) {
+            console.log('Error:', err.message);
+            products = [];
+        }
         res.render('admin/menu', { products: products || [], storeOpen: storeOpen });
     });
 });
 
-// SAVE PRODUCT
+// SAVE PRODUCT - Fixed!
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1, price_2, price_3, description } = req.body;
-    const sql = "INSERT INTO products (name, category, price_1, price_2, price_3, description, image, active) VALUES (?, ?, ?, ?, ?, ?, 'default.jpg', 1)";
-    db.query(sql, [name, category, price_1, price_2, price_3, description], (err) => {
-        if (err) console.log('Save error:', err);
-        else console.log('Product saved!');
-    });
-    res.redirect('/admin/menu');
+    try {
+        const { name, category, price_1, price_2, price_3, description } = req.body;
+        
+        if (!name || name.trim() === '') {
+            return res.redirect('/admin/menu');
+        }
+        
+        const sql = "INSERT INTO products (name, category, price_1, price_2, price_3, description, image, active) VALUES (?, ?, ?, ?, ?, ?, 'default.jpg', 1)";
+        db.query(sql, [name, category || 'General', price_1 || 0, price_2 || 0, price_3 || 0, description || ''], (err) => {
+            if (err) console.log('Save error:', err.message);
+            else console.log('Saved!');
+        });
+        
+        res.redirect('/admin/menu');
+    } catch (e) {
+        console.log('Error:', e.message);
+        res.redirect('/admin/menu');
+    }
 });
 
-// EDIT PRODUCT PAGE
+// EDIT PRODUCT
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
@@ -95,16 +124,18 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
 });
 
 // UPDATE PRODUCT
-app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
+app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     const { name, category, price_1, price_2, price_3, description, active } = req.body;
     const sql = "UPDATE products SET name=?, category=?, price_1=?, price_2=?, price_3=?, description=?, active=? WHERE id=?";
-    db.query(sql, [name, category, price_1, price_2, price_3, description, active === 'on' ? 1 : 0, req.params.id]);
+    db.query(sql, [name, category, price_1, price_2, price_3, description, active ? 1 : 0, req.params.id]);
     res.redirect('/admin/menu');
 });
 
 // DELETE PRODUCT
 app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
+    db.query("DELETE FROM products WHERE id = ?", [req.params.id], (err) => {
+        if (err) console.log('Delete error:', err.message);
+    });
     res.redirect('/admin/menu');
 });
 
