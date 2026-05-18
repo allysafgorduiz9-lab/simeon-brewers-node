@@ -85,6 +85,7 @@
             <div class="card-body">
                 <form action="/admin/update-product/<%= product.id %>" method="POST" enctype="multipart/form-data">
                     
+                        <input type="hidden" name="existing_image" value="<%= product.image || '' %>">
                     <!-- ADD THIS - Current Product Image -->
                     <div class="current-image-section">
                         <span class="current-image-label">Current Image</span>
