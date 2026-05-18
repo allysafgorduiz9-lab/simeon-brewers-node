@@ -125,3 +125,51 @@ app.listen(PORT, () => {
     console.log('🚀 http://localhost:' + PORT);
     console.log('🔐 Login: admin / password123');
 });
+
+// ADMIN MENU
+app.get('/admin/menu', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
+        res.render('admin/menu', { products: products || [], storeOpen: storeOpen });
+    });
+});
+
+// SAVE PRODUCT
+app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
+    const { name, category, price_1 } = req.body;
+    if (!name || !price_1) return res.redirect('/admin/menu');
+    const image = req.file ? req.file.filename : 'default.jpg';
+    db.query("INSERT INTO products (name, category, price_1, image, active) VALUES (?, ?, ?, ?, 1)",
+        [name, category || 'General', price_1, image]);
+    res.redirect('/admin/menu');
+});
+
+// TOGGLE PRODUCT
+app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
+    db.query("UPDATE products SET active = ? WHERE id = ?", [req.body.active, req.body.productId]);
+    res.redirect('/admin/menu');
+});
+
+// EDIT PRODUCT PAGE
+app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
+        if (products && products.length > 0) {
+            res.render('admin/edit_product', { product: products[0], storeOpen: storeOpen });
+        } else {
+            res.redirect('/admin/menu');
+        }
+    });
+});
+
+// UPDATE PRODUCT
+app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
+    const { name, category, price_1, active } = req.body;
+    db.query("UPDATE products SET name=?, category=?, price_1=?, active=? WHERE id=?",
+        [name, category, price_1, active || 1, req.params.id]);
+    res.redirect('/admin/menu');
+});
+
+// DELETE PRODUCT
+app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
+    db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
+    res.redirect('/admin/menu');
+});

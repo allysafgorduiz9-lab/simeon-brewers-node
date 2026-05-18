@@ -27,8 +27,8 @@
         .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
         .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
         
-        .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(198,166,100,0.3); }
+        .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-add:hover { transform: translateY(-2px); }
         
         .menu-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; margin-bottom: 30px; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
@@ -43,10 +43,15 @@
         
         .action-buttons { display: flex; gap: 8px; }
         .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; }
+        .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
+        .btn-edit:hover { background: #2980b9; }
         .btn-delete:hover { background: #c0392b; }
         
-        /* Modal */
+        .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-available { background: #27ae60; color: white; }
+        .btn-unavailable { background: #e74c3c; color: white; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
         .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
@@ -56,7 +61,6 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #C6A664; }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
@@ -98,7 +102,7 @@
             <div class="empty-state">
                 <i class="fas fa-coffee"></i>
                 <h3>No Products Yet</h3>
-                <p>Add your first product to get started.</p>
+                <p>Add your first product.</p>
             </div>
         </div>
         <% } else { %>
@@ -111,6 +115,7 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Price</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -118,16 +123,22 @@
                     <% products.forEach(function(product) { %>
                     <tr>
                         <td><%= product.id %></td>
-                        <td>
-                            <div class="product-name"><%= product.name %></div>
-                        </td>
+                        <td><div class="product-name"><%= product.name %></div></td>
                         <td><span class="product-category"><%= product.category %></span></td>
+                        <td><div class="product-price">₱<%= product.price_1 %></div></td>
                         <td>
-                            <div class="product-price">₱<%= product.price_1 %></div>
+                            <form action="/admin/toggle-product" method="POST" style="display:inline;">
+                                <input type="hidden" name="productId" value="<%= product.id %>">
+                                <input type="hidden" name="active" value="<%= product.active == 1 ? 0 : 1 %>">
+                                <button type="submit" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>">
+                                    <%= product.active == 1 ? 'Available' : 'Unavailable' %>
+                                </button>
+                            </form>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete this product?')"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="/admin/edit-product/<%= product.id %>" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i> Delete</a>
                             </div>
                         </td>
                     </tr>
@@ -148,7 +159,7 @@
             <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>Product Name *</label>
-                    <input type="text" name="name" required placeholder="Enter product name">
+                    <input type="text" name="name" required>
                 </div>
                 <div class="form-group">
                     <label>Category</label>
@@ -161,18 +172,13 @@
                         <option value="Appetizers">Appetizers</option>
                         <option value="Sandwiches">Sandwiches</option>
                         <option value="Burgers">Burgers</option>
-                        <option value="Others">Others</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Price *</label>
-                    <input type="number" name="price_1" required placeholder="Enter price" step="0.01">
+                    <input type="number" name="price_1" required step="0.01">
                 </div>
-                <div class="form-group">
-                    <label>Product Image</label>
-                    <input type="file" name="image" accept="image/*">
-                </div>
-                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save Product</button>
+                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save</button>
             </form>
         </div>
     </div>
