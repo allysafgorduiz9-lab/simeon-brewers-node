@@ -3,323 +3,25 @@
 <head>
     <script src="/js/admin.js"></script>
     <title>Simeon Admin - Daily Reports</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            background: linear-gradient(135deg, #F8F4F1 0%, #F5EDE3 100%); 
-            margin: 0; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            min-height: 100vh;
-            display: flex;
-        }
-        
-        .sidebar {
-            width: 280px; 
-            background: linear-gradient(180deg, #2D1B14 0%, #1A0F0A 100%);
-            height: 100vh; 
-            color: white; 
-            padding: 30px 25px;
-            position: fixed;
-            box-shadow: 4px 0 20px rgba(45, 27, 20, 0.3);
-            overflow-y: auto;
-        }
-        
-        .logo-section {
-            text-align: center; 
-            margin-bottom: 35px; 
-            padding-bottom: 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        
-        .logo-img {
-            width: 65px; 
-            height: 65px; 
-            border-radius: 50%; 
-            border: 3px solid #C6A664;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(198, 166, 100, 0.3);
-        }
-        
-        .logo-title {
-            color: #C6A664; 
-            margin: 0 0 15px 0;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        
-        .store-status {
-            background: rgba(255,255,255,0.08); 
-            padding: 20px; 
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .status-label {
-            font-size: 12px; 
-            margin-bottom: 12px; 
-            color: rgba(255,255,255,0.6);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .status-btn { 
-            border: none; 
-            padding: 14px 20px; 
-            border-radius: 25px; 
-            color: white; 
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer; 
-            width: 100%; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: 0.3px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .status-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-        
-        .btn-open { 
-            background: linear-gradient(135deg, #27ae60, #2ecc71); 
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-        }
-        
-        .btn-closed { 
-            background: linear-gradient(135deg, #e74c3c, #c0392b); 
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-        }
-        
-        .nav-section {
-            margin-top: 25px;
-        }
-        
-        .nav-item { 
-            color: rgba(255,255,255,0.75); 
-            text-decoration: none; 
-            padding: 14px 18px; 
-            border-radius: 12px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 15px; 
-            font-weight: 500;
-            display: block; 
-            margin-bottom: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 0;
-            background: #C6A664;
-            transition: height 0.3s ease;
-        }
-        
-        .nav-item:hover::before,
-        .nav-item.active::before {
-            height: 100%;
-        }
-        
-        .nav-item:hover, 
-        .nav-item.active { 
-            background: rgba(255,255,255,0.12); 
-            color: white; 
-            transform: translateX(4px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .nav-divider {
-            border: 0; 
-            border-top: 1px solid rgba(255,255,255,0.12); 
-            margin: 25px 0;
-        }
-        
-        .live-site-link {
-            color: #C6A664 !important;
-            border: 2px solid rgba(198, 166, 100, 0.3);
-            background: rgba(198, 166, 100, 0.1);
-            text-align: center;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        
-        .live-site-link:hover {
-            background: rgba(198, 166, 100, 0.2);
-            border-color: rgba(198, 166, 100, 0.6);
-            transform: translateX(4px) !important;
-        }
-        
-        .logout-link {
-            color: #ff7675 !important;
-            font-weight: 600;
-        }
-        
-        .logout-link:hover {
-            background: rgba(255, 118, 117, 0.1);
-            border-color: rgba(255, 118, 117, 0.3);
-        }
-        
-        .main-content {
-            margin-left: 280px; 
-            padding: 50px; 
-            width: calc(100% - 280px);
-            min-height: 100vh;
-        }
-        
-        .page-header {
-            color: #2D1B14; 
-            font-size: 36px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .page-subtitle {
-            color: #8D6E63;
-            font-size: 18px;
-            font-weight: 400;
-            margin-bottom: 45px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .stat-card { 
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 40px 35px;
-            border-radius: 24px; 
-            box-shadow: 0 20px 60px rgba(45, 27, 20, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-top: 6px solid transparent;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #C6A664, #D4B085, #C6A664);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 35px 80px rgba(45, 27, 20, 0.15);
-        }
-        
-        .stat-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #C6A664, #D4B085);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0.9;
-        }
-        
-        .stat-label {
-            color: #8D6E63;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-        
-        .stat-number {
-            font-size: 48px;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #2D1B14, #4D3528);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-        }
-        
-        .revenue-number {
-            background: linear-gradient(135deg, #C6A664, #D4B085) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            background-clip: text !important;
-        }
-        
-        .stat-change {
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 12px;
-        }
-        
-        .change-positive {
-            color: #27ae60;
-        }
-        
-        .change-negative {
-            color: #e74c3c;
-        }
-        
-        .date-range {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 25px 35px;
-            border-radius: 20px;
-            text-align: center;
-            margin-bottom: 40px;
-            border: 1px solid rgba(232, 220, 202, 0.5);
-        }
-        
-        .current-date {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2D1B14;
-            margin-bottom: 5px;
-        }
-        
-        .date-label {
-            color: #8D6E63;
-            font-size: 15px;
-            font-weight: 500;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar { width: 260px; }
-            .main-content { margin-left: 260px; padding: 30px 20px; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .stat-number { font-size: 36px; }
-            .stat-icon { font-size: 36px; }
-        }
+        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 8px; transition: 0.3s; font-size: 14px; display: block; }
+        .nav-item:hover, .active { background: rgba(255,255,255,0.1); color: white; }
+        .stat-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; flex: 1; border-top: 4px solid #C6A664; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #2D1B14; margin: 10px 0; }
+        .stat-label { color: #888; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: bold; }
+        .status-btn { border: none; padding: 10px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-open { background-color: #27ae60; }
+        .btn-closed { background-color: #e74c3c; }
     </style>
 </head>
-<body>
-    <div class="sidebar">
-        <div class="logo-section">
-            <img src="/Simeon Cafe.jpg" class="logo-img" alt="Simeon Brewers" onerror="this.src='https://via.placeholder.com/65x65/2D1B14/C6A664?text=S'">
-            <h3 class="logo-title">SIMEON BREWERS</h3>
-            <div class="store-status">
-                <div class="status-label">STORE STATUS</div>
+<body style="background: #F8F4F1; display: flex; margin: 0; font-family: 'Segoe UI', sans-serif;">
+
+    <div style="width: 260px; background: #2D1B14; height: 100vh; color: white; padding: 25px; position: fixed; box-sizing: border-box;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/Simeon Cafe.jpg" style="width: 60px; border-radius: 50%; border: 2px solid #C6A664;">
+            <h3 style="color: #C6A664; margin-top: 10px;">SIMEON BREWERS</h3>
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+                <p style="font-size: 11px; margin-bottom: 8px; color: #aaa;">STORE STATUS</p>
                 <form action="/admin/toggle-status" method="POST">
                     <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>">
                         <%= storeOpen ? '● OPEN' : '○ CLOSED' %>
@@ -327,150 +29,30 @@
                 </form>
             </div>
         </div>
-        
-        <div class="nav-section">
-            <a href="/admin/orders" class="nav-item">
-                <i class="fas fa-list"></i> Active Orders
-            </a>
-            <a href="/admin/categories" class="nav-item">
-                <i class="fas fa-tags"></i> Manage Categories
-            </a>
-            <a href="/admin/menu" class="nav-item">
-                <i class="fas fa-utensils"></i> Manage Menu
-            </a>
-            <a href="/admin/reports" class="nav-item active">
-                <i class="fas fa-chart-bar"></i> Daily Reports
-            </a>
-            
-            <hr class="nav-divider">
-            
-            <a href="/" target="_blank" class="nav-item live-site-link">
-                <i class="fas fa-external-link-alt"></i> View Live Site ↗
-            </a>
-            
-            <hr class="nav-divider">
-            
-            <a href="/logout" class="nav-item logout-link">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
+        <nav>
+            <a href="/admin/orders" class="nav-item">Active Orders</a>
+            <a href="/admin/categories" class="nav-item">Manage Categories</a>
+            <a href="/admin/menu" class="nav-item">Manage Menu</a>
+            <a href="/admin/reports" class="nav-item active">Daily Reports</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/" target="_blank" class="nav-item" style="color: #C6A664; border: 1px solid rgba(198, 166, 100, 0.3); margin-top: 10px; text-align: center;">View Live Site ↗</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+            <a href="/logout" class="nav-item" style="color: #ff7675;">Logout</a>
+        </nav>
     </div>
 
-    <div class="main-content">
-        <h1 class="page-header">
-            <i class="fas fa-chart-line"></i>
-            Daily Business Overview
-        </h1>
-        
-        <div class="date-range">
-            <div class="current-date">
-                <%= new Date().toLocaleDateString('en-PH', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                }) %>
-            </div>
-            <div class="date-label">Today's Performance</div>
-        </div>
-
-        <div class="stats-grid">
+    <div style="margin-left: 260px; padding: 40px; width: 100%;">
+        <h2 style="color: #2D1B14; margin-bottom: 30px;">Daily Business Overview</h2>
+        <div style="display: flex; gap: 25px;">
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
                 <div class="stat-label">Total Revenue</div>
-                <div class="stat-number revenue-number">
-                    ₱<%= stats.totalRevenue?.toFixed(2) || '0.00' %>
-                </div>
-                <div class="stat-change change-positive">
-                    <i class="fas fa-arrow-up"></i> +12.5% from yesterday
-                </div>
+                <div class="stat-number" style="color: #C6A664;">₱<%= stats.totalRevenue || '0.00' %></div>
             </div>
-            
             <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
                 <div class="stat-label">Orders Completed</div>
-                <div class="stat-number">
-                    <%= stats.totalOrders || 0 %>
-                </div>
-                <div class="stat-change change-positive">
-                    <i class="fas fa-arrow-up"></i> +8 from yesterday
-                </div>
+                <div class="stat-number"><%= stats.totalOrders || 0 %></div>
             </div>
         </div>
     </div>
-
-    <script>
-        // Real-time store status toggle
-        document.querySelector('.status-btn')?.addEventListener('click', async function(e) {
-            e.preventDefault();
-            
-            const btn = this;
-            const wasOpen = btn.classList.contains('btn-open');
-            
-            btn.textContent = '⏳ UPDATING...';
-            btn.style.opacity = '0.7';
-            
-            try {
-                const response = await fetch('/admin/toggle-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await response.json();
-                
-                if (data.storeOpen) {
-                    btn.className = 'status-btn btn-open';
-                    btn.textContent = '● OPEN';
-                } else {
-                    btn.className = 'status-btn btn-closed';
-                    btn.textContent = '○ CLOSED';
-                }
-                
-                window.storeOpen = data.storeOpen;
-                console.log('✅ Store status updated:', data.storeOpen ? 'OPEN' : 'CLOSED');
-                
-            } catch (error) {
-                console.error('Status update failed:', error);
-                if (wasOpen) {
-                    btn.className = 'status-btn btn-open';
-                    btn.textContent = '● OPEN';
-                } else {
-                    btn.className = 'status-btn btn-closed';
-                    btn.textContent = '○ CLOSED';
-                }
-            }
-            
-            btn.style.opacity = '1';
-        });
-
-        // Animate stats on load
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                }
-            });
-        });
-
-        document.querySelectorAll('.stat-card').forEach(card => {
-            observer.observe(card);
-        });
-    </script>
-
-    <style>
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
 </body>
 </html>
