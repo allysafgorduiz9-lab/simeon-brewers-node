@@ -7,17 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0f0f0f;
-            --card-dark: #1a1a1a;
-            --accent-gold: #C6A664;
-            --accent-hover: #e0c285;
-            --text-light: #ffffff;
-            --text-dim: #b3b3b3;
-            --status-green: #27ae60;
-            --danger: #e74c3c;
-            --fb-blue: #1877F2;
-        }
+        :root { --bg-dark: #0f0f0f; --card-dark: #1a1a1a; --accent-gold: #C6A664; --accent-hover: #e0c285; --text-light: #ffffff; --text-dim: #b3b3b3; --status-green: #27ae60; --danger: #e74c3c; --fb-blue: #1877F2; }
         * { box-sizing: border-box; transition: all 0.3s ease; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background-color: var(--bg-dark); color: var(--text-light); scroll-behavior: smooth; }
         header { background-color: rgba(15, 15, 15, 0.98); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
@@ -84,8 +74,8 @@
     </div>
     <nav>
         <a href="/">HOME</a>
+        <a href="#about">ABOUT</a>
         <a href="#menu">MENU</a>
-        <a href="/about">ABOUT</a>
         <div class="nav-actions">
             <a href="/login" class="login-btn"><i class="fas fa-user-circle"></i></a>
             <div class="cart-btn" onclick="checkout()">
@@ -159,7 +149,7 @@
     <% } %>
 </div>
 
-<footer>
+<footer id="about">
     <div class="footer-grid">
         <div class="footer-col">
             <h4>ABOUT</h4>
@@ -169,8 +159,8 @@
         <div class="footer-col">
             <h4>QUICK LINKS</h4>
             <a href="/">Home</a>
+            <a href="#about">About</a>
             <a href="#menu">Menu</a>
-             <a href="/about">About Us</a> 
             <a href="/login">Staff Login</a>
         </div>
         <div class="footer-col">
@@ -184,50 +174,67 @@
 </footer>
 
 <script>
-    var cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+var cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+updateCartCount();
+
+function addToCart(button) {
+    var id = button.getAttribute('data-id');
+    var name = button.getAttribute('data-name');
+    var price = parseFloat(button.getAttribute('data-price'));
+    var qty = parseInt(document.getElementById('qty-' + id).value) || 1;
+
+    var existing = cart.find(function(item) { return item.id === id; });
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        cart.push({ id: id, name: name, price: price, quantity: qty });
+    }
+    
+    localStorage.setItem('simeon_cart', JSON.stringify(cart));
     updateCartCount();
+    alert(name + " added to cart!");
+}
 
-    function addToCart(button) {
-        var id = button.getAttribute('data-id');
-        var name = button.getAttribute('data-name');
-        var price = parseFloat(button.getAttribute('data-price'));
-        var qty = parseInt(document.getElementById('qty-' + id).value) || 1;
+function updateCartCount() {
+    var count = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
+    document.getElementById('cart-count').textContent = count;
+}
 
-        var existing = cart.find(function(item) { return item.id === id; });
-        if (existing) {
-            existing.quantity += qty;
-        } else {
-            cart.push({ id: id, name: name, price: price, quantity: qty });
-        }
-        
-        localStorage.setItem('simeon_cart', JSON.stringify(cart));
-        updateCartCount();
-        alert(name + " added to cart!");
+function checkout() {
+    if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
     }
-
-    function updateCartCount() {
-        var total = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
-        var countEl = document.getElementById('cart-count');
-        if (countEl) countEl.innerText = total;
-    }
-
-    function checkout() {
+    var total = cart.reduce(function(sum, item) { return sum + (item.price * item.quantity); }, 0);
+    var confirmOrder = confirm("Total: ₱" + total.toFixed(2) + "\n\nProceed to checkout?");
+    if (confirmOrder) {
         window.location.href = '/checkout';
     }
+}
 
-            function searchProducts() {
-            var input = document.getElementById('searchInput').value.toLowerCase();
-            var cards = document.querySelectorAll('.product-card');
-            
-            cards.forEach(function(card) {
-                var name = card.getAttribute('data-name');
-                if (name && name.includes(input)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-    </script>
+function searchProducts() {
+    var input = document.getElementById('searchInput').value.toLowerCase();
+    var cards = document.querySelectorAll('.product-card');
+    cards.forEach(function(card) {
+        var name = card.getAttribute('data-name') || "";
+        card.style.display = name.includes(input) ? 'block' : 'none';
+    });
+}
+
+function checkStoreStatus() {
+    var status = "<%= storeStatus %>";
+    if (status === 'CLOSED') {
+        var btns = document.querySelectorAll('.btn-add, .btn-disabled');
+        var inputs = document.querySelectorAll('.qty-input');
+        btns.forEach(function(btn) {
+            btn.disabled = true;
+            btn.textContent = 'CLOSED';
+        });
+        inputs.forEach(function(input) { input.disabled = true; });
+    }
+}
+
+window.onload = checkStoreStatus;
+</script>
 </body>
 </html>
