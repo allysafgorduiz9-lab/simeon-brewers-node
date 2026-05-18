@@ -6,6 +6,9 @@ const session = require('express-session');
 
 const app = express();
 
+// File upload setup
+const upload = multer({ dest: './public/images/' });
+
 // ========== CONFIGURATION ==========
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'password123';
