@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Product - Simeon Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
+        
+        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; overflow-y: auto; }
+        .logo-section { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
+        .logo-title { color: #C6A664; margin: 0 0 15px 0; font-size: 22px; font-weight: 700; }
+        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
+        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
+        .btn-open { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .btn-closed { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        
+        .nav-section { margin-top: 25px; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; transform: translateX(4px); }
+        .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
+        .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
+        .logout-link { color: #ff7675; font-weight: 600; }
+        
+        .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
+        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+        
+        .form-card { background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; max-width: 800px; }
+        .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; }
+        
+        .form-body { padding: 30px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px 18px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; transition: all 0.3s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #C6A664; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        
+        .form-group.full { grid-column: 1 / -1; }
+        
+        .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .price-item label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; font-size: 14px; }
+        .price-item input { width: 100%; padding: 14px 18px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
+        .price-item input:focus { outline: none; border-color: #C6A664; }
+        
+        .image-upload { border: 2px dashed rgba(198,166,100,0.3); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; }
+        .image-upload:hover { border-color: #C6A664; background: rgba(198,166,100,0.05); }
+        .image-upload i { font-size: 40px; color: #C6A664; margin-bottom: 10px; }
+        .image-upload p { color: #8D6E63; }
+        
+        .btn-submit { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 16px 32px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(198,166,100,0.3); }
+        
+        .btn-back { background: #8D6E63; color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-section">
+            <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Simeon Brewers" onerror="this.src='https://via.placeholder.com/65/2D1B14/C6A664?text=S'">
+            <h3 class="logo-title">SIMEON BREWERS</h3>
+            <div class="store-status">
+                <div class="status-label">STORE STATUS</div>
+                <form action="/admin/toggle-status" method="POST">
+                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
+                </form>
+            </div>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
+            <a href="/admin/menu" class="nav-item active"><i class="fas fa-utensils"></i> Manage Menu</a>
+            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
+            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Daily Reports</a>
+            <hr class="nav-divider">
+            <a href="/" target="_blank" class="nav-item live-site-link"><i class="fas fa-external-link-alt"></i> View Live Site</a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-header">
+            <a href="/admin/menu" class="btn-back"><i class="fas fa-arrow-left"></i></a>
+            <span><i class="fas fa-plus-circle"></i> Add Product</span>
+        </h1>
+        
+        <div class="form-card">
+            <div class="card-title"><i class="fas fa-plus"></i> New Product</div>
+            <div class="form-body">
+                <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Product Name *</label>
+                            <input type="text" name="name" required placeholder="e.g., Classic Coffee">
+                        </div>
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select name="category" required>
+                                <option value="">Select Category</option>
+                                <% categories.forEach(function(cat) { %>
+                                <option value="<%= cat %>"><%= cat %></option>
+                                <% }); %>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Describe your product..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Prices (₱)</label>
+                        <div class="price-grid">
+                            <div class="price-item">
+                                <label>Small</label>
+                                <input type="number" name="price_1" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="price-item">
+                                <label>Medium</label>
+                                <input type="number" name="price_2" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="price-item">
+                                <label>Large</label>
+                                <input type="number" name="price_3" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Product Image</label>
+                        <div class="image-upload" onclick="document.getElementById('image').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload image</p>
+                            <input type="file" name="image" id="image" accept="image/*" style="display:none;">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

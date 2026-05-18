@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Reports - Simeon Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
+        
+        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; overflow-y: auto; }
+        .logo-section { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
+        .logo-title { color: #C6A664; margin: 0 0 15px 0; font-size: 22px; font-weight: 700; }
+        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+        .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
+        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
+        .btn-open { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .btn-closed { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        
+        .nav-section { margin-top: 25px; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; transform: translateX(4px); }
+        .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
+        .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
+        .logout-link { color: #ff7675; font-weight: 600; }
+        
+        .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
+        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .header-actions { display: flex; gap: 10px; }
+        .btn-action { padding: 12px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-refresh { background: rgba(45,27,20,0.1); color: #2D1B14; border: 2px solid rgba(45,27,20,0.2); }
+        .btn-export { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
+        .stat-card { background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); padding: 35px 30px; text-align: center; border-top: 5px solid #C6A664; }
+        .stat-icon { font-size: 42px; color: #C6A664; margin-bottom: 18px; }
+        .stat-label { color: #8D6E63; text-transform: uppercase; font-size: 12px; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 12px; }
+        .stat-number { font-size: 42px; font-weight: 800; color: #2D1B14; }
+        .revenue-value { color: #C6A664; }
+        
+        .orders-table { background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
+        .table-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 20px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid rgba(198,166,100,0.2); }
+        td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; }
+        tr:hover td { background: rgba(198,166,100,0.05); }
+        
+        .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .badge-completed { background: rgba(39,174,96,0.15); color: #27ae60; }
+        .badge-cancelled { background: rgba(231,76,60,0.15); color: #e74c3c; }
+        .badge-pending { background: rgba(241,196,15,0.15); color: #f39c12; }
+        
+        .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
+        .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
+        
+        .date-display { color: #8D6E63; font-size: 14px; margin-left: auto; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-section">
+            <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Simeon Brewers" onerror="this.src='https://via.placeholder.com/65/2D1B14/C6A664?text=S'">
+            <h3 class="logo-title">SIMEON BREWERS</h3>
+            <div class="store-status">
+                <div class="status-label">STORE STATUS</div>
+                <form action="/admin/toggle-status" method="POST">
+                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
+                </form>
+            </div>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
+            <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
+            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
+            <a href="/admin/reports" class="nav-item active"><i class="fas fa-chart-bar"></i> Daily Reports</a>
+            <hr class="nav-divider">
+            <a href="/" target="_blank" class="nav-item live-site-link"><i class="fas fa-external-link-alt"></i> View Live Site</a>
+            <hr class="nav-divider">
+            <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-header">
+            <span><i class="fas fa-chart-line"></i> Daily Reports</span>
+            <div class="header-actions">
+                <button class="btn-action btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button class="btn-action btn-export" onclick="exportCSV()"><i class="fas fa-download"></i> Export</button>
+            </div>
+        </h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-number revenue-value">₱<%= totalRevenue %></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                <div class="stat-label">Orders Completed</div>
+                <div class="stat-number"><%= totalOrders %></div>
+            </div>
+        </div>
+        
+        <div class="orders-table">
+            <div class="table-title">
+                <i class="fas fa-list-alt"></i> Today's Orders
+                <span class="date-display"><%= new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+            </div>
+            
+            <% if (orders && orders.length > 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(function(order) { %>
+                    <tr>
+                        <td style="font-weight:700;">#<%= order.order_number %></td>
+                        <td>
+                            <div style="font-weight:600;"><%= order.customer_name %></div>
+                            <div style="font-size:12px;color:#8D6E63;"><%= order.contact_number %></div>
+                        </td>
+                        <td><%= order.items_summary %></td>
+                        <td style="font-weight:700;font-size:18px;">₱<%= order.total_price %></td>
+                        <td>
+                            <span class="status-badge badge-<%= order.status %>"><%= order.status %></span>
+                        </td>
+                        <td style="color:#8D6E63;"><%= order.time %></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <% } else { %>
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Orders Today</h3>
+                <p>Orders will appear here once customers start placing them.</p>
+            </div>
+            <% } %>
+        </div>
+    </div>
+    
+    <script>
+        function exportCSV() {
+            var rows = document.querySelectorAll('table tbody tr');
+            if (rows.length === 0) {
+                alert('No orders to export');
+                return;
+            }
+            
+            var csv = "Order ID,Customer,Items,Total,Status,Time\n";
+            rows.forEach(function(row) {
+                var cells = row.querySelectorAll('td');
+                if (cells.length >= 6) {
+                    var orderId = cells[0].textContent.trim();
+                    var customer = cells[1].textContent.trim().replace(/\n/g, ' ');
+                    var items = cells[2].textContent.trim();
+                    var total = cells[3].textContent.trim();
+                    var status = cells[4].textContent.trim();
+                    var time = cells[5].textContent.trim();
+                    csv += '"' + orderId + '","' + customer + '","' + items + '","' + total + '","' + status + '","' + time + '"\n';
+                }
+            });
+            
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'daily_report.csv';
+            link.click();
+        }
+    </script>
+</body>
+</html>
