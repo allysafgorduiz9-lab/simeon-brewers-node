@@ -38,9 +38,11 @@ const isAuthenticated = (req, res, next) => {
 const upload = multer({ dest: './public/images/' });
 
 // HOME
+// HOME - with pagination
 app.get('/', (req, res) => {
-    db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
-        res.render('index', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus });
+    var page = parseInt(req.query.page) || 1;
+    db.query("SELECT * FROM products WHERE active = 1 ORDER BY id ASC", (err, products) => {
+        res.render('index', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus, page: page });
     });
 });
 
