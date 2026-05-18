@@ -1,3 +1,17 @@
+<think>
+The user wants the final checkout.ejs code that will save orders to the new `active_orders` table. Let me create the complete checkout page with:
+
+1. The X error indicators for invalid inputs
+2. All the form fields matching the active_orders table columns
+3. The API call to save to the database
+
+Let me write the complete checkout.ejs file.
+
+</think>
+
+Here is the **final checkout.ejs** code:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +28,7 @@
             --text-light: #ffffff;
             --text-dim: #b3b3b3;
             --border: rgba(255,255,255,0.1);
+            --danger: #e74c3c;
         }
 
         body {
@@ -46,13 +61,16 @@
 
         h2, h3 { font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-top: 0; margin-bottom: 20px; }
 
-        /* --- Items List --- */
         .cart-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
+
+        .cart-item-details { flex: 1; }
+        .cart-item-qty { color: var(--accent-gold); font-weight: 600; }
+
         .total-row {
             display: flex;
             justify-content: space-between;
@@ -62,12 +80,18 @@
             color: var(--accent-gold);
         }
 
-        /* --- Form Fields --- */
-        .form-group { margin-bottom: 15px; }
+        /* Form Fields with X Error */
+        .form-group { margin-bottom: 15px; position: relative; }
         label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+
+        .field-wrapper {
+            position: relative;
+            display: block;
+        }
+
         input, textarea, select {
             width: 100%;
-            padding: 12px;
+            padding: 12px 40px 12px 12px;
             background: #252525;
             border: 1px solid #444;
             border-radius: 10px;
@@ -76,10 +100,38 @@
             outline: none;
             box-sizing: border-box;
         }
-        input:focus, select:focus { border-color: var(--accent-gold); }
-        .error { border-color: #e74c3c !important; box-shadow: 0 0 5px rgba(231,76,60,0.3); }
 
-        /* --- Payment Toggle --- */
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-gold); }
+
+        /* Error State with X */
+        .input-error {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 5px rgba(231,76,60,0.3);
+        }
+
+        .error-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--danger);
+            font-size: 18px;
+            display: none;
+        }
+
+        .field-wrapper.has-error .error-icon { display: block; }
+        .field-wrapper.has-error label { color: var(--danger); }
+
+        .error-text {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .field-wrapper.has-error .error-text { display: block; }
+
+        /* Payment Toggle */
         .payment-options { display: flex; gap: 10px; margin: 15px 0; }
         .payment-options div { flex: 1; }
         .payment-radio { display: none; }
@@ -99,15 +151,7 @@
             color: var(--accent-gold);
         }
 
-        #gcash-details {
-            display: none;
-            text-align: center;
-            background: #000;
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 15px;
-        }
-        .qr-code { width: 180px; border-radius: 10px; margin: 10px 0; }
+        #gcash-details { display: none; }
 
         .btn-order {
             background: var(--accent-gold);
@@ -128,15 +172,15 @@
         .back-link { color: var(--text-dim); text-decoration: none; display: inline-block; margin-bottom: 20px; }
         .back-link:hover { color: var(--accent-gold); }
 
-        /* 🎯 NEW: Receipt Modal */
+        /* Modal */
         .receipt-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); z-index: 10000; display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 10000; display: none;
             align-items: center; justify-content: center; backdrop-filter: blur(10px);
         }
         .receipt-card {
-            background: var(--card-dark); width: 90%; max-width: 420px; border-radius: 20px; 
-            padding: 35px; border: 3px solid var(--accent-gold); position: relative; 
+            background: var(--card-dark); width: 90%; max-width: 420px; border-radius: 20px;
+            padding: 35px; border: 3px solid var(--accent-gold); position: relative;
             max-height: 90vh; overflow-y: auto; animation: slideIn 0.4s ease;
         }
         @keyframes slideIn {
@@ -144,39 +188,39 @@
             to { transform: scale(1) translateY(0); opacity: 1; }
         }
         .close-btn {
-            position: absolute; top: 15px; right: 20px; background: none; 
+            position: absolute; top: 15px; right: 20px; background: none;
             border: none; color: white; font-size: 28px; cursor: pointer; padding: 0;
         }
         .order-number {
-            background: var(--accent-gold); color: #000; padding: 15px 30px; 
-            border-radius: 35px; font-weight: bold; font-size: 22px; 
+            background: var(--accent-gold); color: #000; padding: 15px 30px;
+            border-radius: 35px; font-weight: bold; font-size: 22px;
             margin: 0 auto 25px; display: block; text-align: center; letter-spacing: 2px;
         }
         .receipt-item {
-            display: flex; justify-content: space-between; padding: 12px 0; 
+            display: flex; justify-content: space-between; padding: 12px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px;
         }
         .receipt-total {
-            font-size: 26px; font-weight: bold; color: var(--accent-gold); 
+            font-size: 26px; font-weight: bold; color: var(--accent-gold);
             margin: 20px 0 15px; padding-top: 15px; border-top: 2px solid var(--accent-gold);
             display: flex; justify-content: space-between;
         }
         .status-badge {
-            display: inline-block; padding: 10px 25px; border-radius: 30px; 
+            display: inline-block; padding: 10px 25px; border-radius: 30px;
             font-weight: 700; font-size: 14px; margin: 15px auto; text-align: center;
         }
         .status-pending { background: linear-gradient(45deg, #f39c12, #e67e22); color: white; }
-        .status-preparing { background: linear-gradient(45deg, #3498db, #2980b9); color: white; }
-        .status-ready { background: linear-gradient(45deg, #27ae60, #229954); color: white; }
-        .status-completed { background: linear-gradient(45deg, #95a5a6, #7f8c8d); color: white; }
-        .print-btn { background: #27ae60 !important; color: white !important; margin-top: 20px; }
+
+        .success-animation { text-align: center; padding: 20px; }
+        .success-icon { font-size: 60px; color: #27ae60; margin-bottom: 15px; animation: pop 0.5s; }
+        @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Menu</a>
 
-    <div class="checkout-layout">
+    <div class="checkout-layout" id="checkoutLayout">
         <!-- Order Summary -->
         <div class="card">
             <h2>Your Order</h2>
@@ -191,25 +235,36 @@
         <div>
             <div class="card">
                 <h3>Customer Details</h3>
+
                 <div class="form-group">
-                    <label>Full Name <span style="color: var(--accent-gold);">*</span></label>
-                    <input type="text" id="cust-name" placeholder="Enter your full name" required>
+                    <div class="field-wrapper" id="wrap-name">
+                        <label>Full Name <span style="color: var(--accent-gold);">*</span></label>
+                        <input type="text" id="cust-name" placeholder="Enter your full name">
+                        <i class="fas fa-times-circle error-icon" title="Required"></i>
+                        <small class="error-text">Please enter your full name</small>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>Contact Number <span style="color: var(--accent-gold);">*</span></label>
-                    <input type="tel" id="cust-phone" placeholder="09XXXXXXXXX" required>
+                    <div class="field-wrapper" id="wrap-phone">
+                        <label>Contact Number</label>
+                        <input type="tel" id="cust-phone" placeholder="09XXXXXXXXX">
+                        <i class="fas fa-times-circle error-icon" title="Invalid format"></i>
+                        <small class="error-text">Enter valid 11-digit number (09xxxxxxxxx)</small>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Order Type</label>
-                    <select id="order-type" onchange="updateTotal()">
+                    <select id="order-type">
                         <option value="Pickup">🏃 Pickup</option>
                         <option value="Dine-in">🍽️ Dine-in</option>
-                        <option value="Delivery">🚚 Delivery (+₱50)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label>Special Instructions</label>
-                    <textarea id="cust-notes" rows="3" placeholder="Less ice, extra sugar, table number, delivery address..."></textarea>
+                    <textarea id="cust-notes" rows="3" placeholder="Less ice, extra sugar, table number..."></textarea>
                 </div>
             </div>
 
@@ -232,249 +287,243 @@
 
                 <div id="gcash-details">
                     <p style="font-size: 14px; margin-bottom: 10px; font-weight: 600;">Scan QR Code</p>
-                    <img src="/images/gcash-qr.png" alt="GCash QR" class="qr-code" 
-                         onerror="this.src='https://via.placeholder.com/180x180/1a1a1a/cccccc?text=GCash+QR'">
+                    <img src="/images/gcash-qr.png" alt="GCash QR" style="width:180px; border-radius:10px; margin:10px 0;"
+                         onerror="this.style.display='none'">
+
                     <div class="form-group">
-                        <label>Reference Number (13 digits)</label>
-                        <input type="text" id="ref-num" placeholder="1234567890123" maxlength="13">
+                        <div class="field-wrapper" id="wrap-ref">
+                            <label>Reference Number (13 digits)</label>
+                            <input type="text" id="ref-num" placeholder="1234567890123" maxlength="13">
+                            <i class="fas fa-times-circle error-icon" title="Required"></i>
+                            <small class="error-text">Enter 13-digit GCash reference number</small>
+                        </div>
                     </div>
                 </div>
 
                 <button class="btn-order" id="placeOrderBtn" onclick="placeOrder()">
-                    <i class="fas fa-check"></i> Place Order
+                    <i class="fas fa-check"></i> Place Order (₱<span id="btn-total">0.00</span>)
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 🎯 RECEIPT MODAL -->
+    <!-- Receipt Modal -->
     <div class="receipt-modal" id="receiptModal">
         <div class="receipt-card">
+            <div class="success-animation">
+                <i class="fas fa-check-circle success-icon"></i>
+            </div>
             <button class="close-btn" onclick="closeReceipt()">&times;</button>
-            
-            <div class="order-number" id="orderNumber">#ORD-001</div>
-            
+
+            <div class="order-number" id="orderNumber">#0001</div>
+
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 13px; color: var(--text-dim);">Customer</p>
+                <p style="margin: 5px 0 0; font-weight: 600;" id="receiptCustomer">Name</p>
+                <p style="margin: 5px 0 0; font-size: 13px; color: var(--text-dim);" id="receiptPhone">Phone</p>
+            </div>
+
             <div id="receiptItems" style="margin: 25px 0;"></div>
-            
+
             <div class="receipt-total">
                 <span>TOTAL:</span>
                 <span id="receiptTotal">₱0.00</span>
             </div>
-            
+
             <div class="status-badge status-pending" id="orderStatus">PENDING</div>
-            
+
             <p style="font-size: 14px; color: var(--text-dim); text-align: center; margin: 20px 0;">
                 📋 Show this order number to staff<br>
-                <small>Status updates in real-time</small>
+                <small>Track your order status in real-time</small>
             </p>
-            
-            <button class="btn-order print-btn" onclick="printReceipt()">
-                🖨️ Print Receipt & Track Order
+
+            <button class="btn-order" style="background: #2ecc71 !important;" onclick="window.location.href='/'">
+                🏠 Back to Home
             </button>
         </div>
     </div>
 
     <script>
+        // Load cart from localStorage
         const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-        let currentOrder = null;
-        
+
         function calculateTotal() {
             let subtotal = 0;
             cart.forEach(item => {
                 subtotal += item.price * item.quantity;
             });
-            
-            const orderType = document.getElementById('order-type').value;
-            const deliveryFee = orderType === 'Delivery' ? 50 : 0;
-            const grandTotal = subtotal + deliveryFee;
-            
-            return { subtotal, deliveryFee, grandTotal };
+            return { subtotal, grandTotal: subtotal };
         }
 
         function renderOrder() {
             const container = document.getElementById('cart-items-container');
             const totals = calculateTotal();
-            
+
             if (cart.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">Cart is empty. <a href="/" style="color: var(--accent-gold);">Continue shopping</a></p>';
-                document.querySelector('.checkout-layout').style.opacity = '0.5';
                 document.getElementById('placeOrderBtn').disabled = true;
                 return;
             }
-            
-            document.querySelector('.checkout-layout').style.opacity = '1';
+
             document.getElementById('placeOrderBtn').disabled = false;
-            
-            container.innerHTML = cart.map(item => {
-                const itemTotal = item.price * item.quantity;
-                return `
-                    <div class="cart-item">
-                        <div>
-                            <strong>${item.name}</strong><br>
-                            <small>x${item.quantity} • ₱${item.price.toLocaleString()}</small>
-                        </div>
-                        <div style="text-align: right;">
-                            ₱${itemTotal.toLocaleString()}<br>
-                            <small style="color: var(--accent-gold); font-weight: 600;">
-                                each: ₱${item.price.toLocaleString()}
-                            </small>
-                        </div>
+
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <strong>${item.name}</strong><br>
+                        <span class="cart-item-qty">x${item.quantity}</span>
+                        <small style="color: var(--text-dim);">@ ₱${item.price.toFixed(2)}</small>
                     </div>
-                `;
-            }).join('');
-            
-            document.getElementById('grand-total').textContent = totals.grandTotal.toLocaleString('en-PH', {minimumFractionDigits: 2});
+                    <div style="text-align: right;">
+                        ₱${(item.price * item.quantity).toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('grand-total').textContent = totals.grandTotal.toFixed(2);
+            document.getElementById('btn-total').textContent = totals.grandTotal.toFixed(2);
             return totals;
         }
 
-        function updateTotal() {
-            renderOrder();
+        function togglePayment() {
+            document.getElementById('gcash-details').style.display =
+                document.getElementById('gcash').checked ? 'block' : 'none';
         }
 
-        function togglePayment() {
-            const isGCash = document.getElementById('gcash').checked;
-            document.getElementById('gcash-details').style.display = isGCash ? 'block' : 'none';
+        // Show/Hide Error with X icon
+        function setError(inputId, show) {
+            const wrapper = inputId.parentElement;
+            if (show) {
+                wrapper.classList.add('has-error');
+                inputId.classList.add('input-error');
+            } else {
+                wrapper.classList.remove('has-error');
+                inputId.classList.remove('input-error');
+            }
         }
 
         function validateForm() {
-            // Clear previous errors
-            document.querySelectorAll('input, select').forEach(el => el.classList.remove('error'));
-            
-            const name = document.getElementById('cust-name').value.trim();
-            const phone = document.getElementById('cust-phone').value.trim();
-            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-            
             let isValid = true;
-            
-            if (!name) {
-                document.getElementById('cust-name').classList.add('error');
+
+            const nameInput = document.getElementById('cust-name');
+            const phoneInput = document.getElementById('cust-phone');
+            const refInput = document.getElementById('ref-num');
+            const isGCash = document.getElementById('gcash').checked;
+
+            // Reset errors
+            setError(nameInput, false);
+            setError(phoneInput, false);
+            setError(refInput, false);
+
+            // Validate name (required)
+            if (!nameInput.value.trim()) {
+                setError(nameInput, true);
                 isValid = false;
             }
-            
-            if (!phone || !/^09\d{9}$/.test(phone)) {
-                document.getElementById('cust-phone').classList.add('error');
+
+            // Validate phone (optional but must be valid if filled)
+            const phone = phoneInput.value.trim();
+            if (phone && !/^09\d{9}$/.test(phone)) {
+                setError(phoneInput, true);
                 isValid = false;
             }
-            
-            if (paymentMethod === 'GCash') {
-                const refNum = document.getElementById('ref-num').value.trim();
-                if (!refNum || refNum.length !== 13 || !/^\d{13}$/.test(refNum)) {
-                    document.getElementById('ref-num').classList.add('error');
+
+            // Validate GCash reference (required if GCash)
+            if (isGCash) {
+                const ref = refInput.value.trim();
+                if (!ref || !/^\d{13}$/.test(ref)) {
+                    setError(refInput, true);
                     isValid = false;
                 }
             }
-            
+
             return isValid;
         }
 
         function generateOrderNumber() {
             const now = new Date();
-            const year = now.getFullYear().toString().slice(-2);
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-            return `ORD-${year}${month}${day}-${random}`;
+            return `ORD-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*1000).padStart(3,'0')}`;
         }
 
         async function placeOrder() {
             if (!validateForm()) {
-                alert('Please fill all required fields correctly.');
+                // Shake animation on error
+                const layout = document.getElementById('checkoutLayout');
+                layout.style.animation = 'shake 0.5s';
+                setTimeout(() => layout.style.animation = '', 500);
                 return;
             }
 
             const btn = document.getElementById('placeOrderBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            try {
-                const totals = calculateTotal();
-                const orderNumber = generateOrderNumber();
-                
-                currentOrder = {
-                    orderNumber: orderNumber,
-                    items: cart.map(item => ({
-                        name: item.name,
-                        price: item.price,
-                        quantity: item.quantity
-                    })),
-                    total: totals.grandTotal,
-                    subtotal: totals.subtotal,
-                    deliveryFee: totals.deliveryFee,
-                    customer: {
-                        name: document.getElementById('cust-name').value.trim(),
-                        phone: document.getElementById('cust-phone').value.trim(),
-                        type: document.getElementById('order-type').value,
-                        notes: document.getElementById('cust-notes').value.trim()
-                    },
-                    payment: {
-                        method: document.querySelector('input[name="payment"]:checked').value,
-                        refNumber: document.getElementById('ref-num').value.trim()
-                    },
-                    status: 'pending',
-                    timestamp: new Date().toISOString()
-                };
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
 
-                // Save to localStorage for persistence
-                const orders = JSON.parse(localStorage.getItem('simeon_orders')) || [];
-                orders.unshift(currentOrder);
-                localStorage.setItem('simeon_orders', JSON.stringify(orders.slice(0, 100))); // Keep last 100 orders
-                
-                showReceipt(currentOrder);
-                
+            const totals = calculateTotal();
+            const orderNumber = generateOrderNumber();
+
+            const orderData = {
+                orderNumber: orderNumber,
+                customerName: document.getElementById('cust-name').value.trim(),
+                customerPhone: document.getElementById('cust-phone').value.trim() || null,
+                orderType: document.getElementById('order-type').value,
+                specialInstructions: document.getElementById('cust-notes').value.trim() || null,
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                })),
+                subtotal: totals.subtotal,
+                totalAmount: totals.grandTotal,
+                paymentMethod: document.querySelector('input[name="payment"]:checked').value,
+                refNumber: document.getElementById('gcash').checked ? document.getElementById('ref-num').value.trim() : null
+            };
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Order failed');
+                }
+
+                // Show success modal
+                showReceipt(orderData);
+
                 // Clear cart
                 localStorage.removeItem('simeon_cart');
-                
+
             } catch (error) {
-                alert('Order failed: ' + error.message);
+                alert('Order Error: ' + error.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i> Place Order';
+                btn.innerHTML = '<i class="fas fa-check"></i> Place Order (₱' + totals.grandTotal.toFixed(2) + ')';
             }
         }
 
         function showReceipt(order) {
             document.getElementById('orderNumber').textContent = '#' + order.orderNumber;
-            document.getElementById('receiptTotal').textContent = '₱' + order.total.toLocaleString('en-PH', {minimumFractionDigits: 2});
-            
-            let itemsHTML = '';
-            order.items.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                itemsHTML += `
-                    <div class="receipt-item">
-                        <span>${item.name}<br><small style="color: var(--text-dim);">x${item.quantity}</small></span>
-                        <span>₱${itemTotal.toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
-                    </div>
-                `;
-            });
-            
-            if (order.deliveryFee > 0) {
-                itemsHTML += `
-                    <div class="receipt-item">
-                        <span>Delivery Fee<br><small style="color: var(--text-dim);">🚚</small></span>
-                        <span>₱${order.deliveryFee.toLocaleString('en-PH', {minimumFractionDigits: 2})}</span>
-                    </div>
-                `;
-            }
-            
+            document.getElementById('receiptCustomer').textContent = order.customerName;
+            document.getElementById('receiptPhone').textContent = order.customerPhone || '-';
+            document.getElementById('receiptTotal').textContent = '₱' + order.totalAmount.toFixed(2);
+
+            let itemsHTML = order.items.map(item => `
+                <div class="receipt-item">
+                    <span>${item.name} <small style="color: var(--text-dim);">(x${item.quantity})</small></span>
+                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+            `).join('');
+
             document.getElementById('receiptItems').innerHTML = itemsHTML;
-            
-            // Set status
-            const statusEl = document.getElementById('orderStatus');
-            statusEl.textContent = order.status.toUpperCase();
-            statusEl.className = `status-badge status-${order.status}`;
-            
             document.getElementById('receiptModal').style.display = 'flex';
         }
 
         function closeReceipt() {
-            document.getElementById('receiptModal').style.display = 'none';
-        }
-
-        function printReceipt() {
-            window.print();
+            window.location.href = '/';
         }
 
         // Close modal on backdrop click
@@ -482,8 +531,16 @@
             if (e.target.id === 'receiptModal') closeReceipt();
         };
 
-        // Prevent zoom on iOS
-        document.addEventListener('touchstart', function() {}, true);
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize
         renderOrder();
