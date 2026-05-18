@@ -10,7 +10,7 @@
         .logo-section { text-align: center; margin-bottom: 35px; }
         .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
         .logo-title { color: #C6A664; font-size: 22px; font-weight: 700; }
-        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; margin-top: 15px; }
+        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; }
         .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
         .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; width: 100%; cursor: pointer; }
         .btn-open { background: #27ae60; }
@@ -21,19 +21,15 @@
         .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
         .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; }
         .logout-link { color: #ff7675; font-weight: 600; }
-        .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
-        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .main-content { margin-left: 280px; padding: 50px; }
+        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; }
         .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
         .menu-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; margin-bottom: 30px; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 18px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid rgba(198,166,100,0.2); }
-        td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; }
-        .product-name { font-weight: 600; font-size: 16px; }
-        .product-category { font-size: 12px; color: #8D6E63; background: rgba(198,166,100,0.15); padding: 4px 10px; border-radius: 20px; }
-        .product-price { font-weight: 700; color: #C6A664; font-size: 16px; }
-        .action-buttons { display: flex; gap: 8px; }
-        .action-btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; }
+        th { text-align: left; padding: 18px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; }
+        td { padding: 18px 25px; border-bottom: 1px solid #eee; }
+        .action-btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 12px; text-decoration: none; }
         .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
         .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
@@ -41,12 +37,11 @@
         .btn-unavailable { background: #e74c3c; color: white; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
         .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .modal-header h2 { color: #2D1B14; font-size: 24px; }
-        .close-btn { font-size: 30px; cursor: pointer; color: #8D6E63; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
+        .close-btn { font-size: 30px; cursor: pointer; }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
-        .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -57,17 +52,16 @@
             <div class="store-status">
                 <div class="status-label">STORE STATUS</div>
                 <button type="button" class="status-btn" id="storeBtn" onclick="toggleStore()">
-                    <span id="storeStatus"><%= storeOpen ? "OPEN" : "CLOSED" %></span>
+                    <%= storeStatus %>
                 </button>
             </div>
         </div>
         <div class="nav-section">
             <a href="/admin/orders" class="nav-item">Orders</a>
             <a href="/admin/menu" class="nav-item active">Manage Menu</a>
-            <a href="/admin/categories" class="nav-item">Categories</a>
             <a href="/admin/reports" class="nav-item">Reports</a>
             <hr class="nav-divider">
-            <a href="/" target="_blank" class="nav-item live-site-link">View Live Site</a>
+            <a href="/" target="_blank" class="nav-item live-site-link">View Site</a>
             <a href="/logout" class="nav-item logout-link">Logout</a>
         </div>
     </div>
@@ -75,41 +69,30 @@
     <div class="main-content">
         <h1 class="page-header">
             <span>Manage Menu</span>
-            <button class="btn-add" onclick="document.getElementById('addModal').style.display='block'">
-                + Add Product
-            </button>
+            <button class="btn-add" onclick="document.getElementById('addModal').style.display='block'">+ Add</button>
         </h1>
         
         <div class="menu-card">
-            <div class="card-title">All Products (<%= products.length %>)</div>
+            <div class="card-title">Products (<%= products.length %>)</div>
             <table>
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
+                    <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                    <% products.forEach(function(product) { %>
+                    <% products.forEach(function(p) { %>
                     <tr>
-                        <td><%= product.id %></td>
-                        <td><%= product.name %></td>
-                        <td><%= product.category %></td>
-                        <td>₱<%= product.price_1 %></td>
+                        <td><%= p.id %></td>
+                        <td><%= p.name %></td>
+                        <td><%= p.category %></td>
+                        <td><%= p.price_1 %></td>
                         <td>
-                            <button type="button" class="btn-toggle" id="prod_<%= product.id %>" onclick="toggleProduct(<%= product.id %>, <%= product.active %>)">
-                                <span id="status_<%= product.id %>"><%= product.active == 1 ? "Available" : "Unavailable" %></span>
+                            <button type="button" class="btn-toggle" data-id="<%= p.id %>" data-active="<%= p.active %>" onclick="toggleProduct(this)">
+                                <%= p.active == 1 ? "Available" : "Unavailable" %>
                             </button>
                         </td>
                         <td>
-                            <div class="action-buttons">
-                                <a href="/admin/edit-product/<%= product.id %>" class="action-btn btn-edit">Edit</a>
-                                <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete?')">Delete</a>
-                            </div>
+                            <a href="/admin/edit-product/<%= p.id %>" class="action-btn btn-edit">Edit</a>
+                            <a href="/admin/delete-product/<%= p.id %>" class="action-btn btn-delete" onclick="return confirm('Delete?')">Del</a>
                         </td>
                     </tr>
                     <% }); %>
@@ -124,58 +107,55 @@
                 <h2>Add Product</h2>
                 <span class="close-btn" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
             </div>
-            <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Product Name</label>
-                    <input type="text" name="name" required>
-                </div>
+            <form action="/admin/save-product" method="POST">
+                <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
                 <div class="form-group">
                     <label>Category</label>
                     <select name="category">
-                        <option value="Coffee Based">Coffee Based</option>
-                        <option value="Milk Based">Milk Based</option>
-                        <option value="Fruit Soda">Fruit Soda</option>
-                        <option value="Milk Shake">Milk Shake</option>
+                        <option value="Coffee">Coffee</option>
+                        <option value="Milk Tea">Milk Tea</option>
+                        <option value="Soda">Soda</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Price</label>
-                    <input type="number" name="price_1" required step="0.01">
-                </div>
+                <div class="form-group"><label>Price</label><input type="number" name="price_1" required></div>
                 <button type="submit" class="btn-add">Save</button>
             </form>
         </div>
     </div>
 
     <script>
+    var storeStatus = "<%= storeStatus %>";
+
     async function toggleStore() {
         await fetch('/admin/toggle-status', { method: 'POST' });
         var btn = document.getElementById('storeBtn');
-        var status = document.getElementById('storeStatus');
-        if (status.innerHTML == 'OPEN') {
-            btn.className = 'status-btn btn-closed';
-            status.innerHTML = 'CLOSED';
+        if (storeStatus == "OPEN") {
+            storeStatus = "CLOSED";
+            btn.className = "status-btn btn-closed";
         } else {
-            btn.className = 'status-btn btn-open';
-            status.innerHTML = 'OPEN';
+            storeStatus = "OPEN";
+            btn.className = "status-btn btn-open";
         }
     }
 
-    async function toggleProduct(id, currentActive) {
-        var newActive = currentActive == 1 ? 0 : 1;
+    async function toggleProduct(btn) {
+        var id = btn.getAttribute('data-id');
+        var current = parseInt(btn.getAttribute('data-active'));
+        var newActive = current == 1 ? 0 : 1;
+        
         await fetch('/admin/toggle-product', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'productId=' + id + '&active=' + newActive
         });
-        var btn = document.getElementById('prod_' + id);
-        var status = document.getElementById('status_' + id);
+        
+        btn.setAttribute('data-active', newActive);
         if (newActive == 1) {
-            btn.className = 'btn-toggle btn-available';
-            status.innerHTML = 'Available';
+            btn.className = "btn-toggle btn-available";
+            btn.innerHTML = "Available";
         } else {
-            btn.className = 'btn-toggle btn-unavailable';
-            status.innerHTML = 'Unavailable';
+            btn.className = "btn-toggle btn-unavailable";
+            btn.innerHTML = "Unavailable";
         }
     }
     </script>
