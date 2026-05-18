@@ -41,6 +41,9 @@
         .product-category { font-size: 12px; color: #8D6E63; background: rgba(198,166,100,0.15); padding: 4px 10px; border-radius: 20px; display: inline-block; }
         .product-price { font-weight: 700; color: #C6A664; font-size: 16px; }
         
+        /* ADD THIS - Product Image Thumbnail */
+        .product-thumb { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(198,166,100,0.3); }
+        
         .action-buttons { display: flex; gap: 8px; }
         .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; }
         .btn-edit { background: #3498db; color: white; }
@@ -62,6 +65,9 @@
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #C6A664; }
+        
+        /* ADD THIS - File Input Styling */
+        .file-input { width: 100%; padding: 14px; border: 2px dashed rgba(198,166,100,0.4); border-radius: 12px; background: rgba(198,166,100,0.05); }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
@@ -107,11 +113,18 @@
             <div class="card-title"><i class="fas fa-coffee"></i> All Products (<%= products.length %>)</div>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+                    <!-- ADD THIS - Image Column Header -->
+                    <tr><th>Image</th><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                     <% products.forEach(function(product) { %>
                     <tr>
+                        <!-- ADD THIS - Image Column Cell -->
+                        <td>
+                            <% if (product.image && product.image !== '') { %>
+                            <img src="/images/<%= product.image %>" class="product-thumb" alt="<%= product.name %>" onerror="this.style.display='none'">
+                            <% } %>
+                        </td>
                         <td><%= product.id %></td>
                         <td><div class="product-name"><%= product.name %></div></td>
                         <td><span class="product-category"><%= product.category %></span></td>
@@ -142,6 +155,12 @@
                 <span class="close-btn" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
             </div>
             <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
+                <!-- ADD THIS - Image Upload Field -->
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <input type="file" name="image" class="file-input" accept="image/*">
+                </div>
+                
                 <div class="form-group">
                     <label>Product Name *</label>
                     <input type="text" name="name" required placeholder="Enter product name">
