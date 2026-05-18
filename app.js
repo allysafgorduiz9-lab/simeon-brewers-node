@@ -81,12 +81,13 @@ app.get('/logout', (req, res) => {
 });
 
 // ADMIN - MENU
+// ADMIN - MENU
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     console.log('>>> Loading /admin/menu');
     console.log('   DB Connected:', db.connected);
     
-    db.query("SELECT * FROM products ORDER BY name ASC", (err, products) => {
-        console.log('   Query Error:', err ? err.message : 'None');
+    // SHOW ALL products (including inactive ones) - ordered by ID
+    db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
         console.log('   Products Found:', products ? products.length : 0);
         
         if (err) {
