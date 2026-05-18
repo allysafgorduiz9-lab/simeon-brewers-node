@@ -6,64 +6,47 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
-        
-        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; overflow-y: auto; }
-        .logo-section { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; }
+        .logo-section { text-align: center; margin-bottom: 35px; }
         .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
-        .logo-title { color: #C6A664; margin: 0 0 15px 0; font-size: 22px; font-weight: 700; }
-        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; }
+        .logo-title { color: #C6A664; font-size: 22px; font-weight: 700; }
+        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; margin-top: 15px; }
         .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
-        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
+        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; width: 100%; cursor: pointer; }
         .btn-open { background: #27ae60; }
         .btn-closed { background: #e74c3c; }
-        
         .nav-section { margin-top: 25px; }
-        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; display: block; margin-bottom: 8px; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
         .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
-        .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
+        .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; }
         .logout-link { color: #ff7675; font-weight: 600; }
-        
         .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
         .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
-        
         .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
-        .btn-add:hover { transform: translateY(-2px); }
-        
         .menu-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; margin-bottom: 30px; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
-        
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 18px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid rgba(198,166,100,0.2); }
         td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; }
-        
         .product-name { font-weight: 600; font-size: 16px; }
-        .product-category { font-size: 12px; color: #8D6E63; background: rgba(198,166,100,0.15); padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .product-category { font-size: 12px; color: #8D6E63; background: rgba(198,166,100,0.15); padding: 4px 10px; border-radius: 20px; }
         .product-price { font-weight: 700; color: #C6A664; font-size: 16px; }
-        
         .action-buttons { display: flex; gap: 8px; }
-        .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; }
+        .action-btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; }
         .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
-        .btn-edit:hover { background: #2980b9; }
-        .btn-delete:hover { background: #c0392b; }
-        
         .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-available { background: #27ae60; color: white; }
         .btn-unavailable { background: #e74c3c; color: white; }
-        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
         .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .modal-header h2 { color: #2D1B14; font-size: 24px; }
         .close-btn { font-size: 30px; cursor: pointer; color: #8D6E63; }
-        
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
-        
-        .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
-        .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
     </style>
 </head>
 <body>
@@ -74,40 +57,31 @@
             <div class="store-status">
                 <div class="status-label">STORE STATUS</div>
                 <button type="button" class="status-btn" id="storeBtn" onclick="toggleStore()">
-                    <span id="storeStatus"><%= storeOpen ? 'OPEN' : 'CLOSED' %></span>
+                    <span id="storeStatus"><%= storeOpen ? "OPEN" : "CLOSED" %></span>
                 </button>
             </div>
         </div>
         <div class="nav-section">
-            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
-            <a href="/admin/menu" class="nav-item active"><i class="fas fa-utensils"></i> Manage Menu</a>
-            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Categories</a>
-            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Reports</a>
+            <a href="/admin/orders" class="nav-item">Orders</a>
+            <a href="/admin/menu" class="nav-item active">Manage Menu</a>
+            <a href="/admin/categories" class="nav-item">Categories</a>
+            <a href="/admin/reports" class="nav-item">Reports</a>
             <hr class="nav-divider">
-            <a href="/" target="_blank" class="nav-item live-site-link"><i class="fas fa-external-link-alt"></i> View Live Site</a>
-            <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/" target="_blank" class="nav-item live-site-link">View Live Site</a>
+            <a href="/logout" class="nav-item logout-link">Logout</a>
         </div>
     </div>
 
     <div class="main-content">
         <h1 class="page-header">
-            <span><i class="fas fa-utensils"></i> Manage Menu</span>
+            <span>Manage Menu</span>
             <button class="btn-add" onclick="document.getElementById('addModal').style.display='block'">
-                <i class="fas fa-plus"></i> Add Product
+                + Add Product
             </button>
         </h1>
         
-        <% if (products.length === 0) { %>
         <div class="menu-card">
-            <div class="empty-state">
-                <i class="fas fa-coffee"></i>
-                <h3>No Products Yet</h3>
-                <p>Add your first product.</p>
-            </div>
-        </div>
-        <% } else { %>
-        <div class="menu-card">
-            <div class="card-title"><i class="fas fa-coffee"></i> All Products (<%= products.length %>)</div>
+            <div class="card-title">All Products (<%= products.length %>)</div>
             <table>
                 <thead>
                     <tr>
@@ -123,20 +97,18 @@
                     <% products.forEach(function(product) { %>
                     <tr>
                         <td><%= product.id %></td>
-                        <td><div class="product-name"><%= product.name %></div></td>
-                        <td><span class="product-category"><%= product.category %></span></td>
-                        <td><div class="product-price">₱<%= product.price_1 %></div></td>
+                        <td><%= product.name %></td>
+                        <td><%= product.category %></td>
+                        <td>₱<%= product.price_1 %></td>
                         <td>
-                            <button type="button" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>" 
-                                id="prod_<%= product.id %>" 
-                                onclick="toggleProduct(<%= product.id %>, <%= product.active %>)">
-                                <span id="status_<%= product.id %>"><%= product.active == 1 ? 'Available' : 'Unavailable' %></span>
+                            <button type="button" class="btn-toggle" id="prod_<%= product.id %>" onclick="toggleProduct(<%= product.id %>, <%= product.active %>)">
+                                <span id="status_<%= product.id %>"><%= product.active == 1 ? "Available" : "Unavailable" %></span>
                             </button>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="/admin/edit-product/<%= product.id %>" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="/admin/edit-product/<%= product.id %>" class="action-btn btn-edit">Edit</a>
+                                <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete?')">Delete</a>
                             </div>
                         </td>
                     </tr>
@@ -144,19 +116,17 @@
                 </tbody>
             </table>
         </div>
-        <% } %>
     </div>
 
-    <!-- Add Product Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-plus-circle"></i> Add Product</h2>
+                <h2>Add Product</h2>
                 <span class="close-btn" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
             </div>
             <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label>Product Name *</label>
+                    <label>Product Name</label>
                     <input type="text" name="name" required>
                 </div>
                 <div class="form-group">
@@ -166,72 +136,46 @@
                         <option value="Milk Based">Milk Based</option>
                         <option value="Fruit Soda">Fruit Soda</option>
                         <option value="Milk Shake">Milk Shake</option>
-                        <option value="Add Ons">Add Ons</option>
-                        <option value="Appetizers">Appetizers</option>
-                        <option value="Sandwiches">Sandwiches</option>
-                        <option value="Burgers">Burgers</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Price *</label>
+                    <label>Price</label>
                     <input type="number" name="price_1" required step="0.01">
                 </div>
-                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save</button>
+                <button type="submit" class="btn-add">Save</button>
             </form>
         </div>
     </div>
 
     <script>
-    // Toggle Store Status (Real-time - No Reload)
     async function toggleStore() {
-        try {
-            const response = await fetch('/admin/toggle-status', { method: 'POST' });
-            const data = await response.json();
-            
-            const btn = document.getElementById('storeBtn');
-            const status = document.getElementById('storeStatus');
-            
-            if (data.storeOpen) {
-                btn.classList.remove('btn-closed');
-                btn.classList.add('btn-open');
-                status.textContent = 'OPEN';
-            } else {
-                btn.classList.remove('btn-open');
-                btn.classList.add('btn-closed');
-                status.textContent = 'CLOSED';
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Failed to toggle store status');
+        await fetch('/admin/toggle-status', { method: 'POST' });
+        var btn = document.getElementById('storeBtn');
+        var status = document.getElementById('storeStatus');
+        if (status.innerHTML == 'OPEN') {
+            btn.className = 'status-btn btn-closed';
+            status.innerHTML = 'CLOSED';
+        } else {
+            btn.className = 'status-btn btn-open';
+            status.innerHTML = 'OPEN';
         }
     }
 
-    // Toggle Product (Real-time - No Reload)
     async function toggleProduct(id, currentActive) {
-        const newActive = currentActive == 1 ? 0 : 1;
-        
-        try {
-            await fetch('/admin/toggle-product', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'productId=' + id + '&active=' + newActive
-            });
-            
-            const btn = document.getElementById('prod_' + id);
-            const status = document.getElementById('status_' + id);
-            
-            if (newActive == 1) {
-                btn.classList.remove('btn-unavailable');
-                btn.classList.add('btn-available');
-                status.textContent = 'Available';
-            } else {
-                btn.classList.remove('btn-available');
-                btn.classList.add('btn-unavailable');
-                status.textContent = 'Unavailable';
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Failed to toggle product');
+        var newActive = currentActive == 1 ? 0 : 1;
+        await fetch('/admin/toggle-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'productId=' + id + '&active=' + newActive
+        });
+        var btn = document.getElementById('prod_' + id);
+        var status = document.getElementById('status_' + id);
+        if (newActive == 1) {
+            btn.className = 'btn-toggle btn-available';
+            status.innerHTML = 'Available';
+        } else {
+            btn.className = 'btn-toggle btn-unavailable';
+            status.innerHTML = 'Unavailable';
         }
     }
     </script>
