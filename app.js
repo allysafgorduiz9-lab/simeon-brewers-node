@@ -363,3 +363,35 @@ app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     }
     res.redirect('/admin/menu');
 });
+
+// Manage Menu
+app.get('/admin/menu', isAuthenticated, (req, res) => {
+    console.log('=== Loading Menu ===');
+    console.log('DB Connected:', db.connected);
+    
+    if (!db.connected) {
+        console.log('Database not connected!');
+        return res.render('admin/menu', { products: [], categories: [], storeOpen });
+    }
+    
+    // First - check products table
+    db.query("SELECT * FROM products", (err, products) => {
+        console.log('SQL Error:', err);
+        console.log('Products found:', products ? products.length : 0);
+        
+        if (err) {
+            console.log('Table might not exist or has error');
+            return res.render('admin/menu', { products: [], categories: [], storeOpen });
+        }
+        
+        db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
+            console.log('Categories found:', categories ? categories.length : 0);
+            
+            res.render('admin/menu', { 
+                products: products || [], 
+                categories: categories || [], 
+                storeOpen 
+            });
+        });
+    });
+});
