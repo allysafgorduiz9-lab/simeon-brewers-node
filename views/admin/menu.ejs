@@ -43,14 +43,8 @@
         
         .action-buttons { display: flex; gap: 8px; }
         .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; }
-        .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
-        .btn-edit:hover { background: #2980b9; }
         .btn-delete:hover { background: #c0392b; }
-        
-        .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .btn-available { background: #27ae60; color: white; }
-        .btn-unavailable { background: #e74c3c; color: white; }
         
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
@@ -63,8 +57,6 @@
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2D1B14; }
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #C6A664; }
-        
-        .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
@@ -119,7 +111,6 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Price</th>
-                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -129,32 +120,13 @@
                         <td><%= product.id %></td>
                         <td>
                             <div class="product-name"><%= product.name %></div>
-                            <% if (product.description) { %>
-                            <div style="font-size:12px;color:#8D6E63;"><%= product.description %></div>
-                            <% } %>
                         </td>
                         <td><span class="product-category"><%= product.category %></span></td>
                         <td>
                             <div class="product-price">₱<%= product.price_1 %></div>
-                            <% if (product.price_2 > 0) { %>
-                            <div style="font-size:12px;color:#8D6E63;">Med: ₱<%= product.price_2 %></div>
-                            <% } %>
-                            <% if (product.price_3 > 0) { %>
-                            <div style="font-size:12px;color:#8D6E63;">Lrg: ₱<%= product.price_3 %></div>
-                            <% } %>
-                        </td>
-                        <td>
-                            <form action="/admin/toggle-product" method="POST" style="display:inline;">
-                                <input type="hidden" name="productId" value="<%= product.id %>">
-                                <input type="hidden" name="active" value="<%= product.active == 1 ? 0 : 1 %>">
-                                <button type="submit" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>">
-                                    <%= product.active == 1 ? 'Available' : 'Unavailable' %>
-                                </button>
-                            </form>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="/admin/edit-product/<%= product.id %>" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
                                 <a href="/admin/delete-product/<%= product.id %>" class="action-btn btn-delete" onclick="return confirm('Delete this product?')"><i class="fas fa-trash"></i> Delete</a>
                             </div>
                         </td>
@@ -193,16 +165,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Prices (Small / Medium / Large)</label>
-                    <div class="price-grid">
-                        <input type="number" name="price_1" placeholder="Small" step="0.01">
-                        <input type="number" name="price_2" placeholder="Medium" step="0.01">
-                        <input type="number" name="price_3" placeholder="Large" step="0.01">
-                    </div>
+                    <label>Price *</label>
+                    <input type="number" name="price_1" required placeholder="Enter price" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" name="description" placeholder="Product description">
+                    <label>Product Image</label>
+                    <input type="file" name="image" accept="image/*">
                 </div>
                 <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save Product</button>
             </form>

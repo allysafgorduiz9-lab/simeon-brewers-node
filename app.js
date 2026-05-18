@@ -68,14 +68,15 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
 });
 
 // SAVE PRODUCT - Simplified!
+// SAVE PRODUCT - Updated for your DB
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
-    if (!name) return res.redirect('/admin/menu');
+    if (!name || !price_1) return res.redirect('/admin/menu');
     
     const image = req.file ? req.file.filename : 'default.jpg';
     
     db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)",
-        [name, category || 'General', price_1 || 0, image]);
+        [name, category || 'General', price_1, image]);
     
     res.redirect('/admin/menu');
 });
