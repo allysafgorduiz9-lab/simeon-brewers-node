@@ -473,7 +473,7 @@
 
         function generateOrderNumber() {
             const now = new Date();
-            return `ORD-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*1000).padStart(3,'0')}`;
+            return `ORD-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(Math.floor(Math.random()*1000)).padStart(3,'0')}`;
         }
 
         async function placeOrder() {
