@@ -6,11 +6,14 @@ const session = require('express-session');
 
 const app = express();
 
+// ========== CONFIGURATION ==========
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'password123'; 
+const ADMIN_PASSWORD = 'password123';
+const PORT = process.env.PORT || 3000;
 let storeOpen = true;
 let storeStatus = "OPEN";
 
+// ========== DATABASE ==========
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -24,49 +27,57 @@ db.connect((err) => {
     else console.log('DB Connected!');
 });
 
+// ========== MIDDLEWARE ==========
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'simeon2024', resave: false, saveUninitialized: true }));
+app.use(session({ 
+    secret: 'simeon2024', 
+    resave: false, 
+    saveUninitialized: true 
+}));
 
+// Auth middleware
 const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
 };
 
+// File upload
 const upload = multer({ dest: './public/images/' });
 
-// HOME
-// HOME - with pagination
+// ========== PUBLIC ROUTES ==========
+
+// Home - with pagination
 app.get('/', (req, res) => {
     var page = parseInt(req.query.page) || 1;
     db.query("SELECT * FROM products WHERE active = 1 ORDER BY id ASC", (err, products) => {
-        res.render('index', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus, page: page });
+        res.render('index', { 
+            products: products || [], 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus, 
+            page: page 
+        });
     });
 });
 
-// About page route
+// About page
 app.get('/about', (req, res) => {
     res.render('about');
 });
 
-// Catch-all route (must be last)
-app.get('*', (req, res) => {
-    res.render('index', { products: products, storeStatus: storeStatus, page: 1 });
-});
-
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-});
-
+// Checkout
 app.get('/checkout', (req, res) => {
     res.render('checkout');
 });
 
-// LOGIN
-app.get('/login', (req, res) => res.render('login', { error: null }));
+// Login page
+app.get('/login', (req, res) => {
+    res.render('login', { error: null });
+});
 
+// Login handler
 app.post('/login', (req, res) => {
     if (req.body.username === ADMIN_USERNAME && req.body.password === ADMIN_PASSWORD) {
         req.session.loggedIn = true;
@@ -76,16 +87,26 @@ app.post('/login', (req, res) => {
     }
 });
 
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login'); });
+// Logout
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login');
+});
 
-// ADMIN MENU
+// ========== ADMIN ROUTES (Protected) ==========
+
+// Admin Menu
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
-        res.render('admin/menu', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus });
+        res.render('admin/menu', { 
+            products: products || [], 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus 
+        });
     });
 });
 
-// SAVE PRODUCT
+// Save Product
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
     if (!name || !price_1) return res.redirect('/admin/menu');
@@ -95,25 +116,29 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
     res.redirect('/admin/menu');
 });
 
-// TOGGLE PRODUCT
+// Toggle Product
 app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     const { productId, active } = req.body;
     db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId]);
     res.json({ success: true });
 });
 
-// EDIT PRODUCT
+// Edit Product
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
-            res.render('admin/edit_product', { product: products[0], storeOpen: storeOpen, storeStatus: storeStatus });
+            res.render('admin/edit_product', { 
+                product: products[0], 
+                storeOpen: storeOpen, 
+                storeStatus: storeStatus 
+            });
         } else {
             res.redirect('/admin/menu');
         }
     });
 });
 
-// UPDATE PRODUCT
+// Update Product
 app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     const { name, category, price_1, active } = req.body;
     db.query("UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?",
@@ -121,16 +146,20 @@ app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     res.redirect('/admin/menu');
 });
 
-// DELETE PRODUCT
+// Delete Product
 app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
     res.redirect('/admin/menu');
 });
 
-// CATEGORIES (ADD THIS!)
+// Categories
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY id ASC", (err, categories) => {
-        res.render('admin/categories', { categories: categories || [], storeOpen: storeOpen, storeStatus: storeStatus });
+        res.render('admin/categories', { 
+            categories: categories || [], 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus 
+        });
     });
 });
 
@@ -148,17 +177,21 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
     res.redirect('/admin/categories');
 });
 
-// TOGGLE STORE
+// Toggle Store Status
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     storeStatus = storeOpen ? "OPEN" : "CLOSED";
-    res.json({ success: true });
+    res.json({ success: true, storeOpen, storeStatus });
 });
 
-// ORDERS
+// Orders
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
-        res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen, storeStatus: storeStatus });
+        res.render('admin/orders', { 
+            orders: orders || [], 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus 
+        });
     });
 });
 
@@ -168,29 +201,47 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
     res.redirect('/admin/orders');
 });
 
-// REPORTS
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders", (err, orders) => {
         const total = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
-        res.render('admin/reports', { orders: orders || [], totalOrders: orders.length, totalRevenue: total.toFixed(2), storeOpen: storeOpen, storeStatus: storeStatus });
+        res.render('admin/reports', { 
+            orders: orders || [], 
+            totalOrders: orders.length, 
+            totalRevenue: total.toFixed(2), 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus 
+        });
     });
 });
 
-// API
-app.get('/api/status', (req, res) => res.json({ storeOpen: storeOpen }));
+// ========== API ROUTES ==========
+
+app.get('/api/status', (req, res) => {
+    res.json({ storeOpen: storeOpen });
+});
 
 app.post('/api/orders', express.json(), (req, res) => {
     const { cart, customer } = req.body;
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
-    db.query("INSERT INTO orders (order_number, customer_name, contact_number, total_price, status, items_json) VALUES (?, ?, ?, ?, 'pending', ?)",
-        [orderNumber, customer.name, customer.phone, total, JSON.stringify(cart)]);
+    
+    db.query(
+        "INSERT INTO orders (order_number, customer_name, contact_number, total_price, status, items_json) VALUES (?, ?, ?, ?, 'pending', ?)",
+        [orderNumber, customer.name, customer.phone, total, JSON.stringify(cart)]
+    );
+    
     res.json({ orderNumber, total });
 });
 
-app.use((req, res) => res.status(404).send('Not Found'));
+// ========== 404 CATCH-ALL (Must be last) ==========
 
-const PORT = process.env.PORT || 3000;
+app.use((req, res) => {
+    res.status(404).send('Page Not Found');
+});
+
+// ========== SERVER START ==========
+
 app.listen(PORT, () => {
-    console.log('Server running on http://localhost:' + PORT);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
