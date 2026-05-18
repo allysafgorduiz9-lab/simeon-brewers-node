@@ -60,6 +60,10 @@ app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
 
+app.get('/checkout', (req, res) => {
+    res.render('checkout');
+});
+
 // LOGIN
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
