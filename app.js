@@ -84,7 +84,7 @@ app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     res.json({ success: true });
 });
 
-// EDIT PRODUCT
+// EDIT PRODUCT PAGE
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
@@ -98,8 +98,12 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
 // UPDATE PRODUCT
 app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     const { name, category, price_1, active } = req.body;
-    db.query("UPDATE products SET name=?, category=?, price_1=?, active=? WHERE id=?",
-        [name, category, price_1, active || 1, req.params.id]);
+    const sql = "UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?";
+    db.query(sql, [name, category, price_1, active || 1, req.params.id], (err) => {
+        if (err) {
+            console.log('Update error:', err.message);
+        }
+    });
     res.redirect('/admin/menu');
 });
 
