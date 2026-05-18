@@ -358,7 +358,7 @@
         </div>
     </div>
 
-    <script>
+        <script>
         // Load cart from localStorage
         let cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
 
@@ -414,17 +414,6 @@
             cart.splice(index, 1);
             localStorage.setItem('simeonCart', JSON.stringify(cart));
             renderOrder();
-            
-            // Update cart count on homepage if needed
-            updateParentCartCount();
-        }
-
-        function updateParentCartCount() {
-                    const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-            // Try to update parent window cart count if opened in same tab
-            if (window.opener) {
-                window.opener.postMessage({ type: 'cartUpdate', count: total }, '*');
-            }
         }
 
         function togglePayment() {
@@ -497,10 +486,11 @@
             }
 
             const btn = document.getElementById('placeOrderBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
-
             const totals = calculateTotal();
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
             const orderNumber = generateOrderNumber();
 
             const orderData = {
@@ -521,11 +511,18 @@
             };
 
             try {
+                // Add AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
                 const response = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
+                    body: JSON.stringify(orderData),
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 const result = await response.json();
 
@@ -541,8 +538,18 @@
                 cart = [];
 
             } catch (error) {
-                alert('Order Error: ' + error.message);
-            } finally {
+                console.error('Order Error:', error);
+                
+                let errorMessage = 'Something went wrong. Please try again.';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Request timed out. Please check your connection.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                alert('❌ ' + errorMessage);
+                
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check"></i> Place Order (₱' + totals.grandTotal.toFixed(2) + ')';
             }
