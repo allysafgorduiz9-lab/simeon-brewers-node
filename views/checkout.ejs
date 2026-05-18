@@ -345,7 +345,7 @@ Here is the **final checkout.ejs** code:
 
     <script>
         // Load cart from localStorage
-        const cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+        const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
 
         function calculateTotal() {
             let subtotal = 0;
@@ -495,7 +495,7 @@ Here is the **final checkout.ejs** code:
                 showReceipt(orderData);
 
                 // Clear cart
-                localStorage.removeItem('simeon_cart');
+                localStorage.removeItem('simeonCart');
 
             } catch (error) {
                 alert('Order Error: ' + error.message);
