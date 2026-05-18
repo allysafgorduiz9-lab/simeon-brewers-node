@@ -73,9 +73,9 @@
             <h3 class="logo-title">SIMEON BREWERS</h3>
             <div class="store-status">
                 <div class="status-label">STORE STATUS</div>
-                <form action="/admin/toggle-status" method="POST">
-                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
-                </form>
+                <button type="button" class="status-btn" id="storeBtn" onclick="toggleStore()">
+                    <span id="storeStatus"><%= storeOpen ? 'OPEN' : 'CLOSED' %></span>
+                </button>
             </div>
         </div>
         <div class="nav-section">
@@ -127,13 +127,11 @@
                         <td><span class="product-category"><%= product.category %></span></td>
                         <td><div class="product-price">₱<%= product.price_1 %></div></td>
                         <td>
-                            <form action="/admin/toggle-product" method="POST" style="display:inline;">
-                                <input type="hidden" name="productId" value="<%= product.id %>">
-                                <input type="hidden" name="active" value="<%= product.active == 1 ? 0 : 1 %>">
-                                <button type="submit" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>">
-                                    <%= product.active == 1 ? 'Available' : 'Unavailable' %>
-                                </button>
-                            </form>
+                            <button type="button" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>" 
+                                id="prod_<%= product.id %>" 
+                                onclick="toggleProduct(<%= product.id %>, <%= product.active %>)">
+                                <span id="status_<%= product.id %>"><%= product.active == 1 ? 'Available' : 'Unavailable' %></span>
+                            </button>
                         </td>
                         <td>
                             <div class="action-buttons">
@@ -182,5 +180,60 @@
             </form>
         </div>
     </div>
+
+    <script>
+    // Toggle Store Status (Real-time - No Reload)
+    async function toggleStore() {
+        try {
+            const response = await fetch('/admin/toggle-status', { method: 'POST' });
+            const data = await response.json();
+            
+            const btn = document.getElementById('storeBtn');
+            const status = document.getElementById('storeStatus');
+            
+            if (data.storeOpen) {
+                btn.classList.remove('btn-closed');
+                btn.classList.add('btn-open');
+                status.textContent = 'OPEN';
+            } else {
+                btn.classList.remove('btn-open');
+                btn.classList.add('btn-closed');
+                status.textContent = 'CLOSED';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to toggle store status');
+        }
+    }
+
+    // Toggle Product (Real-time - No Reload)
+    async function toggleProduct(id, currentActive) {
+        const newActive = currentActive == 1 ? 0 : 1;
+        
+        try {
+            await fetch('/admin/toggle-product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'productId=' + id + '&active=' + newActive
+            });
+            
+            const btn = document.getElementById('prod_' + id);
+            const status = document.getElementById('status_' + id);
+            
+            if (newActive == 1) {
+                btn.classList.remove('btn-unavailable');
+                btn.classList.add('btn-available');
+                status.textContent = 'Available';
+            } else {
+                btn.classList.remove('btn-available');
+                btn.classList.add('btn-unavailable');
+                status.textContent = 'Unavailable';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to toggle product');
+        }
+    }
+    </script>
 </body>
 </html>
