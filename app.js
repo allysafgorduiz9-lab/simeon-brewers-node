@@ -233,16 +233,44 @@ app.get('/admin/add-product', isAuthenticated, (req, res) => {
     });
 });
 
+// Save Product
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
+    console.log('=== Saving Product ===');
+    console.log('Body:', req.body);
+    console.log('File:', req.file);
+    
     const { name, category, price_1, price_2, price_3, description } = req.body;
+    
+    console.log('Name:', name);
+    console.log('Category:', category);
+    console.log('Price 1:', price_1);
+    
+    if (!name || name.trim() === '') {
+        console.log('ERROR: No product name!');
+        return res.redirect('/admin/menu');
+    }
+    
     const image = req.file ? req.file.filename : 'default.jpg';
     
     if (db.connected) {
         db.query(
             "INSERT INTO products (name, category, price_1, price_2, price_3, description, image, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
-            [name, category || 'General', parseFloat(price_1)||0, parseFloat(price_2)||0, parseFloat(price_3)||0, description||'', image]
+            [name, category || 'General', parseFloat(price_1)||0, parseFloat(price_2)||0, parseFloat(price_3)||0, description||'', image],
+            (err, result) => {
+                if (err) {
+                    console.error('INSERT Error:', err);
+                    return res.redirect('/admin/menu');
+                }
+                console.log('✅ Product saved! ID:', result.insertId);
+                
+                // Verify it was saved
+                db.query("SELECT * FROM products ORDER BY id DESC LIMIT 1", (err, rows) => {
+                    console.log('Latest product:', rows[0]);
+                });
+            }
         );
     }
+    
     res.redirect('/admin/menu');
 });
 
