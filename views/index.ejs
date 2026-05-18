@@ -315,6 +315,7 @@
     }
 
     // 3. Checkout Function
+       // 3. Checkout Function
     function checkout() {
         const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
         
@@ -323,9 +324,8 @@
             return;
         }
         
-        // In a real app, this would redirect to a checkout page
-        // window.location.href = '/checkout';
-        alert('Proceeding to checkout with ' + cart.length + ' items.\n(Checkout page not connected in this demo)');
+        // Redirect to checkout page
+        window.location.href = '/checkout';
     }
 
     // 4. Search Functionality
