@@ -173,3 +173,16 @@ app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
     res.redirect('/admin/menu');
 });
+
+// Toggle Store Status - BOTH GET and POST
+app.get('/admin/toggle-status', isAuthenticated, (req, res) => {
+    storeOpen = !storeOpen;
+    console.log('Store status:', storeOpen ? 'OPEN' : 'CLOSED');
+    res.redirect('back');
+});
+
+app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
+    storeOpen = !storeOpen;
+    console.log('Store status:', storeOpen ? 'OPEN' : 'CLOSED');
+    res.redirect('back');
+});
