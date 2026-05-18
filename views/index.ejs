@@ -174,28 +174,28 @@
 </footer>
 
 <script>
-    var cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
-    updateCartCount();
+var cart = JSON.parse(localStorage.getItem('simeon_cart')) || [];
+updateCartCount();
 
-    function addToCart(button) {
-        var id = button.getAttribute('data-id');
-        var name = button.getAttribute('data-name');
-        var price = parseFloat(button.getAttribute('data-price'));
-        var qty = parseInt(document.getElementById('qty-' + id).value) || 1;
+function addToCart(button) {
+    var id = button.getAttribute('data-id');
+    var name = button.getAttribute('data-name');
+    var price = parseFloat(button.getAttribute('data-price'));
+    var qty = parseInt(document.getElementById('qty-' + id).value) || 1;
 
-        var existing = cart.find(function(item) { return item.id === id; });
-        if (existing) {
-            existing.quantity += qty;
-        } else {
-            cart.push({ id: id, name: name, price: price, quantity: qty });
-        }
-        
-        localStorage.setItem('simeon_cart', JSON.stringify(cart));
-        updateCartCount();
-        alert(name + " added to cart!");
+    var existing = cart.find(function(item) { return item.id === id; });
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        cart.push({ id: id, name: name, price: price, quantity: qty });
     }
+    
+    localStorage.setItem('simeon_cart', JSON.stringify(cart));
+    updateCartCount();
+    alert(name + " added to cart!");
+}
 
-    function updateCartCount() {
+function updateCartCount() {
     var count = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
     document.getElementById('cart-count').textContent = count;
 }
@@ -223,13 +223,11 @@ function searchProducts() {
 
 function checkStoreStatus() {
     var status = "<%= storeStatus %>";
-    var btns = document.querySelectorAll('.btn-add, .btn-disabled');
-    var inputs = document.querySelectorAll('.qty-input');
     if (status === 'CLOSED') {
+        var btns = document.querySelectorAll('.btn-add, .btn-disabled');
+        var inputs = document.querySelectorAll('.qty-input');
         btns.forEach(function(btn) {
             btn.disabled = true;
-            btn.classList.remove('btn-add');
-            btn.classList.add('btn-disabled');
             btn.textContent = 'CLOSED';
         });
         inputs.forEach(function(input) { input.disabled = true; });
