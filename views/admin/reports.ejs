@@ -12,13 +12,12 @@
         .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
         .logo-title { color: #C6A664; font-size: 22px; font-weight: 700; }
         .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; }
-        .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
-        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
+        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; width: 100%; cursor: pointer; }
         .btn-open { background: #27ae60; }
         .btn-closed { background: #e74c3c; }
         
         .nav-section { margin-top: 25px; }
-        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; display: block; margin-bottom: 8px; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
         .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
         .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
@@ -26,7 +25,6 @@
         
         .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
         .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; }
-        .btn-refresh { padding: 12px 20px; background: #8D6E63; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 40px; }
         .stat-card { background: white; border-radius: 24px; padding: 35px; text-align: center; box-shadow: 0 20px 60px rgba(45,27,20,0.08); border-top: 5px solid #C6A664; }
@@ -35,17 +33,17 @@
         .stat-number { font-size: 42px; font-weight: 800; color: #2D1B14; }
         .revenue-value { color: #C6A664; }
         
-        .orders-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
-        .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; }
+        .orders-table { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
+        .table-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; display: flex; align-items: center; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 20px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; }
+        th { text-align: left; padding: 20px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; text-transform: uppercase; font-size: 14px; }
         td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; }
         
         .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        .badge-pending { background: rgba(241,196,15,0.15); color: #f39c12; }
         .badge-completed { background: rgba(39,174,96,0.15); color: #27ae60; }
         .badge-cancelled { background: rgba(231,76,60,0.15); color: #e74c3c; }
+        .badge-pending { background: rgba(241,196,15,0.15); color: #f39c12; }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
     </style>
@@ -56,7 +54,6 @@
             <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Logo" onerror="this.style.display='none'">
             <h3 class="logo-title">SIMEON BREWERS</h3>
             <div class="store-status">
-                <div class="status-label">STORE STATUS</div>
                 <form action="/admin/toggle-status" method="POST">
                     <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
                 </form>
@@ -74,11 +71,9 @@
     </div>
 
     <div class="main-content">
-        <h1 class="page-header">
-            <span><i class="fas fa-chart-line"></i> Daily Reports</span>
-            <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
-        </h1>
+        <h1 class="page-header"><i class="fas fa-chart-line"></i> Daily Reports</h1>
         
+        <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
@@ -92,5 +87,48 @@
             </div>
         </div>
         
-        <div class="orders-card">
-            <div class="card-title"><i class="fas fa-list-alt"></i> Today's Orders
+        <!-- Orders Table -->
+        <div class="orders-table">
+            <div class="table-title">
+                <i class="fas fa-list-alt"></i> Today's Orders
+            </div>
+            
+            <% if (orders && orders.length > 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(function(order) { %>
+                    <tr>
+                        <td style="font-weight:700;">#<%= order.order_number %></td>
+                        <td>
+                            <div style="font-weight:600;"><%= order.customer_name %></div>
+                            <div style="font-size:12px;color:#8D6E63;"><%= order.contact_number %></div>
+                        </td>
+                        <td><%= order.items_summary %></td>
+                        <td style="font-weight:700;">₱<%= order.total_price %></td>
+                        <td><span class="status-badge badge-<%= order.status %>"><%= order.status %></span></td>
+                        <td style="color:#8D6E63;"><%= order.time %></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <% } else { %>
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list" style="font-size:54px;opacity:0.4;color:#C6A664;"></i>
+                <h3>No Orders Today</h3>
+                <p>Orders will appear here once customers place them.</p>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
