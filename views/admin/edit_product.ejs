@@ -44,6 +44,17 @@
         .btn-cancel { background: #666; color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-block; }
         
         .info-badge { background: rgba(198,166,100,0.15); padding: 4px 12px; border-radius: 8px; font-size: 12px; color: #8D6E63; }
+        
+        /* ADD THIS - Image Section Styles */
+        .current-image-section { margin-bottom: 20px; text-align: center; }
+        .current-image-label { display: block; font-weight: 600; color: #2D1B14; margin-bottom: 10px; }
+        .current-image { width: 150px; height: 150px; object-fit: cover; border-radius: 16px; border: 3px solid rgba(198,166,100,0.3); }
+        .image-hint { font-size: 12px; color: #8D6E63; margin-top: 8px; }
+        
+        .file-input-wrapper { position: relative; }
+        .file-input { width: 100%; padding: 14px; border: 2px dashed rgba(198,166,100,0.4); border-radius: 12px; background: rgba(198,166,100,0.05); cursor: pointer; }
+        .image-preview { margin-top: 15px; text-align: center; display: none; }
+        .image-preview img { max-width: 150px; max-height: 150px; border-radius: 16px; border: 3px solid rgba(198,166,100,0.3); }
     </style>
 </head>
 <body>
@@ -72,7 +83,36 @@
         <div class="edit-card">
             <div class="card-header"><i class="fas fa-edit"></i> Update Product</div>
             <div class="card-body">
-                <form action="/admin/update-product/<%= product.id %>" method="POST">
+                <form action="/admin/update-product/<%= product.id %>" method="POST" enctype="multipart/form-data">
+                    
+                    <!-- ADD THIS - Current Product Image -->
+                    <div class="current-image-section">
+                        <span class="current-image-label">Current Image</span>
+                        <% if (product.image && product.image !== '') { %>
+                        <img src="/images/<%= product.image %>" class="current-image" alt="<%= product.name %>" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div style="display:none; padding:30px; background:rgba(198,166,100,0.1); border-radius:16px; color:#8D6E63;">
+                            <i class="fas fa-image" style="font-size:40px;"></i>
+                            <p style="margin-top:10px;">No image uploaded</p>
+                        </div>
+                        <% } else { %>
+                        <div style="padding:30px; background:rgba(198,166,100,0.1); border-radius:16px; color:#8D6E63; display:block;">
+                            <i class="fas fa-image" style="font-size:40px;"></i>
+                            <p style="margin-top:10px;">No image uploaded</p>
+                        </div>
+                        <% } %>
+                        <p class="image-hint">Upload a new image below to replace</p>
+                    </div>
+                    
+                    <!-- ADD THIS - Image Upload Field -->
+                    <div class="form-group">
+                        <label>Change Product Image</label>
+                        <input type="file" name="image" class="file-input" accept="image/*" onchange="previewImage(this)">
+                        <div class="image-preview" id="imagePreview">
+                            <img id="previewImg" src="" alt="Preview">
+                            <p class="image-hint">New image selected</p>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label>Product ID</label>
                         <div class="info-badge">#<%= product.id %></div>
@@ -115,5 +155,18 @@
             </div>
         </div>
     </div>
+    
+    <script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    </script>
 </body>
 </html>
