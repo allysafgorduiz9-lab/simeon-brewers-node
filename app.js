@@ -8,7 +8,8 @@ const app = express();
 
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'password123'; 
-let storeOpen = true; 
+let storeOpen = true;
+let storeStatus = "OPEN";
 
 console.log('=== SIMEON BREWERS ===');
 
@@ -21,8 +22,8 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if (err) console.log('❌ DB Error:', err.message);
-    else console.log('✅ DB Connected!');
+    if (err) console.log('DB Error:', err.message);
+    else console.log('DB Connected!');
 });
 
 app.set('view engine', 'ejs');
@@ -38,12 +39,10 @@ const isAuthenticated = (req, res, next) => {
 
 const upload = multer({ dest: './public/images/' });
 
-// ================= ROUTES =================
-
 // HOME
 app.get('/', (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
-        res.render('index', { products: products || [], storeOpen: storeOpen });
+        res.render('index', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus });
     });
 });
 
@@ -64,7 +63,7 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/login')
 // ADMIN MENU
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
-        res.render('admin/menu', { products: products || [], storeOpen: storeOpen });
+        res.render('admin/menu', { products: products || [], storeOpen: storeOpen, storeStatus: storeStatus });
     });
 });
 
@@ -78,20 +77,18 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
     res.redirect('/admin/menu');
 });
 
-// TOGGLE PRODUCT - Returns JSON for real-time
+// TOGGLE PRODUCT
 app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     const { productId, active } = req.body;
-    db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId], (err) => {
-        if (err) console.log('Toggle error:', err.message);
-    });
-    res.json({ success: true, productId, active });
+    db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId]);
+    res.json({ success: true });
 });
 
-// EDIT PRODUCT PAGE
+// EDIT PRODUCT
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
-            res.render('admin/edit_product', { product: products[0], storeOpen: storeOpen });
+            res.render('admin/edit_product', { product: products[0], storeOpen: storeOpen, storeStatus: storeStatus });
         } else {
             res.redirect('/admin/menu');
         }
@@ -112,17 +109,18 @@ app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     res.redirect('/admin/menu');
 });
 
-// TOGGLE STORE STATUS - Returns JSON
+// TOGGLE STORE
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
-    console.log('Store:', storeOpen ? 'OPEN' : 'CLOSED');
-    res.json({ success: true, storeOpen: storeOpen });
+    storeStatus = storeOpen ? "OPEN" : "CLOSED";
+    console.log('Store:', storeStatus);
+    res.json({ success: true });
 });
 
 // ORDERS
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
-        res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen });
+        res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen, storeStatus: storeStatus });
     });
 });
 
@@ -130,7 +128,7 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders", (err, orders) => {
         const total = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
-        res.render('admin/reports', { orders: orders || [], totalOrders: orders.length, totalRevenue: total.toFixed(2), storeOpen: storeOpen });
+        res.render('admin/reports', { orders: orders || [], totalOrders: orders.length, totalRevenue: total.toFixed(2), storeOpen: storeOpen, storeStatus: storeStatus });
     });
 });
 
@@ -150,6 +148,6 @@ app.use((req, res) => res.status(404).send('Not Found'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('🚀 http://localhost:' + PORT);
-    console.log('🔐 Login: admin / password123');
+    console.log('http://localhost:' + PORT);
+    console.log('Login: admin / password123');
 });
