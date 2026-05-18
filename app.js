@@ -11,8 +11,6 @@ const ADMIN_PASSWORD = 'password123';
 let storeOpen = true;
 let storeStatus = "OPEN";
 
-console.log('=== SIMEON BREWERS ===');
-
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -84,7 +82,7 @@ app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     res.json({ success: true });
 });
 
-// EDIT PRODUCT PAGE
+// EDIT PRODUCT
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
@@ -98,12 +96,8 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
 // UPDATE PRODUCT
 app.post('/admin/update-product/:id', isAuthenticated, (req, res) => {
     const { name, category, price_1, active } = req.body;
-    const sql = "UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?";
-    db.query(sql, [name, category, price_1, active || 1, req.params.id], (err) => {
-        if (err) {
-            console.log('Update error:', err.message);
-        }
-    });
+    db.query("UPDATE products SET name = ?, category = ?, price_1 = ?, active = ? WHERE id = ?",
+        [name, category, price_1, active ? 1 : 0, req.params.id]);
     res.redirect('/admin/menu');
 });
 
@@ -113,11 +107,31 @@ app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     res.redirect('/admin/menu');
 });
 
+// CATEGORIES (ADD THIS!)
+app.get('/admin/categories', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM categories ORDER BY id ASC", (err, categories) => {
+        res.render('admin/categories', { categories: categories || [], storeOpen: storeOpen, storeStatus: storeStatus });
+    });
+});
+
+app.post('/admin/add-category', isAuthenticated, (req, res) => {
+    const { name, description } = req.body;
+    if (name) {
+        db.query("INSERT INTO categories (name, description) VALUES (?, ?)", [name, description || '']);
+    }
+    res.redirect('/admin/categories');
+});
+
+app.post('/admin/delete-category', isAuthenticated, (req, res) => {
+    const { categoryId } = req.body;
+    db.query("DELETE FROM categories WHERE id = ?", [categoryId]);
+    res.redirect('/admin/categories');
+});
+
 // TOGGLE STORE
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     storeStatus = storeOpen ? "OPEN" : "CLOSED";
-    console.log('Store:', storeStatus);
     res.json({ success: true });
 });
 
@@ -126,6 +140,12 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
         res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen, storeStatus: storeStatus });
     });
+});
+
+app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
+    const { orderId, status } = req.body;
+    db.query("UPDATE orders SET status = ? WHERE id = ?", [status, orderId]);
+    res.redirect('/admin/orders');
 });
 
 // REPORTS
@@ -152,6 +172,5 @@ app.use((req, res) => res.status(404).send('Not Found'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('http://localhost:' + PORT);
-    console.log('Login: admin / password123');
+    console.log('Server running on http://localhost:' + PORT);
 });
