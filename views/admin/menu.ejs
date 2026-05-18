@@ -44,7 +44,6 @@
         .btn-unavailable { background: #e74c3c; color: white; }
         
         .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; margin-right: 5px; }
-        .btn-edit { background: #3498db; color: white; }
         .btn-delete { background: #e74c3c; color: white; }
         
         /* Add Form Modal */
@@ -57,6 +56,9 @@
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2D1B14; }
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid rgba(198,166,100,0.2); border-radius: 8px; }
         .price-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        
+        /* Debug box */
+        .debug-box { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #856404; }
     </style>
 </head>
 <body>
@@ -90,12 +92,26 @@
             </button>
         </h1>
         
+        <!-- Debug Info -->
+        <div class="debug-box">
+            <strong>Debug Info:</strong> Products count: <%= products ? products.length : 0 %>
+        </div>
+        
+        <% if (!products || products.length === 0) { %>
         <div class="menu-card">
-            <div class="card-title"><i class="fas fa-coffee"></i> All Products</div>
+            <div class="card-title">No Products Found</div>
+            <div style="padding: 30px; text-align: center; color: #8D6E63;">
+                <i class="fas fa-coffee" style="font-size: 48px; opacity: 0.5;"></i>
+                <p>No products yet. Click "Add Product" to add one.</p>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="menu-card">
+            <div class="card-title"><i class="fas fa-coffee"></i> All Products (<%= products.length %>)</div>
             <table>
                 <thead>
                     <tr>
-                        <th>Image</th>
+                        <th>#</th>
                         <th>Name</th>
                         <th>Category</th>
                         <th>Price</th>
@@ -106,7 +122,7 @@
                 <tbody>
                     <% products.forEach(function(product) { %>
                     <tr>
-                        <td><div class="product-img"></div></td>
+                        <td><%= product.id %></td>
                         <td><strong><%= product.name %></strong><br><small><%= product.description || '' %></small></td>
                         <td><span class="product-category"><%= product.category %></span></td>
                         <td>₱<%= product.price_1 %></td>
@@ -127,6 +143,7 @@
                 </tbody>
             </table>
         </div>
+        <% } %>
     </div>
 
     <!-- Add Product Modal -->
