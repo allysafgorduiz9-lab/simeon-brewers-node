@@ -351,3 +351,15 @@ app.listen(PORT, () => {
     console.log(`🔐 Login: http://localhost:${PORT}/login`);
     console.log(`👤 ${ADMIN_USERNAME} | ${ADMIN_PASSWORD}`);
 });
+
+// Toggle Product Availability
+// Toggle Product Availability
+app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
+    const { productId, active } = req.body;
+    if (db.connected) {
+        db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId], (err) => {
+            if (err) console.error('Toggle error:', err);
+        });
+    }
+    res.redirect('/admin/menu');
+});

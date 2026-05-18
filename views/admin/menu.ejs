@@ -28,6 +28,7 @@
         .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
         
         .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(198,166,100,0.3); }
         
         .menu-card { background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; margin-bottom: 30px; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
@@ -48,6 +49,12 @@
         .btn-delete { background: #e74c3c; color: white; }
         .btn-edit:hover { background: #2980b9; }
         .btn-delete:hover { background: #c0392b; }
+        
+        /* NEW: Availability Toggle Buttons */
+        .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; min-width: 100px; }
+        .btn-available { background: #27ae60; color: white; }
+        .btn-unavailable { background: #e74c3c; color: white; }
+        .btn-toggle:hover { opacity: 0.9; transform: scale(1.02); }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         .empty-state i { font-size: 54px; display: block; margin-bottom: 20px; opacity: 0.4; color: #C6A664; }
@@ -83,7 +90,7 @@
             <a href="/admin/add-product" class="btn-add"><i class="fas fa-plus"></i> Add Product</a>
         </h1>
         
-        <% if (products.length > 0) { %>
+        <% if (products && products.length > 0) { %>
         <div class="menu-card">
             <div class="card-title"><i class="fas fa-coffee"></i> All Products</div>
             <table>
@@ -93,7 +100,7 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Prices</th>
-                        <th>Status</th>
+                        <th>Available</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -111,15 +118,26 @@
                         <td>
                             <div class="product-price">₱<%= product.price_1 %></div>
                             <% if (product.price_2 > 0) { %>
-                            <div style="font-size:12px;color:#8D6E63;">Large: ₱<%= product.price_2 %></div>
+                            <div style="font-size:12px;color:#8D6E63;">Medium: ₱<%= product.price_2 %></div>
+                            <% } %>
+                            <% if (product.price_3 > 0) { %>
+                            <div style="font-size:12px;color:#8D6E63;">Large: ₱<%= product.price_3 %></div>
                             <% } %>
                         </td>
                         <td>
-                            <% if (product.active == 1) { %>
-                            <span style="color:#27ae60;font-weight:600;font-size:12px;">Active</span>
-                            <% } else { %>
-                            <span style="color:#e74c3c;font-weight:600;font-size:12px;">Inactive</span>
-                            <% } %>
+                            <form action="/admin/toggle-product" method="POST">
+                                <input type="hidden" name="productId" value="<%= product.id %>">
+                                <input type="hidden" name="active" value="<%= product.active == 1 ? 0 : 1 %>">
+                                <% if (product.active == 1) { %>
+                                <button type="submit" class="btn-toggle btn-available">
+                                    <i class="fas fa-check"></i> Available
+                                </button>
+                                <% } else { %>
+                                <button type="submit" class="btn-toggle btn-unavailable">
+                                    <i class="fas fa-times"></i> Unavailable
+                                </button>
+                                <% } %>
+                            </form>
                         </td>
                         <td>
                             <div class="action-buttons">
