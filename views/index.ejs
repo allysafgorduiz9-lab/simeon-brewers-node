@@ -481,35 +481,50 @@
             renderOrdersList();
         }
 
-        function renderOrdersList() {
-            const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
-            const container = document.getElementById('ordersListContainer');
-            const countBadge = document.getElementById('order-count');
-            
-            const activeOrders = orders.filter(o => o.status !== 'Completed');
-            if (activeOrders.length > 0) {
-                countBadge.style.display = 'inline';
-                countBadge.textContent = activeOrders.length;
-            } else {
-                countBadge.style.display = 'none';
-            }
-            
-            if (orders.length === 0) {
-                container.innerHTML = '<div class="no-orders"><i class="fas fa-receipt" style="font-size:30px;opacity:0.3;"></i><p style="margin-top:10px;">No orders yet</p></div>';
-                return;
-            }
-            
-            container.innerHTML = orders.map((order, index) => `
-                <div class="order-item-mini" onclick="showOrderDetail(${index})">
-                    <div>
-                        <span class="order-mini-number">#${order.orderNumber}</span>
-                        <span class="order-mini-total">₱${order.totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div class="order-mini-date">${new Date(order.date).toLocaleString()}</div>
-                    <span class="order-mini-status status-${(order.status || 'Pending').toLowerCase()}">${order.status || 'Pending'}</span>
-                </div>
-            `).join('');
+        async function renderOrdersList() {
+    const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
+    const container = document.getElementById('ordersListContainer');
+    const countBadge = document.getElementById('order-count');
+    
+    // Sync each order with database (only unsynced ones)
+    for (let i = 0; i < orders.length; i++) {
+        if (!orders[i].synced) {
+            try {
+                const response = await fetch('/api/orders/' + orders[i].orderNumber);
+                const result = await response.json();
+                if (result.success) {
+                    orders[i].status = result.status;
+                    orders[i].synced = true;
+                }
+            } catch (error) {}
         }
+    }
+    localStorage.setItem('orderHistory', JSON.stringify(orders));
+    
+    const activeOrders = orders.filter(o => o.status !== 'Completed');
+    if (activeOrders.length > 0) {
+        countBadge.style.display = 'inline';
+        countBadge.textContent = activeOrders.length;
+    } else {
+        countBadge.style.display = 'none';
+    }
+    
+    if (orders.length === 0) {
+        container.innerHTML = '<div class="no-orders"><i class="fas fa-receipt" style="font-size:30px;opacity:0.3;"></i><p style="margin-top:10px;">No orders yet</p></div>';
+        return;
+    }
+    
+    container.innerHTML = orders.map((order, index) => `
+        <div class="order-item-mini" onclick="showOrderDetail(${index})">
+            <div>
+                <span class="order-mini-number">#${order.orderNumber}</span>
+                <span class="order-mini-total">₱${order.totalAmount.toFixed(2)}</span>
+            </div>
+            <div class="order-mini-date">${new Date(order.date).toLocaleString()}</div>
+            <span class="order-mini-status status-${(order.status || 'Pending').toLowerCase()}">${order.status || 'Pending'}</span>
+        </div>
+    `).join('');
+}
 
     async function showOrderDetail(index) {
     const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
