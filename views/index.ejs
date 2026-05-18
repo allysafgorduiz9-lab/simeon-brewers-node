@@ -511,11 +511,27 @@
             `).join('');
         }
 
-        function showOrderDetail(index) {
-            const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
-            const order = orders[index];
-            
-            if (!order) return;
+    async function showOrderDetail(index) {
+    const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
+    const order = orders[index];
+    
+    if (!order) return;
+    
+    // Fetch latest status from database
+    try {
+        const response = await fetch('/api/orders/' + order.orderNumber);
+        const result = await response.json();
+        
+        if (result.success) {
+            order.status = result.status;
+            order.synced = true;
+            // Update localStorage
+            orders[index] = order;
+            localStorage.setItem('orderHistory', JSON.stringify(orders));
+        }
+    } catch (error) {
+        console.log('Could not sync status from server');
+    }
             
             document.getElementById('orderNumber').textContent = '#' + order.orderNumber;
             document.getElementById('receiptCustomer').textContent = order.customerName;

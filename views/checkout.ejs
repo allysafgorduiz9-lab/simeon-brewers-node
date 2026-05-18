@@ -466,7 +466,8 @@
         totalAmount: orderData.totalAmount,
         items: orderData.items,
         status: 'Pending',
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        synced: false  // Will be true when synced with DB
     });
     if (history.length > 10) history = history.slice(0, 10);
     localStorage.setItem('orderHistory', JSON.stringify(history));

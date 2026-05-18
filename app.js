@@ -310,6 +310,23 @@ app.use((req, res) => {
     res.status(404).send('Page Not Found');
 });
 
+
+// Get Order Status by Order Number
+app.get('/api/orders/:orderNumber', (req, res) => {
+    const { orderNumber } = req.params;
+    
+    db.query('SELECT status FROM active_orders WHERE order_number = ?', [orderNumber], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error fetching order' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+        
+        res.json({ success: true, status: results[0].status });
+    });
+});
 // ========== SERVER START ==========
 
 app.listen(PORT, () => {
