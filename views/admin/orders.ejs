@@ -54,9 +54,7 @@
             <h3 class="logo-title">SIMEON BREWERS</h3>
             <div class="store-status">
                 <div class="status-label">STORE STATUS</div>
-                <form action="/admin/toggle-status" method="POST">
-                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
-                </form>
+                <button type="button" class="status-btn" id="storeBtn" onclick="toggleStore()"><%= storeStatus %></button>
             </div>
         </div>
         <div class="nav-section">
@@ -136,5 +134,21 @@
             <% } %>
         </div>
     </div>
+
+    <script>
+    var storeStatus = "<%= storeStatus %>";
+
+    async function toggleStore() {
+        await fetch('/admin/toggle-status', { method: 'POST' });
+        var btn = document.getElementById('storeBtn');
+        if (storeStatus == "OPEN") {
+            storeStatus = "CLOSED";
+            btn.className = "status-btn btn-closed";
+        } else {
+            storeStatus = "OPEN";
+            btn.className = "status-btn btn-open";
+        }
+    }
+    </script>
 </body>
 </html>
