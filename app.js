@@ -84,13 +84,12 @@ app.get('/checkout', (req, res) => {
     res.render('checkout', { storeOpen: storeOpen });
 });
 
-// 🎯 FIXED: Multiple order endpoints that work with your checkout page
+// Orders API
 app.post('/api/orders', express.json(), (req, res) => {
     try {
         const orderData = req.body;
         console.log('📦 New order received:', orderData.customer?.name || 'Unknown');
         
-        // Calculate total with delivery fee
         let subtotal = 0;
         orderData.cart.forEach(item => {
             subtotal += item.price * item.quantity;
@@ -98,7 +97,6 @@ app.post('/api/orders', express.json(), (req, res) => {
         const deliveryFee = orderData.customer?.type === 'Delivery' ? 50 : 0;
         const total = subtotal + deliveryFee;
         
-        // Generate order number
         const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
         
         const order = {
@@ -113,7 +111,7 @@ app.post('/api/orders', express.json(), (req, res) => {
             createdAt: new Date().toISOString()
         };
         
-        // Save to database (if connected)
+        // Save to database
         if (db.connected) {
             const sql = `INSERT INTO orders (
                 order_number, customer_name, contact_number, order_type, notes, 
@@ -136,12 +134,8 @@ app.post('/api/orders', express.json(), (req, res) => {
                 JSON.stringify(orderData.cart),
                 new Date()
             ], (err) => {
-                if (err) {
-                    console.error('❌ DB Order Save Error:', err);
-                    // Still return success - fallback to file
-                } else {
-                    console.log('✅ Order saved to DB:', orderNumber);
-                }
+                if (err) console.error('❌ DB Order Save Error:', err);
+                else console.log('✅ Order saved to DB:', orderNumber);
             });
         }
         
@@ -195,101 +189,194 @@ app.get('/logout', (req, res) => {
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
     console.log('🏪 Store status:', storeOpen ? 'OPEN' : 'CLOSED');
-    res.json({ storeOpen });
+    res.redirect('/admin/reports');
 });
 
-// Admin Dashboard
+// ==================== ADMIN DASHBOARD ====================
+
+// Active Orders
 app.get('/admin/orders', isAuthenticated, (req, res) => {
-    if (!db.connected) {
-        return res.render('active_orders', { orders: [], storeOpen });
-    }
+    const orders = [];
+    const query = "SELECT * FROM orders ORDER BY created_at DESC LIMIT 50";
     
-    db.query("SELECT * FROM orders ORDER BY created_at DESC LIMIT 100", (err, orders) => {
-        if (err) {
-            console.error('Orders fetch error:', err);
-            return res.render('active_orders', { orders: [], storeOpen });
-        }
-        res.render('active_orders', { orders: orders || [], storeOpen });
-    });
+    if (db.connected) {
+        db.query(query, (err, rows) => {
+            if (err) {
+                console.error('Orders fetch error:', err);
+            } else {
+                rows.forEach(row => {
+                    let items = [];
+                    try {
+                        items = JSON.parse(row.items_json || '[]');
+                    } catch(e) {}
+                    
+                    const date = new Date(row.created_at);
+                    orders.push({
+                        ...row,
+                        items: items,
+                        time: date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }),
+                        date: date.toLocaleDateString('en-PH')
+                    });
+                });
+            }
+            res.render('admin/orders', { orders, storeOpen, title: 'Active Orders' });
+        });
+    } else {
+        res.render('admin/orders', { orders, storeOpen, title: 'Active Orders' });
+    }
 });
 
+// Update Order Status
+app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
+    const { orderId, status } = req.body;
+    if (db.connected) {
+        db.query("UPDATE orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
+            if (err) console.error('Update status error:', err);
+        });
+    }
+    res.redirect('/admin/orders');
+});
+
+// Manage Menu (products)
 app.get('/admin/menu', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM products WHERE active = 1 ORDER BY category ASC, id DESC", (err, products) => {
-        if (err) {
-            console.error('Menu fetch error:', err);
-            return res.render('admin_dashboard', { products: [], storeOpen });
-        }
-        res.render('admin_dashboard', { products: products || [], storeOpen });
-    });
+    const menuItems = [];
+    const categories = [];
+    
+    if (db.connected) {
+        db.query("SELECT * FROM categories ORDER BY name ASC", (err, cats) => {
+            if (!err && cats) cats.forEach(c => categories.push(c));
+            
+            db.query("SELECT * FROM products ORDER BY name ASC", (err, rows) => {
+                if (err) {
+                    console.error('Menu fetch error:', err);
+                } else {
+                    rows.forEach(row => menuItems.push(row));
+                }
+                res.render('admin/menu', { menuItems, categories, storeOpen, title: 'Manage Menu' });
+            });
+        });
+    } else {
+        res.render('admin/menu', { menuItems, categories, storeOpen, title: 'Manage Menu' });
+    }
 });
 
-// Product CRUD
-app.get('/admin/add-product', isAuthenticated, (req, res) => {
-    db.query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL AND category != '' ORDER BY category ASC", (err, results) => {
-        const categories = results ? results.map(row => row.category).filter(Boolean) : [];
-        res.render('add_product', { categories, storeOpen });
-    });
-});
-
-app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1, price_2, price_3, description } = req.body;
+// Add Menu Item
+app.post('/admin/menu/add', isAuthenticated, upload.single('image'), (req, res) => {
+    const { name, category, price, description } = req.body;
     const image = req.file ? req.file.filename : 'default.jpg';
     
-    const sql = "INSERT INTO products (name, category, price_1, price_2, price_3, description, image, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
-    db.query(sql, [name, category || 'General', parseFloat(price_1) || 0, parseFloat(price_2) || 0, parseFloat(price_3) || 0, description || '', image], (err) => {
-        if (err) console.error('Product save error:', err);
-        res.redirect('/admin/menu');
-    });
-});
-
-app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, product) => {
-        if (err || !product[0]) return res.redirect('/admin/menu');
-        
-        db.query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category ASC", (err, results) => {
-            const categories = results ? results.map(row => row.category).filter(Boolean) : [];
-            res.render('edit_product', { product: product[0], categories, storeOpen });
-        });
-    });
-});
-
-app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1, price_2, price_3, description, active } = req.body;
-    const id = req.params.id;
-    
-    if (req.file) {
-        db.query("UPDATE products SET name=?, category=?, price_1=?, price_2=?, price_3=?, description=?, image=?, active=? WHERE id=?", 
-            [name, category, parseFloat(price_1), parseFloat(price_2), parseFloat(price_3), description, req.file.filename, active === 'on' ? 1 : 0, id]);
-    } else {
-        db.query("UPDATE products SET name=?, category=?, price_1=?, price_2=?, price_3=?, description=?, active=? WHERE id=?", 
-            [name, category, parseFloat(price_1), parseFloat(price_2), parseFloat(price_3), description, active === 'on' ? 1 : 0, id]);
+    if (db.connected) {
+        db.query(
+            "INSERT INTO products (name, category, price, description, image, active) VALUES (?, ?, ?, ?, ?, 1)",
+            [name, category || 'General', parseFloat(price) || 0, description || '', image],
+            (err) => {
+                if (err) console.error('Product save error:', err);
+            }
+        );
     }
     res.redirect('/admin/menu');
 });
 
-app.get('/admin/delete/:id', isAuthenticated, (req, res) => {
-    db.query("UPDATE products SET active = 0 WHERE id = ?", [req.params.id], (err) => {
-        if (err) console.error('Soft delete error:', err);
-        res.redirect('/admin/menu');
-    });
+// Delete Menu Item
+app.post('/admin/menu/delete', isAuthenticated, (req, res) => {
+    const { itemId } = req.body;
+    if (db.connected) {
+        db.query("UPDATE products SET active = 0 WHERE id = ?", [itemId], (err) => {
+            if (err) console.error('Delete error:', err);
+        });
+    }
+    res.redirect('/admin/menu');
 });
 
-// Categories
+// Manage Categories
 app.get('/admin/categories', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM categories ORDER BY name ASC", (err, categories) => {
-        res.render('manage_categories', { categories: categories || [], storeOpen });
-    });
+    const categories = [];
+    
+    if (db.connected) {
+        db.query("SELECT * FROM categories ORDER BY name ASC", (err, rows) => {
+            if (!err && rows) rows.forEach(c => categories.push(c));
+            res.render('admin/categories', { categories, storeOpen, title: 'Manage Categories' });
+        });
+    } else {
+        res.render('admin/categories', { categories, storeOpen, title: 'Manage Categories' });
+    }
 });
 
-app.post('/admin/add-category', isAuthenticated, (req, res) => {
-    db.query("INSERT IGNORE INTO categories (name) VALUES (?)", [req.body.name], () => {
-        res.redirect('/admin/categories');
-    });
+// Add Category
+app.post('/admin/categories/add', isAuthenticated, (req, res) => {
+    const { name, description } = req.body;
+    if (db.connected) {
+        db.query("INSERT INTO categories (name, description) VALUES (?, ?)", [name, description], (err) => {
+            if (err) console.error('Category add error:', err);
+        });
+    }
+    res.redirect('/admin/categories');
 });
 
-// Reports
+// Delete Category
+app.post('/admin/categories/delete', isAuthenticated, (req, res) => {
+    const { categoryId } = req.body;
+    if (db.connected) {
+        db.query("DELETE FROM categories WHERE id = ?", [categoryId], (err) => {
+            if (err) console.error('Category delete error:', err);
+        });
+    }
+    res.redirect('/admin/categories');
+});
+
+// Daily Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
-    res.render('reports', { storeOpen });
+    const orders = [];
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (db.connected) {
+        db.query("SELECT * FROM orders WHERE DATE(created_at) = ? ORDER BY created_at DESC", [today], (err, rows) => {
+            if (err) {
+                console.error('Reports fetch error:', err);
+            } else {
+                rows.forEach(row => {
+                    let items = [];
+                    let itemsSummary = '';
+                    try {
+                        items = JSON.parse(row.items_json || '[]');
+                        itemsSummary = items.map(i => i.name + ' x' + i.quantity).join(', ');
+                    } catch(e) {
+                        itemsSummary = 'N/A';
+                    }
+                    
+                    const date = new Date(row.created_at);
+                    orders.push({
+                        order_number: row.order_number,
+                        customer_name: row.customer_name,
+                        contact_number: row.contact_number,
+                        items_summary: itemsSummary,
+                        total_price: parseFloat(row.total_price || 0).toFixed(2),
+                        status: row.status,
+                        time: date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
+                    });
+                });
+            }
+            
+            const totalOrders = orders.length;
+            const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.total_price || 0), 0).toFixed(2);
+            
+            res.render('admin/reports', { 
+                orders, 
+                totalOrders, 
+                totalRevenue, 
+                storeOpen,
+                title: 'Daily Reports'
+            });
+        });
+    } else {
+        res.render('admin/reports', { 
+            orders: [], 
+            totalOrders: 0, 
+            totalRevenue: '0.00', 
+            storeOpen,
+            title: 'Daily Reports'
+        });
+    }
 });
 
 // 404 Handler
@@ -304,83 +391,4 @@ app.listen(PORT, () => {
     console.log(`🔐 Admin Login: http://localhost:${PORT}/login`);
     console.log(`👤 Username: ${ADMIN_USERNAME} | Password: ${ADMIN_PASSWORD}`);
     console.log(`🏪 Store Status: ${storeOpen ? 'OPEN' : 'CLOSED'}`);
-});
-
-// Daily Reports Route
-app.get('/admin/reports', async (req, res) => {
-    try {
-        // Get today's date
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Fetch orders from database
-        const orders = [];
-        
-        // Example: Query your orders table
-        const orderResults = await db.query(
-            "SELECT * FROM orders WHERE DATE(created_at) = ? ORDER BY created_at DESC",
-            [today]
-        );
-        
-        // Format orders for display
-        orderResults.forEach(function(order) {
-            let itemsSummary = '';
-            try {
-                const items = JSON.parse(order.items_json);
-                itemsSummary = items.map(item => item.name + ' x' + item.quantity).join(', ');
-            } catch(e) {
-                itemsSummary = 'N/A';
-            }
-            
-            const date = new Date(order.created_at);
-            const time = date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-            
-            orders.push({
-                order_number: order.order_number,
-                customer_name: order.customer_name,
-                contact_number: order.contact_number,
-                items_summary: itemsSummary,
-                total_price: parseFloat(order.total_price).toFixed(2),
-                status: order.status,
-                time: time
-            });
-        });
-        
-        // Calculate totals
-        const totalOrders = orders.length;
-        const totalRevenue = orders.reduce(function(sum, order) {
-            return sum + parseFloat(order.total_price);
-        }, 0).toFixed(2);
-        
-        // Get store status
-        const storeOpen = true; // Or fetch from your database
-        
-        res.render('reports', {
-            orders: orders,
-            totalOrders: totalOrders,
-            totalRevenue: totalRevenue,
-            storeOpen: storeOpen
-        });
-        
-    } catch (error) {
-        console.error('Error loading reports:', error);
-        res.render('reports', {
-            orders: [],
-            totalOrders: 0,
-            totalRevenue: '0.00',
-            storeOpen: true
-        });
-    }
-});
-
-// Toggle Store Status Route
-app.post('/admin/toggle-status', async (req, res) => {
-    try {
-        // Toggle your store status in database
-        // await db.query("UPDATE settings SET store_open = NOT store_open WHERE id = 1");
-        
-        res.redirect('/admin/reports');
-    } catch (error) {
-        console.error('Error toggling status:', error);
-        res.redirect('/admin/reports');
-    }
 });
