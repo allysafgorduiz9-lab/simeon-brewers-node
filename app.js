@@ -12,7 +12,6 @@ let storeOpen = true;
 
 console.log('=== SIMEON BREWERS ===');
 
-// DATABASE
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -41,12 +40,14 @@ const upload = multer({ dest: './public/images/' });
 
 // ================= ROUTES =================
 
+// HOME
 app.get('/', (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
         res.render('index', { products: products || [], storeOpen: storeOpen });
     });
 });
 
+// LOGIN
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
 app.post('/login', (req, res) => {
@@ -67,72 +68,6 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
     });
 });
 
-// SAVE PRODUCT - Simplified!
-// SAVE PRODUCT - Updated for your DB
-app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1 } = req.body;
-    if (!name || !price_1) return res.redirect('/admin/menu');
-    
-    const image = req.file ? req.file.filename : 'default.jpg';
-    
-    db.query("INSERT INTO products (name, category, price_1, image) VALUES (?, ?, ?, ?)",
-        [name, category || 'General', price_1, image]);
-    
-    res.redirect('/admin/menu');
-});
-
-// DELETE PRODUCT
-app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
-    res.redirect('/admin/menu');
-});
-
-// ORDERS
-app.get('/admin/orders', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
-        res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen });
-    });
-});
-
-// REPORTS
-app.get('/admin/reports', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM orders", (err, orders) => {
-        const total = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
-        res.render('admin/reports', { orders: orders || [], totalOrders: orders.length, totalRevenue: total.toFixed(2), storeOpen: storeOpen });
-    });
-});
-
-app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
-    storeOpen = !storeOpen;
-    res.redirect('back');
-});
-
-app.get('/api/status', (req, res) => res.json({ storeOpen: storeOpen }));
-
-app.post('/api/orders', express.json(), (req, res) => {
-    const { cart, customer } = req.body;
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
-    db.query("INSERT INTO orders (order_number, customer_name, contact_number, total_price, status, items_json) VALUES (?, ?, ?, ?, 'pending', ?)",
-        [orderNumber, customer.name, customer.phone, total, JSON.stringify(cart)]);
-    res.json({ orderNumber, total });
-});
-
-app.use((req, res) => res.status(404).send('Not Found'));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log('🚀 http://localhost:' + PORT);
-    console.log('🔐 Login: admin / password123');
-});
-
-// ADMIN MENU
-app.get('/admin/menu', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
-        res.render('admin/menu', { products: products || [], storeOpen: storeOpen });
-    });
-});
-
 // SAVE PRODUCT
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
@@ -143,10 +78,13 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
     res.redirect('/admin/menu');
 });
 
-// TOGGLE PRODUCT
+// TOGGLE PRODUCT - Returns JSON for real-time
 app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
-    db.query("UPDATE products SET active = ? WHERE id = ?", [req.body.active, req.body.productId]);
-    res.redirect('/admin/menu');
+    const { productId, active } = req.body;
+    db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId], (err) => {
+        if (err) console.log('Toggle error:', err.message);
+    });
+    res.json({ success: true, productId, active });
 });
 
 // EDIT PRODUCT PAGE
@@ -174,15 +112,44 @@ app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     res.redirect('/admin/menu');
 });
 
-// Toggle Store Status - BOTH GET and POST
-app.get('/admin/toggle-status', isAuthenticated, (req, res) => {
-    storeOpen = !storeOpen;
-    console.log('Store status:', storeOpen ? 'OPEN' : 'CLOSED');
-    res.redirect('back');
-});
-
+// TOGGLE STORE STATUS - Returns JSON
 app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
     storeOpen = !storeOpen;
-    console.log('Store status:', storeOpen ? 'OPEN' : 'CLOSED');
-    res.redirect('back');
+    console.log('Store:', storeOpen ? 'OPEN' : 'CLOSED');
+    res.json({ success: true, storeOpen: storeOpen });
+});
+
+// ORDERS
+app.get('/admin/orders', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM orders ORDER BY id DESC", (err, orders) => {
+        res.render('admin/orders', { orders: orders || [], storeOpen: storeOpen });
+    });
+});
+
+// REPORTS
+app.get('/admin/reports', isAuthenticated, (req, res) => {
+    db.query("SELECT * FROM orders", (err, orders) => {
+        const total = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
+        res.render('admin/reports', { orders: orders || [], totalOrders: orders.length, totalRevenue: total.toFixed(2), storeOpen: storeOpen });
+    });
+});
+
+// API
+app.get('/api/status', (req, res) => res.json({ storeOpen: storeOpen }));
+
+app.post('/api/orders', express.json(), (req, res) => {
+    const { cart, customer } = req.body;
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const orderNumber = 'ORD-' + Date.now().toString().slice(-6);
+    db.query("INSERT INTO orders (order_number, customer_name, contact_number, total_price, status, items_json) VALUES (?, ?, ?, ?, 'pending', ?)",
+        [orderNumber, customer.name, customer.phone, total, JSON.stringify(cart)]);
+    res.json({ orderNumber, total });
+});
+
+app.use((req, res) => res.status(404).send('Not Found'));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log('🚀 http://localhost:' + PORT);
+    console.log('🔐 Login: admin / password123');
 });
