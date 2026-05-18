@@ -5,142 +5,99 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; }
         
-        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; overflow-y: auto; }
-        .logo-section { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
-        .logo-title { color: #C6A664; margin: 0 0 15px 0; font-size: 22px; font-weight: 700; }
-        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; }
-        .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
-        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
-        .btn-open { background: #27ae60; }
-        .btn-closed { background: #e74c3c; }
+        .sidebar { width: 250px; background: #2D1B14; height: 100vh; color: white; padding: 20px; position: fixed; }
+        .logo { color: #C6A664; font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 30px; }
+        .nav-item { color: #ddd; padding: 12px; display: block; text-decoration: none; border-radius: 8px; margin-bottom: 5px; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.2); color: white; }
         
-        .nav-section { margin-top: 25px; }
-        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
-        .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
-        .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
-        .logout-link { color: #ff7675; font-weight: 600; }
+        .main { margin-left: 250px; padding: 30px; }
+        h1 { margin-bottom: 20px; color: #2D1B14; }
         
-        .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
-        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-add { background: #C6A664; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-edit { background: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; text-decoration: none; }
+        .btn-delete { background: #e74c3c; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .btn-toggle { background: #27ae60; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .btn-toggle.off { background: #e74c3c; }
         
-        .btn-add { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        table { width: 100%; background: white; border-collapse: collapse; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        th { background: #2D1B14; color: white; padding: 15px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #eee; }
         
-        .menu-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; margin-bottom: 30px; }
-        .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 18px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; }
-        td { padding: 18px 25px; border-bottom: 1px solid #eee; color: #2D1B14; }
-        
-        .product-category { font-size: 12px; color: #8D6E63; background: rgba(198,166,100,0.15); padding: 4px 10px; border-radius: 20px; }
-        
-        .btn-toggle { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .btn-available { background: #27ae60; color: white; }
-        .btn-unavailable { background: #e74c3c; color: white; }
-        
-        .btn-delete { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; background: #e74c3c; color: white; text-decoration: none; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h2 { color: #2D1B14; }
-        .close-btn { font-size: 30px; cursor: pointer; color: #8D6E63; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 30px; border-radius: 10px; width: 400px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2D1B14; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid rgba(198,166,100,0.2); border-radius: 8px; }
-        .price-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        .close { float: right; font-size: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo-section">
-            <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Logo" onerror="this.style.display='none'">
-            <h3 class="logo-title">SIMEON BREWERS</h3>
-            <div class="store-status">
-                <form action="/admin/toggle-status" method="POST">
-                    <button type="submit" class="status-btn <%= storeOpen ? 'btn-open' : 'btn-closed' %>"><%= storeOpen ? 'OPEN' : 'CLOSED' %></button>
-                </form>
-            </div>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
-            <a href="/admin/menu" class="nav-item active"><i class="fas fa-utensils"></i> Manage Menu</a>
-            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Categories</a>
-            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Reports</a>
-            <hr class="nav-divider">
-            <a href="/" target="_blank" class="nav-item live-site-link">View Site</a>
-            <a href="/logout" class="nav-item logout-link">Logout</a>
-        </div>
+        <div class="logo">SIMEON<br>BREWERS</div>
+        <a href="/admin/orders" class="nav-item">Orders</a>
+        <a href="/admin/menu" class="nav-item active">Menu</a>
+        <a href="/admin/categories" class="nav-item">Categories</a>
+        <a href="/admin/reports" class="nav-item">Reports</a>
+        <a href="/logout" class="nav-item">Logout</a>
     </div>
-
-    <div class="main-content">
-        <h1 class="page-header">
-            <span><i class="fas fa-utensils"></i> Manage Menu</span>
-            <button class="btn-add" onclick="document.getElementById('addModal').style.display='block'">
-                <i class="fas fa-plus"></i> Add Product
-            </button>
-        </h1>
+    
+    <div class="main">
+        <h1>Manage Menu</h1>
+        
+        <p><strong>Products in DB:</strong> <%= products.length %></p>
+        <button class="btn-add" onclick="document.getElementById('addModal').style.display='block'">+ Add Product</button>
+        
+        <br><br>
         
         <% if (products.length === 0) { %>
-        <div class="menu-card">
-            <div class="card-title">No Products</div>
-            <div style="padding: 30px; text-align: center;">
-                <p>No products in database.</p>
-            </div>
-        </div>
+            <p>No products!</p>
         <% } else { %>
-        <div class="menu-card">
-            <div class="card-title">All Products (<%= products.length %>)</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% products.forEach(function(product) { %>
-                    <tr>
-                        <td><%= product.id %></td>
-                        <td><strong><%= product.name %></strong></td>
-                        <td><span class="product-category"><%= product.category %></span></td>
-                        <td>₱<%= product.price_1 %></td>
-                        <td>
-                            <form action="/admin/toggle-product" method="POST" style="display:inline;">
-                                <input type="hidden" name="productId" value="<%= product.id %>">
-                                <input type="hidden" name="active" value="<%= product.active == 1 ? 0 : 1 %>">
-                                <button type="submit" class="btn-toggle <%= product.active == 1 ? 'btn-available' : 'btn-unavailable' %>">
-                                    <%= product.active == 1 ? 'Available' : 'Unavailable' %>
-                                </button>
-                            </form>
-                        </td>
-                        <td>
-                            <a href="/admin/delete-product/<%= product.id %>" class="btn-delete" onclick="return confirm('Delete?')">Delete</a>
-                        </td>
-                    </tr>
-                    <% }); %>
-                </tbody>
-            </table>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(function(p) { %>
+                <tr>
+                    <td><%= p.id %></td>
+                    <td><strong><%= p.name %></strong></td>
+                    <td><%= p.category %></td>
+                    <td>₱<%= p.price_1 %></td>
+                    <td>
+                        <form action="/admin/toggle-product" method="POST" style="display:inline;">
+                            <input type="hidden" name="productId" value="<%= p.id %>">
+                            <input type="hidden" name="active" value="<%= p.active == 1 ? 0 : 1 %>">
+                            <button type="submit" class="btn-toggle <%= p.active == 1 ? '' : 'off' %>">
+                                <%= p.active == 1 ? 'ON' : 'OFF' %>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="/admin/edit-product/<%= p.id %>" class="btn-edit">Edit</a>
+                        <a href="/admin/delete-product/<%= p.id %>" class="btn-delete" onclick="return confirm('Delete?')">Delete</a>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
         <% } %>
     </div>
-
-    <!-- Add Product Modal -->
+    
+    <!-- Add Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-plus"></i> Add Product</h2>
-                <span class="close-btn" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
-            </div>
-            <form action="/admin/save-product" method="POST" enctype="multipart/form-data">
+            <span class="close" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
+            <h2>Add Product</h2>
+            <form action="/admin/save-product" method="POST">
                 <div class="form-group">
                     <label>Name *</label>
                     <input type="text" name="name" required>
@@ -148,29 +105,23 @@
                 <div class="form-group">
                     <label>Category</label>
                     <select name="category">
-                        <option value="Coffee Based">Coffee Based</option>
-                        <option value="Milk Based">Milk Based</option>
+                        <option value="Coffee">Coffee</option>
+                        <option value="Milk Tea">Milk Tea</option>
                         <option value="Fruit Soda">Fruit Soda</option>
                         <option value="Milk Shake">Milk Shake</option>
-                        <option value="Add Ons">Add Ons</option>
-                        <option value="Appetizers">Appetizers</option>
-                        <option value="Sandwiches">Sandwiches</option>
                         <option value="Burgers">Burgers</option>
+                        <option value="Snacks">Snacks</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Prices</label>
-                    <div class="price-row">
-                        <input type="number" name="price_1" placeholder="Small" step="0.01">
-                        <input type="number" name="price_2" placeholder="Medium" step="0.01">
-                        <input type="number" name="price_3" placeholder="Large" step="0.01">
-                    </div>
+                    <label>Price</label>
+                    <input type="number" name="price_1" step="0.01">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
                     <input type="text" name="description">
                 </div>
-                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Save</button>
+                <button type="submit" class="btn-add">Save</button>
             </form>
         </div>
     </div>
