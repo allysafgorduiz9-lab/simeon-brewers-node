@@ -1,15 +1,15 @@
 <think>
-The user wants the final checkout.ejs code that will save orders to the new `active_orders` table. Let me create the complete checkout page with:
+The user wants to add an X button to remove items from the cart in the checkout page. I need to:
 
-1. The X error indicators for invalid inputs
-2. All the form fields matching the active_orders table columns
-3. The API call to save to the database
+1. Add CSS for the remove button
+2. Modify the renderOrder function to include a remove button for each item
+3. Add a removeFromCart function to delete items from localStorage
 
-Let me write the complete checkout.ejs file.
+Let me create the updated checkout.ejs with the remove functionality.
 
 </think>
 
-Here is the **final checkout.ejs** code:
+Here's the **updated checkout.ejs** with an **X button to remove items**:
 
 ```html
 <!DOCTYPE html>
@@ -64,12 +64,37 @@ Here is the **final checkout.ejs** code:
         .cart-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .cart-item:hover {
+            background: rgba(255,255,255,0.02);
         }
 
         .cart-item-details { flex: 1; }
         .cart-item-qty { color: var(--accent-gold); font-weight: 600; }
+
+        /* Remove Button */
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            margin-left: 15px;
+        }
+
+        .remove-btn:hover {
+            color: var(--danger);
+            background: rgba(231,76,60,0.15);
+            transform: scale(1.1);
+        }
 
         .total-row {
             display: flex;
@@ -103,7 +128,6 @@ Here is the **final checkout.ejs** code:
 
         input:focus, select:focus, textarea:focus { border-color: var(--accent-gold); }
 
-        /* Error State with X */
         .input-error {
             border-color: var(--danger) !important;
             box-shadow: 0 0 5px rgba(231,76,60,0.3);
@@ -131,7 +155,6 @@ Here is the **final checkout.ejs** code:
 
         .field-wrapper.has-error .error-text { display: block; }
 
-        /* Payment Toggle */
         .payment-options { display: flex; gap: 10px; margin: 15px 0; }
         .payment-options div { flex: 1; }
         .payment-radio { display: none; }
@@ -172,7 +195,6 @@ Here is the **final checkout.ejs** code:
         .back-link { color: var(--text-dim); text-decoration: none; display: inline-block; margin-bottom: 20px; }
         .back-link:hover { color: var(--accent-gold); }
 
-        /* Modal */
         .receipt-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 10000; display: none;
@@ -214,6 +236,13 @@ Here is the **final checkout.ejs** code:
         .success-animation { text-align: center; padding: 20px; }
         .success-icon { font-size: 60px; color: #27ae60; margin-bottom: 15px; animation: pop 0.5s; }
         @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        .empty-cart-icon {
+            font-size: 50px;
+            color: var(--text-dim);
+            opacity: 0.5;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -345,7 +374,7 @@ Here is the **final checkout.ejs** code:
 
     <script>
         // Load cart from localStorage
-        const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
+        let cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
 
         function calculateTotal() {
             let subtotal = 0;
@@ -360,15 +389,21 @@ Here is the **final checkout.ejs** code:
             const totals = calculateTotal();
 
             if (cart.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-dim);">Cart is empty. <a href="/" style="color: var(--accent-gold);">Continue shopping</a></p>';
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 0;">
+                        <i class="fas fa-shopping-cart empty-cart-icon"></i>
+                        <p style="color: var(--text-dim);">Cart is empty</p>
+                        <a href="/" style="color: var(--accent-gold);">Continue shopping</a>
+                    </div>
+                `;
                 document.getElementById('placeOrderBtn').disabled = true;
                 return;
             }
 
             document.getElementById('placeOrderBtn').disabled = false;
 
-            container.innerHTML = cart.map(item => `
-                <div class="cart-item">
+            container.innerHTML = cart.map((item, index) => `
+                <div class="cart-item" data-index="${index}">
                     <div class="cart-item-details">
                         <strong>${item.name}</strong><br>
                         <span class="cart-item-qty">x${item.quantity}</span>
@@ -377,12 +412,33 @@ Here is the **final checkout.ejs** code:
                     <div style="text-align: right;">
                         ₱${(item.price * item.quantity).toFixed(2)}
                     </div>
+                    <button class="remove-btn" onclick="removeFromCart(${index})" title="Remove item">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 </div>
             `).join('');
 
             document.getElementById('grand-total').textContent = totals.grandTotal.toFixed(2);
             document.getElementById('btn-total').textContent = totals.grandTotal.toFixed(2);
             return totals;
+        }
+
+        // Remove item from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('simeonCart', JSON.stringify(cart));
+            renderOrder();
+            
+            // Update cart count on homepage if needed
+            updateParentCartCount();
+        }
+
+        function updateParentCartCount() {
+                    const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            // Try to update parent window cart count if opened in same tab
+            if (window.opener) {
+                window.opener.postMessage({ type: 'cartUpdate', count: total }, '*');
+            }
         }
 
         function togglePayment() {
@@ -496,6 +552,7 @@ Here is the **final checkout.ejs** code:
 
                 // Clear cart
                 localStorage.removeItem('simeonCart');
+                cart = [];
 
             } catch (error) {
                 alert('Order Error: ' + error.message);
