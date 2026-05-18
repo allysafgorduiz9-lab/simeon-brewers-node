@@ -51,6 +51,15 @@ app.get('/about', (req, res) => {
     res.render('about');
 });
 
+// Catch-all route (must be last)
+app.get('*', (req, res) => {
+    res.render('index', { products: products, storeStatus: storeStatus, page: 1 });
+});
+
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
+
 // LOGIN
 app.get('/login', (req, res) => res.render('login', { error: null }));
 

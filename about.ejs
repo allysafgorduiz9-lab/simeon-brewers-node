@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Simeon Cafe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f0f;
+            --card-dark: #1a1a1a;
+            --accent-gold: #C6A664;
+            --accent-hover: #e0c285;
+            --text-light: #ffffff;
+            --text-dim: #b3b3b3;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-dark); color: var(--text-light); }
+        
+        header { background-color: rgba(15, 15, 15, 0.98); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .logo-section { display: flex; align-items: center; }
+        .logo-section img { border-radius: 8px; margin-right: 15px; border: 1px solid var(--accent-gold); }
+        .brand-name h1 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0; letter-spacing: 1px; }
+        .brand-name p { font-size: 9px; margin: 0; color: var(--accent-gold); font-weight: 600; text-transform: uppercase; }
+        nav { display: flex; align-items: center; gap: 25px; }
+        nav a { color: var(--text-light); text-decoration: none; font-size: 13px; font-weight: 600; }
+        nav a:hover { color: var(--accent-gold); }
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .login-btn, .cart-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); text-decoration: none; }
+        
+        .about-hero { height: 50vh; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 10%; }
+        .about-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 56px); margin-bottom: 15px; }
+        .about-hero h1 span { color: var(--accent-gold); }
+        
+        .about-content { padding: 80px 8%; max-width: 900px; margin: 0 auto; }
+        .about-section { margin-bottom: 60px; }
+        .about-section h2 { color: var(--accent-gold); font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 20px; border-left: 4px solid var(--accent-gold); padding-left: 20px; }
+        .about-section p { color: var(--text-dim); line-height: 1.8; font-size: 16px; }
+        
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
+        .feature-card { background: var(--card-dark); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .feature-card i { font-size: 40px; color: var(--accent-gold); margin-bottom: 20px; }
+        .feature-card h3 { font-family: 'Playfair Display', serif; margin-bottom: 15px; }
+        .feature-card p { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+        
+        .cta-section { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1501339847302-9a8b58fa6e6f?auto=format&fit=crop&q=80&w=1920'); background-size: cover; padding: 100px 8%; text-align: center; }
+        .cta-section h2 { font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 20px; }
+        .cta-section p { color: var(--text-dim); margin-bottom: 30px; }
+        .cta-btn { background: var(--accent-gold); color: #000; padding: 15px 35px; border-radius: 12px; text-decoration: none; font-weight: 600; display: inline-block; }
+        
+        footer { background: #000; padding: 80px 8% 30px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 50px; margin-bottom: 50px; }
+        .footer-col h4 { color: var(--accent-gold); margin-bottom: 25px; font-size: 16px; font-family: 'Playfair Display', serif; }
+        .footer-col p, .footer-col a { color: var(--text-dim); font-size: 14px; text-decoration: none; line-height: 1.8; display: block; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo-section">
+        <img src="/images/Simeon Cafe.jpg" width="45" alt="Simeon Logo" onerror="this.style.display='none'">
+        <div class="brand-name">
+            <h1>SIMEON CAFE</h1>
+            <p>Premium Coffee Shop</p>
+        </div>
+    </div>
+    <nav>
+        <a href="/">HOME</a>
+        <a href="/about">ABOUT</a>
+        <a href="/#menu">MENU</a>
+        <div class="nav-actions">
+            <a href="/login" class="login-btn"><i class="fas fa-user-circle"></i></a>
+            <a href="/checkout" class="cart-btn"><i class="fas fa-shopping-cart" style="color: var(--accent-gold);"></i></a>
+        </div>
+    </nav>
+</header>
+
+<section class="about-hero">
+    <h1>About <span>Simeon Cafe</span></h1>
+    <p>Brewing excellence, one cup at a time.</p>
+</section>
+
+<div class="about-content">
+    <div class="about-section">
+        <h2>Our Story</h2>
+        <p>Welcome to Simeon Cafe, Silago's premier destination for exceptional coffee and warm hospitality. Founded with a passion for delivering the finest handcrafted beverages, we've become a beloved gathering place for coffee enthusiasts and community members alike.</p>
+        <br>
+        <p>Our journey began with a simple mission: to bring specialty coffee to Silago while creating an inviting space where friends, families, and neighbors can connect over great drinks and memorable conversations.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>What We Offer</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-coffee"></i>
+                <h3>Premium Coffee</h3>
+                <p>Handcrafted espresso drinks made from the finest beans, brewed to perfection by our skilled baristas.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-mug-hot"></i>
+                <h3>Quality Tea</h3>
+                <p>A curated selection of premium teas and specialty drinks to suit every palate.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-cookie-bite"></i>
+                <h3>Delicious Treats</h3>
+                <p>Freshly baked pastries and snacks that perfectly complement your favorite beverage.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-wifi"></i>
+                <h3>Free WiFi</h3>
+                <p>Stay connected with complimentary high-speed internet for work or leisure.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section">
+        <h2>Visit Us</h2>
+        <p style="color: var(--accent-gold); font-size: 18px; margin-bottom: 10px;">
+            <i class="fas fa-map-marker-alt"></i> Poblacion District 1, Silago
+        </p>
+        <p style="color: var(--accent-gold); font-size: 18px; margin-bottom: 10px;">
+            <i class="fas fa-clock"></i> Open Daily: 8AM - 10PM
+        </p>
+        <p style="color: var(--accent-gold); font-size: 18px;">
+            <i class="fas fa-phone"></i> 0977 105 3180
+        </p>
+    </div>
+</div>
+
+<section class="cta-section">
+    <h2>Ready to Visit?</h2>
+    <p>Come experience the best coffee in Silago. We can't wait to serve you!</p>
+    <a href="/#menu" class="cta-btn">View Our Menu</a>
+</section>
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>ABOUT</h4>
+            <a href="/about">Our Story</a>
+            <a href="/#menu">Menu</a>
+        </div>
+        <div class="footer-col">
+            <h4>QUICK LINKS</h4>
+            <a href="/">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/#menu">Menu</a>
+            <a href="/login">Staff Login</a>
+        </div>
+        <div class="footer-col">
+            <h4>CONTACT</h4>
+            <p><i class="fas fa-map-marker-alt" style="color: var(--accent-gold);"></i> Poblacion District 1, Silago</p>
+            <p><i class="fas fa-phone" style="color: var(--accent-gold);"></i> 0977 105 3180</p>
+            <p><i class="fas fa-clock" style="color: var(--accent-gold);"></i> Mon-Sun: 8AM - 10PM</p>
+        </div>
+    </div>
+    <div style="text-align: center; border-top: 1px solid #1a1a1a; padding-top: 30px; font-size: 11px; color: #444;">&copy; 2026 SIMEON CAFE. ALL RIGHTS RESERVED.</div>
+</footer>
+</body>
+</html>
