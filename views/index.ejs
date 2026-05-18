@@ -113,20 +113,21 @@
                 <span class="status-pill <%= storeStatus === 'CLOSED' ? 'closed' : '' %>"><%= storeStatus %></span>
             </div>
         </div>
-        <nav>
-            <a href="/">HOME</a>
-            <a href="#menu">MENU</a>
-            <a href="/about">ABOUT</a>
-            <div class="nav-actions">
-                <a href="/login" class="login-btn" title="Staff Login">
-                    <i class="fas fa-user-circle"></i>
-                </a>
-                <div class="cart-btn" onclick="checkout()" title="View Cart">
-                    <i class="fas fa-shopping-cart" style="color: var(--accent-gold);"></i>
-                    <span id="cart-count">0</span>
-                </div>
+       <!-- Replace the nav section inside <body> -->
+    <nav>
+        <a href="/">HOME</a>
+        <a href="#menu">MENU</a>
+        <a href="#about">ABOUT</a> <!-- Changed from /about to #about -->
+        <div class="nav-actions">
+            <a href="/login" class="login-btn" title="Staff Login">
+                <i class="fas fa-user-circle"></i>
+            </a>
+            <div class="cart-btn" onclick="checkout()" title="View Cart">
+                <i class="fas fa-shopping-cart" style="color: var(--accent-gold);"></i>
+                <span id="cart-count">0</span>
             </div>
-        </nav>
+        </div>
+    </nav>
     </header>
 <!-- Hero Section -->
 <section class="hero">
@@ -203,6 +204,31 @@
     <% } %>
 </div>
 
+    <!-- About Section -->
+    <section id="about" style="padding: 80px 8%; background: #151515;">
+        <div class="section-title">
+            <h3>Our Story</h3>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 20px;">About <span style="color: var(--accent-gold);">Simeon Cafe</span></h2>
+        </div>
+        <div style="max-width: 800px; margin: 0 auto; text-align: center; color: var(--text-dim); line-height: 1.8;">
+            <p>Welcome to Simeon Cafe, the premier coffee destination in Silago. We are dedicated to sourcing the finest beans from around the world and roasting them to perfection to bring you a truly exceptional cup of coffee.</p>
+            <p>Our passion goes beyond just coffee – we create a warm and welcoming atmosphere where community comes first. Whether you're here for a quick grab-and-go or a relaxing afternoon, Simeon Cafe is your home away from home.</p>
+            <div style="margin-top: 40px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <i class="fas fa-mug-hot" style="font-size: 40px; color: var(--accent-gold); margin-bottom: 15px;"></i>
+                    <h4 style="color: white; margin: 0;">Premium Coffee</h4>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-heart" style="font-size: 40px; color: var(--accent-gold); margin-bottom: 15px;"></i>
+                    <h4 style="color: white; margin: 0;">Community Focused</h4>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-leaf" style="font-size: 40px; color: var(--accent-gold); margin-bottom: 15px;"></i>
+                    <h4 style="color: white; margin: 0;">Sustainable Sourcing</h4>
+                </div>
+            </div>
+        </div>
+    </section>
 <!-- Footer -->
 <footer>
     <div class="footer-grid">
@@ -216,15 +242,14 @@
         
         <div class="footer-col">
             <h4>CONTACT</h4>
-            <p><i class="fas fa-map-marker-alt"></i> Silago, Southern Leyte</p>
-            <p><i class="fas fa-phone"></i> +63 912 345 6789</p>
-            <p><i class="fas fa-envelope"></i> hello@simeoncafe.com</p>
+            <p><i class="fas fa-map-marker-alt"></i> Poblacion District 1, Silago, Southern Leyte - Front of SJAP Plaza</p>
+            <p><i class="fas fa-phone"></i> +63 977 105 3180</p>
+            <p><i class="fas fa-envelope"></i> hersanofritz@gmail.com</p>
         </div>
         
         <div class="footer-col">
             <h4>OPENING HOURS</h4>
-            <p>Mon - Fri: 7:00 AM - 10:00 PM</p>
-            <p>Sat - Sun: 8:00 AM - 11:00 PM</p>
+            <p>Mon - Sun: 9:00 AM - 5:00 PM</p>
         </div>
         
         <div class="footer-col">
