@@ -305,3 +305,82 @@ app.listen(PORT, () => {
     console.log(`👤 Username: ${ADMIN_USERNAME} | Password: ${ADMIN_PASSWORD}`);
     console.log(`🏪 Store Status: ${storeOpen ? 'OPEN' : 'CLOSED'}`);
 });
+
+// Daily Reports Route
+app.get('/admin/reports', async (req, res) => {
+    try {
+        // Get today's date
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Fetch orders from database
+        const orders = [];
+        
+        // Example: Query your orders table
+        const orderResults = await db.query(
+            "SELECT * FROM orders WHERE DATE(created_at) = ? ORDER BY created_at DESC",
+            [today]
+        );
+        
+        // Format orders for display
+        orderResults.forEach(function(order) {
+            let itemsSummary = '';
+            try {
+                const items = JSON.parse(order.items_json);
+                itemsSummary = items.map(item => item.name + ' x' + item.quantity).join(', ');
+            } catch(e) {
+                itemsSummary = 'N/A';
+            }
+            
+            const date = new Date(order.created_at);
+            const time = date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+            
+            orders.push({
+                order_number: order.order_number,
+                customer_name: order.customer_name,
+                contact_number: order.contact_number,
+                items_summary: itemsSummary,
+                total_price: parseFloat(order.total_price).toFixed(2),
+                status: order.status,
+                time: time
+            });
+        });
+        
+        // Calculate totals
+        const totalOrders = orders.length;
+        const totalRevenue = orders.reduce(function(sum, order) {
+            return sum + parseFloat(order.total_price);
+        }, 0).toFixed(2);
+        
+        // Get store status
+        const storeOpen = true; // Or fetch from your database
+        
+        res.render('reports', {
+            orders: orders,
+            totalOrders: totalOrders,
+            totalRevenue: totalRevenue,
+            storeOpen: storeOpen
+        });
+        
+    } catch (error) {
+        console.error('Error loading reports:', error);
+        res.render('reports', {
+            orders: [],
+            totalOrders: 0,
+            totalRevenue: '0.00',
+            storeOpen: true
+        });
+    }
+});
+
+// Toggle Store Status Route
+app.post('/admin/toggle-status', async (req, res) => {
+    try {
+        // Toggle your store status in database
+        // await db.query("UPDATE settings SET store_open = NOT store_open WHERE id = 1");
+        
+        res.redirect('/admin/reports');
+    } catch (error) {
+        console.error('Error toggling status:', error);
+        res.redirect('/admin/reports');
+    }
+});
