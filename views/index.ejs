@@ -81,21 +81,19 @@
         .hero p { color: var(--text-dim); line-height: 1.8; max-width: 650px; font-weight: 300; }
 
         .menu-container { padding: 80px 8%; }
+        
+        .search-container { max-width: 500px; margin: 0 auto 40px; position: relative; }
+        .search-bar { width: 100%; padding: 16px 20px; padding-left: 50px; background: var(--card-dark); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: var(--text-light); font-size: 16px; font-family: inherit; }
+        .search-bar:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+
         .section-title { text-align: center; margin-bottom: 50px; }
         .section-title h3 { color: var(--accent-gold); letter-spacing: 3px; font-size: 14px; text-transform: uppercase; }
 
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
 
-        .product-card {
-            background: var(--card-dark);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            position: relative;
-        }
+        .product-card { background: var(--card-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 25px; text-align: center; }
         .product-card:hover { transform: translateY(-8px); border-color: var(--accent-gold); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
         .product-img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
         .product-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; }
         .product-price { color: var(--accent-gold); font-size: 18px; font-weight: 600; margin-bottom: 20px; }
@@ -114,10 +112,9 @@
         footer { background: #000; padding: 80px 8% 30px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 80px; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 50px; margin-bottom: 50px; }
         .footer-col h4 { color: var(--accent-gold); margin-bottom: 25px; font-size: 16px; font-family: 'Playfair Display', serif; }
-        .footer-col p, .footer-col a { color: var(--text-dim); font-size: 14px; text-decoration: none; line-height: 1.8; }
-        .footer-col a:hover { color: var(--accent-gold); padding-left: 5px; }
+        .footer-col p, .footer-col a { color: var(--text-dim); font-size: 14px; text-decoration: none; line-height: 1.8; display: block; }
+        .footer-col a:hover { color: var(--accent-gold); }
         .footer-bottom { text-align: center; border-top: 1px solid #1a1a1a; padding-top: 30px; font-size: 11px; color: #444; letter-spacing: 1px; }
-
         .fb-btn { background: var(--fb-blue); color: white; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; margin-top: 15px; text-decoration: none; }
     </style>
 </head>
@@ -135,6 +132,7 @@
     <nav>
         <a href="/">HOME</a>
         <a href="#menu">MENU</a>
+        <a href="#about">ABOUT</a>
         <div class="nav-actions">
             <a href="/login" class="login-btn"><i class="fas fa-user-circle"></i></a>
             <div class="cart-btn" onclick="checkout()">
@@ -153,7 +151,12 @@
 <div class="menu-container" id="menu">
     <div class="section-title"><h3>Discover Our Favorites</h3></div>
 
-    <div class="product-grid">
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-bar" id="searchInput" placeholder="Search menu..." onkeyup="searchProducts()">
+    </div>
+
+    <div class="product-grid" id="productGrid">
         <% 
         var itemsPerPage = 8;
         var currentPage = page || 1;
@@ -164,7 +167,7 @@
         %>
 
         <% paginatedProducts.forEach(function(p) { %>
-        <div class="product-card">
+        <div class="product-card" data-name="<%= p.name.toLowerCase() %>">
             <img src="/images/<%= p.image %>" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400'">
             <div class="product-name"><%= p.name %></div>
             <div class="product-price">₱<%= parseFloat(p.price_1).toFixed(2) %></div>
@@ -197,34 +200,34 @@
     </div>
     <% } %>
 
-    <div style="text-align: center; margin-top: 40px;">
-        <a href="#menu" class="login-btn" style="display: inline-block; padding: 12px 35px; border-color: var(--accent-gold); color: var(--accent-gold);">EXPLORE FULL MENU</a>
+    <div id="about" style="margin-top: 80px; padding: 60px 0; text-align: center;">
+        <h3 style="color: var(--accent-gold); font-size: 28px; margin-bottom: 20px;">About Us</h3>
+        <p style="color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.8;">
+            Simeon Cafe brings the finest beans to Silago for an unparalleled coffee experience. 
+            We are committed to quality, ambiance, and exceptional service.
+        </p>
     </div>
 </div>
 
 <footer>
     <div class="footer-grid">
         <div class="footer-col">
+            <h4>QUICK LINKS</h4>
+            <a href="/">Home</a>
+            <a href="#menu">Menu</a>
+            <a href="#about">About</a>
+            <a href="/login">Staff Login</a>
+        </div>
+        <div class="footer-col">
             <h4>OUR STORY</h4>
             <p>Simeon Cafe brings the finest beans to Silago for an unparalleled coffee experience.</p>
             <a href="https://www.facebook.com/profile.php?id=100092630560572" target="_blank" class="fb-btn"><i class="fab fa-facebook-f"></i> Like us on Facebook</a>
         </div>
         <div class="footer-col">
-            <h4>EXPLORE</h4>
-            <a href="/">Home</a>
-            <a href="#menu">Full Menu</a>
-            <a onclick="checkout()" style="cursor: pointer;">My Cart</a>
-            <a href="/login">Staff Portal</a>
-        </div>
-        <div class="footer-col">
             <h4>CONTACT</h4>
             <p><i class="fas fa-map-marker-alt" style="color: var(--accent-gold);"></i> Poblacion District 1, Silago</p>
             <p><i class="fas fa-phone" style="color: var(--accent-gold);"></i> 0977 105 3180</p>
-        </div>
-        <div class="footer-col">
-            <h4>VISIT US</h4>
-            <p>Monday - Sunday</p>
-            <p>8:00 AM - 10:00 PM</p>
+            <p><i class="fas fa-clock" style="color: var(--accent-gold);"></i> Mon-Sun: 8AM - 10PM</p>
         </div>
     </div>
     <div class="footer-bottom">&copy; 2026 SIMEON CAFE. ALL RIGHTS RESERVED.</div>
@@ -255,11 +258,27 @@
     function updateCartCount() {
         var total = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
         var countEl = document.getElementById('cart-count');
-        if(countEl) countEl.innerText = total;
+        if (countEl) countEl.innerText = total;
     }
 
     function checkout() {
         window.location.href = '/checkout';
+    }
+
+    function searchProducts() {
+        var input = document.getElementById('searchInput');
+        var filter = input.value.toLowerCase();
+        var grid = document.getElementById('productGrid');
+        var cards = grid.getElementsByClassName('product-card');
+        
+        for (var i = 0; i < cards.length; i++) {
+            var name = cards[i].getAttribute('data-name');
+            if (name.indexOf(filter) > -1) {
+                cards[i].style.display = '';
+            } else {
+                cards[i].style.display = 'none';
+            }
+        }
     }
 </script>
 
