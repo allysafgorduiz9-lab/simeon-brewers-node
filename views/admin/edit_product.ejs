@@ -7,17 +7,23 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
         
-        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; overflow-y: auto; }
-        .logo-section { text-align: center; margin-bottom: 35px; }
-        .logo-title { color: #C6A664; font-size: 22px; font-weight: 700; margin-bottom: 30px; }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #2D1B14, #1A0F0A); height: 100vh; color: white; padding: 30px 25px; position: fixed; }
+        .logo-section { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .logo-img { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #C6A664; margin-bottom: 12px; }
+        .logo-title { color: #C6A664; margin: 0; font-size: 22px; font-weight: 700; }
+        .store-status { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 16px; margin-top: 15px; }
+        .status-label { font-size: 12px; margin-bottom: 12px; color: rgba(255,255,255,0.6); font-weight: 500; text-transform: uppercase; }
+        .status-btn { border: none; padding: 14px 20px; border-radius: 25px; color: white; font-weight: 600; width: 100%; }
+        .btn-open { background: #27ae60; }
         
         .nav-section { margin-top: 25px; }
-        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; display: block; margin-bottom: 8px; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item:hover { background: rgba(255,255,255,0.12); color: white; }
+        .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
         .logout-link { color: #ff7675; font-weight: 600; }
         
         .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
-        .page-title { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; }
+        .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; }
         
         .edit-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; max-width: 600px; }
         .card-header { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 20px 30px; font-size: 18px; font-weight: 700; }
@@ -29,37 +35,54 @@
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid rgba(198,166,100,0.2); border-radius: 12px; font-size: 14px; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #C6A664; }
         
-        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 15px; }
         .checkbox-group input { width: auto; }
         .checkbox-group label { margin: 0; font-weight: normal; }
         
-        .btn-row { display: flex; gap: 10px; }
-        .btn-save { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { background: #666; color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn-row { display: flex; gap: 15px; margin-top: 25px; }
+        .btn-save { background: linear-gradient(135deg, #C6A664, #D4B085); color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background: #666; color: white; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-block; }
+        
+        .info-badge { background: rgba(198,166,100,0.15); padding: 4px 12px; border-radius: 8px; font-size: 12px; color: #8D6E63; }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="logo-section">
+            <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Logo" onerror="this.style.display='none'">
             <h3 class="logo-title">SIMEON BREWERS</h3>
+            <div class="store-status">
+                <div class="status-label">STORE STATUS</div>
+                <div class="status-btn btn-open"><%= storeStatus %></div>
+            </div>
         </div>
         <div class="nav-section">
-            <a href="/admin/menu" class="nav-item active"><i class="fas fa-arrow-left"></i> Back to Menu</a>
+            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
+            <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
+            <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Categories</a>
+            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Reports</a>
+            <hr class="nav-divider">
             <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </div>
 
     <div class="main-content">
-        <h1 class="page-title"><i class="fas fa-edit"></i> Edit Product</h1>
+        <h1 class="page-header"><i class="fas fa-edit"></i> Edit Product</h1>
         
         <div class="edit-card">
             <div class="card-header"><i class="fas fa-edit"></i> Update Product</div>
             <div class="card-body">
-                <form action="/admin/update-product/<%= product.id %>" method="POST" enctype="multipart/form-data">
+                <form action="/admin/update-product/<%= product.id %>" method="POST">
+                    <div class="form-group">
+                        <label>Product ID</label>
+                        <div class="info-badge">#<%= product.id %></div>
+                    </div>
+                    
                     <div class="form-group">
                         <label>Product Name *</label>
                         <input type="text" name="name" value="<%= product.name %>" required>
                     </div>
+                    
                     <div class="form-group">
                         <label>Category</label>
                         <select name="category">
@@ -73,16 +96,17 @@
                             <option value="Burgers" <%= product.category === 'Burgers' ? 'selected' : '' %>>Burgers</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label>Price *</label>
                         <input type="number" name="price_1" value="<%= product.price_1 %>" required step="0.01">
                     </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" name="active" id="active" value="1" <%= product.active == 1 ? 'checked' : '' %>>
-                            <label for="active">Available (show on menu)</label>
-                        </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="active" id="active" value="1" <%= product.active == 1 ? 'checked' : '' %>>
+                        <label for="active">Available (show on menu)</label>
                     </div>
+                    
                     <div class="btn-row">
                         <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
                         <a href="/admin/menu" class="btn-cancel">Cancel</a>
