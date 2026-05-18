@@ -407,184 +407,185 @@
     </div>
 
     <!-- JavaScript -->
-    <script>
-        // 1. Add to Cart
-        function addToCart(button) {
-            const id = button.getAttribute('data-id');
-            const name = button.getAttribute('data-name');
-            const price = parseFloat(button.getAttribute('data-price'));
-            const qtyInput = document.getElementById('qty-' + id);
-            const quantity = parseInt(qtyInput.value);
+    <!-- JavaScript -->
+<script>
+    // 1. Add to Cart
+    function addToCart(button) {
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const price = parseFloat(button.getAttribute('data-price'));
+        const qtyInput = document.getElementById('qty-' + id);
+        const quantity = parseInt(qtyInput.value);
 
-            let cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
-            const existingItem = cart.find(item => item.id === id);
-            
-            if (existingItem) {
-                existingItem.quantity += quantity;
+        let cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+        
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({ id, name, price, quantity });
+        }
+
+        localStorage.setItem('simeonCart', JSON.stringify(cart));
+        updateCartCount();
+        
+        const originalText = button.innerText;
+        button.innerText = 'ADDED!';
+        button.style.background = '#27ae60';
+        button.style.color = 'white';
+        
+        setTimeout(() => {
+            button.innerText = originalText;
+            button.style.background = '';
+            button.style.color = '';
+        }, 1500);
+    }
+
+    // 2. Update Cart Count
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').innerText = total;
+    }
+
+    // 3. Checkout
+    function checkout() {
+        const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
+        if (cart.length === 0) {
+            alert('Your cart is currently empty!');
+            return;
+        }
+        window.location.href = '/checkout';
+    }
+
+    // 4. Search Products
+    function searchProducts() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const grid = document.getElementById('productGrid');
+        const cards = grid.getElementsByClassName('product-card');
+
+        for (let i = 0; i < cards.length; i++) {
+            const name = cards[i].getAttribute('data-name');
+            if (name.indexOf(filter) > -1) {
+                cards[i].style.display = "";
             } else {
-                cart.push({ id, name, price, quantity });
-            }
-
-            localStorage.setItem('simeonCart', JSON.stringify(cart));
-            updateCartCount();
-            
-            const originalText = button.innerText;
-            button.innerText = 'ADDED!';
-            button.style.background = '#27ae60';
-            button.style.color = 'white';
-            
-            setTimeout(() => {
-                button.innerText = originalText;
-                button.style.background = '';
-                button.style.color = '';
-            }, 1500);
-        }
-
-        // 2. Update Cart Count
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
-            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cart-count').innerText = total;
-        }
-
-        // 3. Checkout
-        function checkout() {
-            const cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
-            if (cart.length === 0) {
-                alert('Your cart is currently empty!');
-                return;
-            }
-            window.location.href = '/checkout';
-        }
-
-        // 4. Search Products
-        function searchProducts() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const grid = document.getElementById('productGrid');
-            const cards = grid.getElementsByClassName('product-card');
-
-            for (let i = 0; i < cards.length; i++) {
-                const name = cards[i].getAttribute('data-name');
-                if (name.indexOf(filter) > -1) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
+                cards[i].style.display = "none";
             }
         }
+    }
 
-        // 5. Toggle Orders Dropdown
-        function toggleOrders() {
-            const dropdown = document.getElementById('ordersDropdown');
-            dropdown.classList.toggle('show');
-            renderOrdersList();
-        }
+    // 5. Toggle Orders Dropdown
+    function toggleOrders() {
+        const dropdown = document.getElementById('ordersDropdown');
+        dropdown.classList.toggle('show');
+        renderOrdersList();
+    }
 
-        async function renderOrdersList() {
-    const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
-    const container = document.getElementById('ordersListContainer');
-    const countBadge = document.getElementById('order-count');
-    
-    // Sync each order with database (only unsynced ones)
-    for (let i = 0; i < orders.length; i++) {
-        if (!orders[i].synced) {
+    // 6. Render Orders List with SYNCED status
+    async function renderOrdersList() {
+        const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
+        const container = document.getElementById('ordersListContainer');
+        const countBadge = document.getElementById('order-count');
+        
+        // Sync each order with database
+        for (let i = 0; i < orders.length; i++) {
             try {
-                const response = await fetch('/api/orders/' + orders[i].orderNumber);
+                const response = await fetch('/api/orders/status/' + orders[i].orderNumber);
                 const result = await response.json();
+                
                 if (result.success) {
                     orders[i].status = result.status;
-                    orders[i].synced = true;
                 }
-            } catch (error) {}
-        }
-    }
-    localStorage.setItem('orderHistory', JSON.stringify(orders));
-    
-    const activeOrders = orders.filter(o => o.status !== 'Completed');
-    if (activeOrders.length > 0) {
-        countBadge.style.display = 'inline';
-        countBadge.textContent = activeOrders.length;
-    } else {
-        countBadge.style.display = 'none';
-    }
-    
-    if (orders.length === 0) {
-        container.innerHTML = '<div class="no-orders"><i class="fas fa-receipt" style="font-size:30px;opacity:0.3;"></i><p style="margin-top:10px;">No orders yet</p></div>';
-        return;
-    }
-    
-    container.innerHTML = orders.map((order, index) => `
-        <div class="order-item-mini" onclick="showOrderDetail(${index})">
-            <div>
-                <span class="order-mini-number">#${order.orderNumber}</span>
-                <span class="order-mini-total">₱${order.totalAmount.toFixed(2)}</span>
-            </div>
-            <div class="order-mini-date">${new Date(order.date).toLocaleString()}</div>
-            <span class="order-mini-status status-${(order.status || 'Pending').toLowerCase()}">${order.status || 'Pending'}</span>
-        </div>
-    `).join('');
-}
-
-    async function showOrderDetail(index) {
-    const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
-    const order = orders[index];
-    
-    if (!order) return;
-    
-    // Fetch latest status from database
-    try {
-        const response = await fetch('/api/orders/' + order.orderNumber);
-        const result = await response.json();
-        
-        if (result.success) {
-            order.status = result.status;
-            order.synced = true;
-            // Update localStorage
-            orders[index] = order;
-            localStorage.setItem('orderHistory', JSON.stringify(orders));
-        }
-    } catch (error) {
-        console.log('Could not sync status from server');
-    }
-            
-            document.getElementById('orderNumber').textContent = '#' + order.orderNumber;
-            document.getElementById('receiptCustomer').textContent = order.customerName;
-            document.getElementById('receiptPhone').textContent = order.customerPhone || '-';
-            document.getElementById('receiptTotal').textContent = '₱' + order.totalAmount.toFixed(2);
-            document.getElementById('orderStatus').textContent = order.status || 'Pending';
-            document.getElementById('orderStatus').className = 'status-badge status-' + (order.status || 'Pending').toLowerCase();
-            
-            document.getElementById('receiptItems').innerHTML = order.items.map(item => `
-                <div class="receipt-item">
-                    <span>${item.name} (x${item.quantity})</span>
-                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-            `).join('');
-            
-            document.getElementById('ordersDropdown').classList.remove('show');
-            document.getElementById('receiptModal').style.display = 'flex';
-        }
-
-        function closeReceipt() {
-            document.getElementById('receiptModal').style.display = 'none';
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('ordersDropdown');
-            const trigger = document.querySelector('[onclick="toggleOrders()"]');
-            if (!dropdown.contains(e.target) && (!trigger || !trigger.contains(e.target))) {
-                dropdown.classList.remove('show');
+            } catch (error) {
+                console.log('Sync failed for order:', orders[i].orderNumber);
             }
-        });
+        }
+        localStorage.setItem('orderHistory', JSON.stringify(orders));
+        
+        const activeOrders = orders.filter(o => o.status !== 'Completed');
+        if (activeOrders.length > 0) {
+            countBadge.style.display = 'inline';
+            countBadge.textContent = activeOrders.length;
+        } else {
+            countBadge.style.display = 'none';
+        }
+        
+        if (orders.length === 0) {
+            container.innerHTML = '<div class="no-orders"><i class="fas fa-receipt" style="font-size:30px;opacity:0.3;"></i><p style="margin-top:10px;">No orders yet</p></div>';
+            return;
+        }
+        
+        container.innerHTML = orders.map((order, index) => `
+            <div class="order-item-mini" onclick="showOrderDetail(${index})">
+                <div>
+                    <span class="order-mini-number">#${order.orderNumber}</span>
+                    <span class="order-mini-total">₱${order.totalAmount.toFixed(2)}</span>
+                </div>
+                <div class="order-mini-date">${new Date(order.date).toLocaleString()}</div>
+                <span class="order-mini-status status-${(order.status || 'Pending').toLowerCase()}">${order.status || 'Pending'}</span>
+            </div>
+        `).join('');
+    }
 
-        // Initialize
-        window.onload = function() {
-            updateCartCount();
-            renderOrdersList();
-        };
-    </script>
+    // 7. Show Order Detail with SYNCED status
+    async function showOrderDetail(index) {
+        const orders = JSON.parse(localStorage.getItem('orderHistory')) || [];
+        const order = orders[index];
+        
+        if (!order) return;
+        
+        // Fetch latest status from database
+        try {
+            const response = await fetch('/api/orders/status/' + order.orderNumber);
+            const result = await response.json();
+            
+            if (result.success) {
+                order.status = result.status;
+                orders[index] = order;
+                localStorage.setItem('orderHistory', JSON.stringify(orders));
+            }
+        } catch (error) {
+            console.log('Could not fetch status');
+        }
+        
+        // Display the receipt
+        document.getElementById('orderNumber').textContent = '#' + order.orderNumber;
+        document.getElementById('receiptCustomer').textContent = order.customerName;
+        document.getElementById('receiptPhone').textContent = order.customerPhone || '-';
+        document.getElementById('receiptTotal').textContent = '₱' + order.totalAmount.toFixed(2);
+        document.getElementById('orderStatus').textContent = order.status || 'Pending';
+        document.getElementById('orderStatus').className = 'status-badge status-' + (order.status || 'Pending').toLowerCase();
+        
+        document.getElementById('receiptItems').innerHTML = order.items.map(item => `
+            <div class="receipt-item">
+                <span>${item.name} (x${item.quantity})</span>
+                <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('ordersDropdown').classList.remove('show');
+        document.getElementById('receiptModal').style.display = 'flex';
+    }
+
+    function closeReceipt() {
+        document.getElementById('receiptModal').style.display = 'none';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('ordersDropdown');
+        if (dropdown && !dropdown.contains(e.target) && !e.target.closest('[onclick="toggleOrders()"]')) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // Initialize
+    window.onload = function() {
+        updateCartCount();
+        renderOrdersList();
+    };
+</script>
 
 </body>
 </html>

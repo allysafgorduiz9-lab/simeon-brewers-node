@@ -27,6 +27,57 @@ db.connect((err) => {
     else console.log('DB Connected!');
 });
 
+// ========== API ROUTES ==========
+
+app.get('/api/status', (req, res) => {
+    res.json({ storeOpen: storeOpen });
+});
+
+// Get Order Status
+app.get('/api/orders/status/:orderNumber', (req, res) => {
+    const orderNumber = req.params.orderNumber;
+    
+    db.query('SELECT status FROM active_orders WHERE order_number = ?', [orderNumber], (err, results) => {
+        if (err) {
+            console.error('DB Error:', err);
+            return res.status(500).json({ success: false, message: 'Error' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Not found' });
+        }
+        
+        res.json({ success: true, status: results[0].status });
+    });
+});
+
+// Place Order
+app.post('/api/orders', (req, res) => {
+    const { 
+        orderNumber, customerName, customerPhone, orderType, 
+        items, subtotal, totalAmount, paymentMethod, refNumber, specialInstructions 
+    } = req.body;
+
+    const sql = `
+        INSERT INTO active_orders 
+        (order_number, customer_name, customer_phone, order_type, items, subtotal, total_amount, payment_method, ref_number, special_instructions, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+    `;
+
+    const values = [
+        orderNumber, customerName, customerPhone, orderType,
+        JSON.stringify(items), subtotal, totalAmount, paymentMethod, refNumber, specialInstructions
+    ];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Insert Error:', err);
+            return res.status(500).json({ success: false, message: 'Failed to place order' });
+        }
+        res.json({ success: true, message: 'Order placed', orderId: result.insertId });
+    });
+});
+
 // ========== MIDDLEWARE ==========
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
