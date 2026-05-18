@@ -358,8 +358,7 @@
         </div>
     </div>
 
-        <script>
-        // Load cart from localStorage
+            <script>
         let cart = JSON.parse(localStorage.getItem('simeonCart')) || [];
 
         function calculateTotal() {
@@ -367,7 +366,7 @@
             cart.forEach(item => {
                 subtotal += item.price * item.quantity;
             });
-            return { subtotal, grandTotal: subtotal };
+            return subtotal;
         }
 
         function renderOrder() {
@@ -375,13 +374,7 @@
             const totals = calculateTotal();
 
             if (cart.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px 0;">
-                        <i class="fas fa-shopping-cart empty-cart-icon"></i>
-                        <p style="color: var(--text-dim);">Cart is empty</p>
-                        <a href="/" style="color: var(--accent-gold);">Continue shopping</a>
-                    </div>
-                `;
+                container.innerHTML = '<p style="text-align:center;color:var(--text-dim);">Cart is empty. <a href="/" style="color:var(--accent-gold);">Continue shopping</a></p>';
                 document.getElementById('placeOrderBtn').disabled = true;
                 return;
             }
@@ -389,113 +382,57 @@
             document.getElementById('placeOrderBtn').disabled = false;
 
             container.innerHTML = cart.map((item, index) => `
-                <div class="cart-item" data-index="${index}">
-                    <div class="cart-item-details">
+                <div class="cart-item">
+                    <div>
                         <strong>${item.name}</strong><br>
-                        <span class="cart-item-qty">x${item.quantity}</span>
-                        <small style="color: var(--text-dim);">@ ₱${item.price.toFixed(2)}</small>
+                        <span style="color:var(--accent-gold);font-weight:600;">x${item.quantity}</span>
+                        <small style="color:var(--text-dim);">@ ₱${item.price.toFixed(2)}</small>
                     </div>
-                    <div style="text-align: right;">
+                    <div style="text-align:right;">
                         ₱${(item.price * item.quantity).toFixed(2)}
                     </div>
-                    <button class="remove-btn" onclick="removeFromCart(${index})" title="Remove item">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                    <button onclick="removeItem(${index})" style="background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer;margin-left:10px;">✕</button>
                 </div>
             `).join('');
 
-            document.getElementById('grand-total').textContent = totals.grandTotal.toFixed(2);
-            document.getElementById('btn-total').textContent = totals.grandTotal.toFixed(2);
-            return totals;
+            document.getElementById('grand-total').textContent = totals.toFixed(2);
+            document.getElementById('btn-total').textContent = totals.toFixed(2);
         }
 
-        // Remove item from cart
-        function removeFromCart(index) {
+        function removeItem(index) {
             cart.splice(index, 1);
             localStorage.setItem('simeonCart', JSON.stringify(cart));
             renderOrder();
         }
 
         function togglePayment() {
-            document.getElementById('gcash-details').style.display =
+            document.getElementById('gcash-details').style.display = 
                 document.getElementById('gcash').checked ? 'block' : 'none';
-        }
-
-        // Show/Hide Error with X icon
-        function setError(inputId, show) {
-            const wrapper = inputId.parentElement;
-            if (show) {
-                wrapper.classList.add('has-error');
-                inputId.classList.add('input-error');
-            } else {
-                wrapper.classList.remove('has-error');
-                inputId.classList.remove('input-error');
-            }
-        }
-
-        function validateForm() {
-            let isValid = true;
-
-            const nameInput = document.getElementById('cust-name');
-            const phoneInput = document.getElementById('cust-phone');
-            const refInput = document.getElementById('ref-num');
-            const isGCash = document.getElementById('gcash').checked;
-
-            // Reset errors
-            setError(nameInput, false);
-            setError(phoneInput, false);
-            setError(refInput, false);
-
-            // Validate name (required)
-            if (!nameInput.value.trim()) {
-                setError(nameInput, true);
-                isValid = false;
-            }
-
-            // Validate phone (optional but must be valid if filled)
-            const phone = phoneInput.value.trim();
-            if (phone && !/^09\d{9}$/.test(phone)) {
-                setError(phoneInput, true);
-                isValid = false;
-            }
-
-            // Validate GCash reference (required if GCash)
-            if (isGCash) {
-                const ref = refInput.value.trim();
-                if (!ref || !/^\d{13}$/.test(ref)) {
-                    setError(refInput, true);
-                    isValid = false;
-                }
-            }
-
-            return isValid;
         }
 
         function generateOrderNumber() {
             const now = new Date();
-            return `ORD-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(Math.floor(Math.random()*1000)).padStart(3,'0')}`;
+            return 'ORD-' + now.getFullYear() + 
+                String(now.getMonth()+1).padStart(2,'0') + 
+                String(now.getDate()).padStart(2,'0') + '-' + 
+                String(Math.floor(Math.random()*1000)).padStart(3,'0');
         }
 
-        async function placeOrder() {
-            if (!validateForm()) {
-                // Shake animation on error
-                const layout = document.getElementById('checkoutLayout');
-                layout.style.animation = 'shake 0.5s';
-                setTimeout(() => layout.style.animation = '', 500);
+        function placeOrder() {
+            const name = document.getElementById('cust-name').value.trim();
+            if (!name) {
+                alert('Please enter your name');
                 return;
             }
 
             const btn = document.getElementById('placeOrderBtn');
-            const totals = calculateTotal();
-            
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = 'Processing...';
 
-            const orderNumber = generateOrderNumber();
-
+            const totals = calculateTotal();
             const orderData = {
-                orderNumber: orderNumber,
-                customerName: document.getElementById('cust-name').value.trim(),
+                orderNumber: generateOrderNumber(),
+                customerName: name,
                 customerPhone: document.getElementById('cust-phone').value.trim() || null,
                 orderType: document.getElementById('order-type').value,
                 specialInstructions: document.getElementById('cust-notes').value.trim() || null,
@@ -504,55 +441,36 @@
                     price: item.price,
                     quantity: item.quantity
                 })),
-                subtotal: totals.subtotal,
-                totalAmount: totals.grandTotal,
+                subtotal: totals,
+                totalAmount: totals,
                 paymentMethod: document.querySelector('input[name="payment"]:checked').value,
                 refNumber: document.getElementById('gcash').checked ? document.getElementById('ref-num').value.trim() : null
             };
 
-            try {
-                // Add AbortController for timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-                const response = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.message || 'Order failed');
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showReceipt(orderData);
+                    localStorage.removeItem('simeonCart');
+                    cart = [];
+                } else {
+                    alert('Order failed: ' + result.message);
                 }
-
-                // Show success modal
-                showReceipt(orderData);
-
-                // Clear cart
-                localStorage.removeItem('simeonCart');
-                cart = [];
-
-            } catch (error) {
-                console.error('Order Error:', error);
-                
-                let errorMessage = 'Something went wrong. Please try again.';
-                
-                if (error.name === 'AbortError') {
-                    errorMessage = 'Request timed out. Please check your connection.';
-                } else if (error.message) {
-                    errorMessage = error.message;
+            })
+            .catch(error => {
+                alert('Error placing order. Please try again.');
+            })
+            .finally(() => {
+                if (cart.length > 0) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Place Order (₱' + totals.toFixed(2) + ')';
                 }
-                
-                alert('❌ ' + errorMessage);
-                
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i> Place Order (₱' + totals.grandTotal.toFixed(2) + ')';
-            }
+            });
         }
 
         function showReceipt(order) {
@@ -561,14 +479,13 @@
             document.getElementById('receiptPhone').textContent = order.customerPhone || '-';
             document.getElementById('receiptTotal').textContent = '₱' + order.totalAmount.toFixed(2);
 
-            let itemsHTML = order.items.map(item => `
+            document.getElementById('receiptItems').innerHTML = order.items.map(item => `
                 <div class="receipt-item">
-                    <span>${item.name} <small style="color: var(--text-dim);">(x${item.quantity})</small></span>
+                    <span>${item.name} (x${item.quantity})</span>
                     <span>₱${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
             `).join('');
 
-            document.getElementById('receiptItems').innerHTML = itemsHTML;
             document.getElementById('receiptModal').style.display = 'flex';
         }
 
@@ -576,23 +493,6 @@
             window.location.href = '/';
         }
 
-        // Close modal on backdrop click
-        document.getElementById('receiptModal').onclick = (e) => {
-            if (e.target.id === 'receiptModal') closeReceipt();
-        };
-
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-10px); }
-                75% { transform: translateX(10px); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize
         renderOrder();
         togglePayment();
     </script>

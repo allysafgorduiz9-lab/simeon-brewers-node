@@ -219,11 +219,13 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
 
 // ========== API ROUTES ==========
 
+// ========== API ROUTES ==========
+
 app.get('/api/status', (req, res) => {
     res.json({ storeOpen: storeOpen });
 });
 
-// Place Order (From Checkout Page)
+// Place Order (must be before other routes)
 app.post('/api/orders', (req, res) => {
     const { 
         orderNumber, customerName, customerPhone, orderType, 
