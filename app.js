@@ -82,17 +82,13 @@ app.get('/logout', (req, res) => {
 
 // ADMIN - MENU
 // ADMIN - MENU
+// ADMIN - MENU - Shows ALL products (active + inactive)
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     console.log('>>> Loading /admin/menu');
-    console.log('   DB Connected:', db.connected);
     
-    // SHOW ALL products (including inactive ones) - ordered by ID
+    // REMOVE "WHERE active = 1" - shows ALL products now
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
         console.log('   Products Found:', products ? products.length : 0);
-        
-        if (err) {
-            return res.send('Database Error: ' + err.message);
-        }
         
         res.render('admin/menu', { 
             products: products || [], 
