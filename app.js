@@ -5,6 +5,7 @@ const multer = require('multer');
 const session = require('express-session');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // File upload setup
 const upload = multer({ dest: './public/images/' });
@@ -12,7 +13,6 @@ const upload = multer({ dest: './public/images/' });
 // ========== CONFIGURATION ==========
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'password123';
-const PORT = process.env.PORT || 3000;
 let storeOpen = true;
 let storeStatus = "OPEN";
 
@@ -28,57 +28,6 @@ const db = mysql.createConnection({
 db.connect((err) => {
     if (err) console.log('DB Error:', err.message);
     else console.log('DB Connected!');
-});
-
-// ========== API ROUTES ==========
-
-app.get('/api/status', (req, res) => {
-    res.json({ storeOpen: storeOpen });
-});
-
-// Get Order Status
-app.get('/api/orders/status/:orderNumber', (req, res) => {
-    const orderNumber = req.params.orderNumber;
-    
-    db.query('SELECT status FROM active_orders WHERE order_number = ?', [orderNumber], (err, results) => {
-        if (err) {
-            console.error('DB Error:', err);
-            return res.status(500).json({ success: false, message: 'Error' });
-        }
-        
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Not found' });
-        }
-        
-        res.json({ success: true, status: results[0].status });
-    });
-});
-
-// Place Order
-app.post('/api/orders', (req, res) => {
-    const { 
-        orderNumber, customerName, customerPhone, orderType, 
-        items, subtotal, totalAmount, paymentMethod, refNumber, specialInstructions 
-    } = req.body;
-
-    const sql = `
-        INSERT INTO active_orders 
-        (order_number, customer_name, customer_phone, order_type, items, subtotal, total_amount, payment_method, ref_number, special_instructions, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
-    `;
-
-    const values = [
-        orderNumber, customerName, customerPhone, orderType,
-        JSON.stringify(items), subtotal, totalAmount, paymentMethod, refNumber, specialInstructions
-    ];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Insert Error:', err);
-            return res.status(500).json({ success: false, message: 'Failed to place order' });
-        }
-        res.json({ success: true, message: 'Order placed', orderId: result.insertId });
-    });
 });
 
 // ========== MIDDLEWARE ==========
@@ -97,9 +46,6 @@ const isAuthenticated = (req, res, next) => {
     if (req.session.loggedIn) return next();
     res.redirect('/login');
 };
-
-// File upload
-const upload = multer({ dest: './public/images/' });
 
 // ========== PUBLIC ROUTES ==========
 
@@ -141,8 +87,66 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
+// ========== API ROUTES ==========
+
+app.get('/api/status', (req, res) => {
+    res.json({ storeOpen: storeOpen });
+});
+
+// Get Order Status by Order Number
+app.get('/api/orders/status/:orderNumber', (req, res) => {
+    const orderNumber = req.params.orderNumber;
+    
+    db.query('SELECT status FROM active_orders WHERE order_number = ?', [orderNumber], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Not found' });
+        }
+        
+        res.json({ success: true, status: results[0].status });
+    });
+});
+
+// Place Order
+app.post('/api/orders', (req, res) => {
+    const { 
+        orderNumber, customerName, customerPhone, orderType, 
+        items, subtotal, totalAmount, paymentMethod, refNumber, specialInstructions 
+    } = req.body;
+
+    const sql = `
+        INSERT INTO active_orders 
+        (order_number, customer_name, customer_phone, order_type, items, subtotal, total_amount, payment_method, ref_number, special_instructions, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+    `;
+
+    const values = [
+        orderNumber, customerName, customerPhone, orderType,
+        JSON.stringify(items), subtotal, totalAmount, paymentMethod, refNumber, specialInstructions
+    ];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Database Error:', err);
+            return res.status(500).json({ success: false, message: 'Failed to place order' });
+        }
+        res.json({ success: true, message: 'Order placed successfully', orderId: result.insertId });
+    });
+});
+
 // ========== ADMIN ROUTES (Protected) ==========
 
+// Toggle Store Status
+app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
+    storeOpen = !storeOpen;
+    storeStatus = storeOpen ? "OPEN" : "CLOSED";
+    res.json({ success: true, storeOpen, storeStatus });
+});
+
+// Menu Management
 app.get('/admin/menu', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products ORDER BY id ASC", (err, products) => {
         res.render('admin/menu', { 
@@ -153,6 +157,7 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
     });
 });
 
+// Save New Product
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1 } = req.body;
     if (!name || !price_1) return res.redirect('/admin/menu');
@@ -162,12 +167,14 @@ app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, r
     res.redirect('/admin/menu');
 });
 
+// Toggle Product Availability
 app.post('/admin/toggle-product', isAuthenticated, (req, res) => {
     const { productId, active } = req.body;
     db.query("UPDATE products SET active = ? WHERE id = ?", [active, productId]);
     res.json({ success: true });
 });
 
+// Edit Product Form
 app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM products WHERE id = ?", [req.params.id], (err, products) => {
         if (products && products.length > 0) {
@@ -182,12 +189,10 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
     });
 });
 
-// Update Product with Image Upload
+// Update Product
 app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
     const { name, category, price_1, active } = req.body;
     const activeValue = active === '1' ? 1 : 0;
-    
-    // Get image filename (or keep old one)
     const image = req.file ? req.file.filename : req.body.existing_image;
     
     const sql = `UPDATE products SET name = ?, category = ?, price_1 = ?, active = ?, image = ? WHERE id = ?`;
@@ -195,17 +200,18 @@ app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (
     db.query(sql, [name, category, price_1, activeValue, image, req.params.id], (err) => {
         if (err) {
             console.error('Update Error:', err);
-            return res.redirect('/admin/menu');
         }
         res.redirect('/admin/menu');
     });
 });
 
+// Delete Product
 app.get('/admin/delete-product/:id', isAuthenticated, (req, res) => {
     db.query("DELETE FROM products WHERE id = ?", [req.params.id]);
     res.redirect('/admin/menu');
 });
 
+// Categories
 app.get('/admin/categories', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM categories ORDER BY id ASC", (err, categories) => {
         res.render('admin/categories', { 
@@ -230,15 +236,7 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
     res.redirect('/admin/categories');
 });
 
-app.post('/admin/toggle-status', isAuthenticated, (req, res) => {
-    storeOpen = !storeOpen;
-    storeStatus = storeOpen ? "OPEN" : "CLOSED";
-    res.json({ success: true, storeOpen, storeStatus });
-});
-
-// ========== ORDERS ROUTES ==========
-
-// View Orders (Admin)
+// Orders Management
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, results) => {
         if (err) {
@@ -267,11 +265,10 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
     });
 });
 
-// Update Order Status (Admin Form Submit)
+// Update Order Status
 app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
     const { orderId, status } = req.body;
     
-    // Validate status
     const validStatuses = ['Pending', 'Preparing', 'Completed'];
     if (!validStatuses.includes(status)) {
         return res.redirect('/admin/orders');
@@ -283,58 +280,7 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
     });
 });
 
-// ========== API ROUTES ==========
-
-// ========== API ROUTES ==========
-
-app.get('/api/status', (req, res) => {
-    res.json({ storeOpen: storeOpen });
-});
-
-// Place Order (must be before other routes)
-app.post('/api/orders', (req, res) => {
-    const { 
-        orderNumber, customerName, customerPhone, orderType, 
-        items, subtotal, totalAmount, paymentMethod, refNumber, specialInstructions 
-    } = req.body;
-
-    const sql = `
-        INSERT INTO active_orders 
-        (order_number, customer_name, customer_phone, order_type, items, subtotal, total_amount, payment_method, ref_number, special_instructions, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
-    `;
-
-    const values = [
-        orderNumber, customerName, customerPhone, orderType,
-        JSON.stringify(items), subtotal, totalAmount, paymentMethod, refNumber, specialInstructions
-    ];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Database Error:', err);
-            return res.status(500).json({ success: false, message: 'Failed to place order' });
-        }
-        res.json({ success: true, message: 'Order placed successfully', orderId: result.insertId });
-    });
-});
-
-// Update Order Status (API - For AJAX calls)
-app.post('/api/orders/update-status', (req, res) => {
-    const { orderId, status } = req.body;
-    
-    const validStatuses = ['Pending', 'Preparing', 'Completed'];
-    if (!validStatuses.includes(status)) {
-        return res.json({ success: false, message: 'Invalid status' });
-    }
-    
-    db.query("UPDATE active_orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
-        if (err) return res.json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-// ========== REPORTS ROUTE ==========
-
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, orders) => {
         if (err) {
@@ -348,7 +294,6 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
 
-        // Parse items for each order
         const parsedOrders = orders.map(order => {
             try {
                 order.items = JSON.parse(order.items);
@@ -376,23 +321,6 @@ app.use((req, res) => {
     res.status(404).send('Page Not Found');
 });
 
-
-// Get Order Status by Order Number
-app.get('/api/orders/:orderNumber', (req, res) => {
-    const { orderNumber } = req.params;
-    
-    db.query('SELECT status FROM active_orders WHERE order_number = ?', [orderNumber], (err, results) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Error fetching order' });
-        }
-        
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
-        }
-        
-        res.json({ success: true, status: results[0].status });
-    });
-});
 // ========== SERVER START ==========
 
 app.listen(PORT, () => {
