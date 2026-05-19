@@ -98,7 +98,25 @@
                     <tr>
                         <td>
                             <div style="font-weight:700; color: #2D1B14;">#<%= order.order_number %></div>
-                            <div class="order-meta"><%= new Date(order.created_at).toLocaleString() %></div>
+                            <div class="order-meta">
+    <% 
+    // Convert to local time
+    var orderTime = order.created_at;
+    if (orderTime) {
+        var date = new Date(orderTime);
+        // Add 8 hours for Philippines timezone (UTC+8)
+        date.setHours(date.getHours() + 8);
+        var localTime = date.toLocaleString('en-PH', { 
+            timeZone: 'Asia/Manila',
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    } else {
+        var localTime = '-';
+    }
+    %>
+    <%= localTime %>
+</div>
                         </td>
                         <td>
                             <div style="font-weight:600;"><%= order.customer_name %></div>
