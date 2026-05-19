@@ -281,6 +281,7 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
 });
 
 // Reports
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, orders) => {
         if (err) {
@@ -294,20 +295,31 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
 
-        const parsedOrders = orders.map(order => {
+        // Process orders - parse items and create summary
+        const processedOrders = orders.map(order => {
             try {
+                // Parse items JSON
                 order.items = JSON.parse(order.items);
+                
+                // Create items summary text
+                const itemNames = order.items.map(item => item.name + ' x' + item.quantity);
+                order.items_summary = itemNames.join(', ');
+                
             } catch (e) {
                 order.items = [];
+                order.items_summary = 'No items';
             }
+            
             return order;
         });
 
-        const total = parsedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        // Calculate totals
+        const completedOrders = processedOrders.filter(o => o.status === 'Completed');
+        const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
         
         res.render('admin/reports', { 
-            orders: parsedOrders, 
-            totalOrders: parsedOrders.length, 
+            orders: processedOrders, 
+            totalOrders: completedOrders.length, 
             totalRevenue: total.toFixed(2), 
             storeOpen: storeOpen, 
             storeStatus: storeStatus 
