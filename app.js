@@ -302,13 +302,13 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 });
 
 // Reports
-// Reports with Pagination (10 per page)
+// Reports with Pagination (10 per page) - FIXED
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     const itemsPerPage = 10;
     const currentPage = parseInt(req.query.page) || 1;
     
-    // Get total count
-    db.query("SELECT COUNT(*) as total FROM active_orders", (err, countResult) => {
+    // First get all orders to calculate totals
+    db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, allResults) => {
         if (err) {
             console.error('DB Error:', err);
             return res.render('admin/reports', { 
@@ -322,27 +322,10 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
         
-        const totalOrdersAll = countResult[0].total;
-        const totalPages = Math.ceil(totalOrdersAll / itemsPerPage);
-        const offset = (currentPage - 1) * itemsPerPage;
-        
-        // Get paginated orders
-        db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [itemsPerPage, offset], (err, results) => {
-            if (err) {
-                console.error('DB Error:', err);
-                return res.render('admin/reports', { 
-                    orders: [], 
-                    storeOpen: storeOpen, 
-                    storeStatus: storeStatus,
-                    currentPage: 1,
-                    totalPages: 1,
-                    totalOrders: 0,
-                    totalRevenue: '0.00'
-                });
-            }
-
-            // Parse items JSON
-            const orders = results.map(order => {
+        // Parse items for all orders
+        let allOrders = [];
+        if (allResults) {
+            allOrders = allResults.map(order => {
                 try {
                     if (order.items && typeof order.items === 'string') {
                         order.items = JSON.parse(order.items);
@@ -352,37 +335,26 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
                 }
                 return order;
             });
-            
-            // Calculate totals from ALL orders (not just current page)
-            db.query("SELECT * FROM active_orders", (err, allResults) => {
-                let allOrders = [];
-                if (allResults) {
-                    allOrders = allResults.map(order => {
-                        try {
-                            if (order.items && typeof order.items === 'string') {
-                                order.items = JSON.parse(order.items);
-                            }
-                        } catch (e) {
-                            order.items = [];
-                        }
-                        return order;
-                    });
-                }
-                
-                // Calculate revenue from completed orders only
-                const completedOrders = allOrders.filter(o => o.status === 'Completed');
-                const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
-
-                res.render('admin/reports', { 
-                    orders: orders, 
-                    storeOpen: storeOpen, 
-                    storeStatus: storeStatus,
-                    currentPage: currentPage,
-                    totalPages: totalPages,
-                    totalOrders: completedOrders.length,
-                    totalRevenue: total.toFixed(2)
-                });
-            });
+        }
+        
+        // Calculate totals from completed orders
+        const completedOrders = allOrders.filter(o => o.status === 'Completed');
+        const totalRevenue = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        const totalOrders = completedOrders.length;
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+        const offset = (currentPage - 1) * itemsPerPage;
+        const paginatedOrders = allOrders.slice(offset, offset + itemsPerPage);
+        
+        res.render('admin/reports', { 
+            orders: paginatedOrders, 
+            storeOpen: storeOpen, 
+            storeStatus: storeStatus,
+            currentPage: currentPage,
+            totalPages: totalPages > 0 ? totalPages : 1,
+            totalOrders: totalOrders,
+            totalRevenue: totalRevenue.toFixed(2)
         });
     });
 });
