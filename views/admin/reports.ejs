@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Active Orders - Simeon Admin</title>
+    <title>Daily Reports - Simeon Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -17,7 +17,7 @@
         .btn-closed { background: #e74c3c; }
         
         .nav-section { margin-top: 25px; }
-        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; display: block; margin-bottom: 8px; }
+        .nav-item { color: rgba(255,255,255,0.75); text-decoration: none; padding: 14px 18px; border-radius: 12px; font-size: 15px; display: block; margin-bottom: 8px; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: white; }
         .nav-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.12); margin: 25px 0; }
         .live-site-link { color: #C6A664; border: 2px solid rgba(198,166,100,0.3); background: rgba(198,166,100,0.1); text-align: center; font-weight: 600; margin-top: 10px; }
@@ -26,32 +26,28 @@
         .main-content { margin-left: 280px; padding: 50px; width: calc(100% - 280px); }
         .page-header { color: #2D1B14; font-size: 36px; font-weight: 700; margin-bottom: 40px; }
         
-        .orders-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
-        .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 40px; }
+        .stat-card { background: white; border-radius: 24px; padding: 35px; text-align: center; box-shadow: 0 20px 60px rgba(45,27,20,0.08); border-top: 5px solid #C6A664; }
+        .stat-icon { font-size: 42px; color: #C6A664; margin-bottom: 18px; }
+        .stat-label { color: #8D6E63; text-transform: uppercase; font-size: 12px; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 12px; }
+        .stat-number { font-size: 42px; font-weight: 800; color: #2D1B14; }
+        .revenue-value { color: #C6A664; }
+        
+        .orders-table { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
+        .table-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; display: flex; align-items: center; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 20px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; font-size: 14px; text-transform: uppercase; }
-        td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; vertical-align: top; }
+        th { text-align: left; padding: 20px 25px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700; text-transform: uppercase; font-size: 14px; }
+        td { padding: 18px 25px; border-bottom: 1px solid rgba(232,220,202,0.3); color: #2D1B14; }
         
         .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .badge-completed { background: rgba(39,174,96,0.15); color: #27ae60; }
+        .badge-cancelled { background: rgba(231,76,60,0.15); color: #e74c3c; }
         .badge-pending { background: rgba(241,196,15,0.15); color: #f39c12; }
         .badge-preparing { background: rgba(52,152,219,0.15); color: #3498db; }
-        .badge-completed { background: rgba(39,174,96,0.15); color: #27ae60; }
-        
-        .action-form { display: inline; margin-right: 5px; }
-        .action-btn { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .btn-preparing { background: #3498db; color: white; }
-        .btn-complete { background: #27ae60; color: white; }
-        
-        .order-meta { font-size: 11px; color: #8D6E63; margin-top: 4px; }
-        .item-list { font-size: 13px; line-height: 1.6; }
-        .notes-tag { background: rgba(198,166,100,0.15); color: #C6A664; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 5px; }
         
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         
-        .count-badge { background: #C6A664; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 10px; }
-        
-        /* Pagination Styles */
         .pagination { display: flex; justify-content: center; align-items: center; padding: 30px; gap: 10px; }
         .page-btn { padding: 10px 18px; border: 1px solid #ddd; background: white; color: #2D1B14; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
         .page-btn:hover { background: #C6A664; color: white; border-color: #C6A664; }
@@ -65,14 +61,14 @@
             <img src="/images/Simeon Cafe.jpg" class="logo-img" alt="Logo" onerror="this.style.display='none'">
             <h3 class="logo-title">SIMEON BREWERS</h3>
             <div class="store-status">
-                <button type="button" class="status-btn" id="storeBtn" onclick="toggleStore()"><%= storeStatus %></button>
+                <button type="button" class="status-btn <%= storeStatus === 'OPEN' ? 'btn-open' : 'btn-closed' %>" id="storeBtn" onclick="toggleStore()"><%= storeStatus %></button>
             </div>
         </div>
         <div class="nav-section">
-            <a href="/admin/orders" class="nav-item active"><i class="fas fa-list"></i> Active Orders</a>
+            <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
             <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
             <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
-            <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Reports</a>
+            <a href="/admin/reports" class="nav-item active"><i class="fas fa-chart-bar"></i> Reports</a>
             <hr class="nav-divider">
             <a href="/" target="_blank" class="nav-item live-site-link"><i class="fas fa-external-link-alt"></i> View Live Site</a>
             <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -80,12 +76,26 @@
     </div>
 
     <div class="main-content">
-        <h1 class="page-header"><i class="fas fa-list"></i> Active Orders <span class="count-badge"><%= activeCount %></span></h1>
+        <h1 class="page-header"><i class="fas fa-chart-line"></i> Daily Reports</h1>
         
-        <div class="orders-card">
-            <div class="card-title">
-                <i class="fas fa-clipboard-list"></i> All Orders 
-                <span style="font-size: 14px; font-weight: 400; opacity: 0.8;">(Page <%= currentPage %> of <%= totalPages %>)</span>
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-number revenue-value">₱<%= totalRevenue %></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                <div class="stat-label">Orders Completed</div>
+                <div class="stat-number"><%= totalOrders %></div>
+            </div>
+        </div>
+        
+        <!-- Orders Table -->
+        <div class="orders-table">
+            <div class="table-title">
+                <i class="fas fa-list-alt"></i> All Orders
             </div>
             
             <% if (orders && orders.length > 0) { %>
@@ -93,101 +103,61 @@
                 <thead>
                     <tr>
                         <th>Order #</th>
-                        <th>Customer Details</th>
-                        <th>Order Info</th>
+                        <th>Customer</th>
                         <th>Items</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th>Date & Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% orders.forEach(function(order) { %>
                     <tr>
-                        <td>
-                            <div style="font-weight:700; color: #2D1B14;">#<%= order.order_number %></div>
-                            <% var phTime = new Date(order.created_at); phTime.setHours(phTime.getHours() + 8); %>
-                            <div class="order-meta">
-                                <%= phTime.toLocaleDateString('en-PH', {month:'short', day:'numeric', year:'numeric'}) %>
-                                <%= phTime.toLocaleTimeString('en-PH', {hour:'numeric', minute:'2-digit'}) %>
-                            </div>
-                        </td>
+                        <td style="font-weight:700;">#<%= order.order_number %></td>
                         <td>
                             <div style="font-weight:600;"><%= order.customer_name %></div>
-                            <div class="order-meta"><i class="fas fa-phone"></i> <%= order.customer_phone || 'N/A' %></div>
+                            <div style="font-size:12px;color:#8D6E63;"><%= order.customer_phone || '-' %></div>
                         </td>
                         <td>
-                            <div style="font-size:13px;"><i class="fas fa-shopping-bag"></i> <strong><%= order.order_type %></strong></div>
-                            <div style="font-size:12px; color:#8D6E63;"><i class="fas fa-credit-card"></i> <%= order.payment_method %></div>
-                            <% if (order.special_instructions) { %>
-                            <div class="notes-tag"><i class="fas fa-sticky-note"></i> <%= order.special_instructions %></div>
+                            <% if (order.items && order.items.length > 0) { %>
+                                <% var itemCount = order.items.length; %>
+                                <% if (itemCount <= 2) { %>
+                                    <%= order.items.map(function(i) { return i.name + ' x' + i.quantity; }).join(', ') %>
+                                <% } else { %>
+                                    <%= order.items.slice(0,2).map(function(i) { return i.name + ' x' + i.quantity; }).join(', ') %> +<%= itemCount - 2 %> more
+                                <% } %>
+                            <% } else { %>
+                                -
                             <% } %>
                         </td>
+                        <td style="font-weight:700;">₱<%= parseFloat(order.total_amount || 0).toFixed(2) %></td>
                         <td>
-                            <div class="item-list">
-                                <% if (order.items && order.items.length > 0) { %>
-                                    <% order.items.forEach(function(item) { %>
-                                        <div>
-                                            <%= item.name || 'Unknown' %> 
-                                            x<%= item.quantity || 1 %> 
-                                            — ₱<%= ((item.price || 0) * (item.quantity || 1)).toFixed(2) %>
-                                        </div>
-                                    <% }); %>
+                            <span class="status-badge badge-<%= (order.status || 'pending').toLowerCase() %>">
+                                <%= order.status || 'Pending' %>
+                            </span>
+                        </td>
+                        <td style="color:#8D6E63; font-size:13px;">
+                            <% var orderDate = order.created_at; %>
+                            <% if (orderDate) { %>
+                                <% var dateObj = new Date(orderDate); %>
+                                <% if (!isNaN(dateObj.getTime())) { %>
+                                    <%= (dateObj.getMonth() + 1) + '/' + dateObj.getDate() + '/' + dateObj.getFullYear() + ', ' + (dateObj.getHours() > 12 ? dateObj.getHours() - 12 : dateObj.getHours()) + ':' + (dateObj.getMinutes() < 10 ? '0' + dateObj.getMinutes() : dateObj.getMinutes()) + ' ' + (dateObj.getHours() >= 12 ? 'PM' : 'AM') %>
                                 <% } else { %>
-                                    <span style="color: #999;">No items</span>
+                                    -
                                 <% } %>
-                            </div>
-                        </td>
-                        <td style="font-weight:700; font-size: 16px;">₱<%= parseFloat(order.total_amount).toFixed(2) %></td>
-                        <td>
-                            <span class="status-badge badge-<%= order.status.toLowerCase() %>"><%= order.status %></span>
-                        </td>
-                        <td>
-                            <% if (order.status === 'Pending') { %>
-                            <form action="/admin/orders/update-status" method="POST" class="action-form">
-                                <input type="hidden" name="orderId" value="<%= order.id %>">
-                                <input type="hidden" name="status" value="Preparing">
-                                <button type="submit" class="action-btn btn-preparing"><i class="fas fa-fire"></i> Prepare</button>
-                            </form>
-                            <% } else if (order.status === 'Preparing') { %>
-                            <form action="/admin/orders/update-status" method="POST" class="action-form">
-                                <input type="hidden" name="orderId" value="<%= order.id %>">
-                                <input type="hidden" name="status" value="Completed">
-                                <button type="submit" class="action-btn btn-complete"><i class="fas fa-check"></i> Complete</button>
-                            </form>
                             <% } else { %>
-                            <span style="color:#8D6E63; font-size:12px;"><i class="fas fa-check-double"></i> Done</span>
+                                -
                             <% } %>
                         </td>
                     </tr>
                     <% }); %>
                 </tbody>
             </table>
-            
-            <!-- Pagination -->
-            <% if (totalPages > 1) { %>
-            <div class="pagination">
-                <a href="/admin/orders?page=<%= currentPage - 1 %>" class="page-btn <%= currentPage <= 1 ? 'disabled' : '' %>">
-                    <i class="fas fa-arrow-left"></i> Prev
-                </a>
-                
-                <% for(var i = 1; i <= totalPages; i++) { %>
-                    <% if (i >= currentPage - 2 && i <= currentPage + 2) { %>
-                        <a href="/admin/orders?page=<%= i %>" class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-                    <% } %>
-                <% } %>
-                
-                <a href="/admin/orders?page=<%= currentPage + 1 %>" class="page-btn <%= currentPage >= totalPages ? 'disabled' : '' %>">
-                    Next <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-            <% } %>
-            
             <% } else { %>
             <div class="empty-state">
-                <i class="fas fa-clipboard-list" style="font-size:54px;color:#C6A664;opacity:0.4;"></i>
+                <i class="fas fa-clipboard-list" style="font-size:54px;opacity:0.4;color:#C6A664;"></i>
                 <h3>No Orders Yet</h3>
-                <p>Orders will appear here when customers place them.</p>
+                <p>Orders will appear here once customers place them.</p>
             </div>
             <% } %>
         </div>
