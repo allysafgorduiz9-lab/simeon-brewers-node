@@ -91,7 +91,7 @@
                 <i class="fas fa-list-alt"></i> Today's Orders
             </div>
             
-                        <% if (orders && orders.length > 0) { %>
+            <% if (orders && orders.length > 0) { %>
             <table>
                 <thead>
                     <tr>
@@ -100,11 +100,36 @@
                         <th>Items</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th>Time</th>
+                        <th>Date & Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% orders.forEach(function(order) { %>
+                    <%
+                    // Properly format the date/time
+                    var orderDate = order.created_at;
+                    var displayTime = '-';
+                    if (orderDate) {
+                        var dateObj;
+                        if (typeof orderDate === 'string') {
+                            // Parse MySQL datetime string
+                            var parts = orderDate.split(/[- :]/);
+                            dateObj = new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
+                        } else {
+                            dateObj = new Date(orderDate);
+                        }
+                        if (!isNaN(dateObj.getTime())) {
+                            displayTime = dateObj.toLocaleString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric',
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                            });
+                        }
+                    }
+                    %>
                     <tr>
                         <td style="font-weight:700;"><%= order.order_number %></td>
                         <td>
@@ -112,33 +137,28 @@
                             <div style="font-size:12px;color:#8D6E63;"><%= order.customer_phone || '-' %></div>
                         </td>
                         <td>
-    <% if (order.items && order.items.length > 0) { %>
-        <% 
-        // Show first 2 items, then count remaining
-        var itemCount = order.items.length;
-        var preview = '';
-        if (itemCount <= 2) {
-            preview = order.items.map(function(i) { 
-                return i.name + ' x' + i.quantity; 
-            }).join(', ');
-        } else {
-            preview = order.items.slice(0,2).map(function(i) { 
-                return i.name + ' x' + i.quantity; 
-            }).join(', ') + ' +' + (itemCount - 2) + ' more';
-        }
-        %>
-        <%= preview %>
-    <% } else { %>
-        -
-    <% } %>
-</td>
+                            <% if (order.items && order.items.length > 0) { %>
+                                <% 
+                                var itemCount = order.items.length;
+                                var preview = '';
+                                if (itemCount <= 2) {
+                                    preview = order.items.map(function(i) { return i.name + ' x' + i.quantity; }).join(', ');
+                                } else {
+                                    preview = order.items.slice(0,2).map(function(i) { return i.name + ' x' + i.quantity; }).join(', ') + ' +' + (itemCount - 2) + ' more';
+                                }
+                                %>
+                                <%= preview %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
                         <td style="font-weight:700;">₱<%= parseFloat(order.total_amount).toFixed(2) %></td>
                         <td>
                             <span class="status-badge badge-<%= (order.status || 'pending').toLowerCase() %>">
                                 <%= order.status || 'Pending' %>
                             </span>
                         </td>
-                        <td style="color:#8D6E63;"><%= order.created_at ? order.created_at.toLocaleTimeString() : '-' %></td>
+                        <td style="color:#8D6E63; font-size:13px;"><%= displayTime %></td>
                     </tr>
                     <% }); %>
                 </tbody>
