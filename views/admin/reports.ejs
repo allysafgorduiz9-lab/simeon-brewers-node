@@ -3,7 +3,6 @@
 <head>
     <title>Daily Reports - Simeon Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
@@ -34,11 +33,6 @@
         .stat-label { color: #8D6E63; text-transform: uppercase; font-size: 12px; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 12px; }
         .stat-number { font-size: 42px; font-weight: 800; color: #2D1B14; }
         .revenue-value { color: #C6A664; }
-        
-        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 40px; }
-        .chart-card { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); }
-        .chart-title { color: #2D1B14; font-size: 16px; font-weight: 700; margin-bottom: 15px; text-align: center; }
-        .chart-height { height: 200px; }
         
         .orders-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; }
@@ -99,18 +93,6 @@
                 <div class="stat-icon"><i class="fas fa-receipt"></i></div>
                 <div class="stat-label">Orders Completed</div>
                 <div class="stat-number"><%= totalOrders %></div>
-            </div>
-        </div>
-        
-        <!-- Charts -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-title">Sales by Day</div>
-                <div class="chart-height"><canvas id="salesChart"></canvas></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-title">Top Products</div>
-                <div class="chart-height"><canvas id="productsChart"></canvas></div>
             </div>
         </div>
         
@@ -219,26 +201,6 @@
             btn.className = "status-btn btn-open";
         }
     }
-    
-    // Sales Chart
-    new Chart(document.getElementById('salesChart'), {
-        type: 'line',
-        data: {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            datasets: [{ label: 'Sales', data: [0, 0, 0, 0, 0, 0, 0], borderColor: '#C6A664', tension: 0.4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-    
-    // Products Chart
-    new Chart(document.getElementById('productsChart'), {
-        type: 'bar',
-        data: {
-            labels: ["No Data"],
-            datasets: [{ label: 'Sold', data: [0], backgroundColor: '#C6A664' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
     </script>
 </body>
 </html>
