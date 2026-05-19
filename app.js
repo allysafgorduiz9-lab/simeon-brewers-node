@@ -302,45 +302,90 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 });
 
 // Reports
+// Reports with Pagination (10 per page)
 app.get('/admin/reports', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
+    const itemsPerPage = 10;
+    const currentPage = parseInt(req.query.page) || 1;
+    
+    // Get total count
+    db.query("SELECT COUNT(*) as total FROM active_orders", (err, countResult) => {
         if (err) {
             console.error('DB Error:', err);
             return res.render('admin/reports', { 
                 orders: [], 
-                totalOrders: 0, 
-                totalRevenue: '0.00', 
                 storeOpen: storeOpen, 
-                storeStatus: storeStatus 
+                storeStatus: storeStatus,
+                currentPage: 1,
+                totalPages: 1,
+                totalOrders: 0,
+                totalRevenue: '0.00'
             });
         }
-
-        // Parse items JSON for each order
-        const orders = results.map(order => {
-            try {
-                if (order.items && typeof order.items === 'string') {
-                    order.items = JSON.parse(order.items);
-                }
-            } catch (e) {
-                order.items = [];
+        
+        const totalOrdersAll = countResult[0].total;
+        const totalPages = Math.ceil(totalOrdersAll / itemsPerPage);
+        const offset = (currentPage - 1) * itemsPerPage;
+        
+        // Get paginated orders
+        db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [itemsPerPage, offset], (err, results) => {
+            if (err) {
+                console.error('DB Error:', err);
+                return res.render('admin/reports', { 
+                    orders: [], 
+                    storeOpen: storeOpen, 
+                    storeStatus: storeStatus,
+                    currentPage: 1,
+                    totalPages: 1,
+                    totalOrders: 0,
+                    totalRevenue: '0.00'
+                });
             }
-            return order;
-        });
 
-        // Calculate totals
-        const completedOrders = orders.filter(o => o.status === 'Completed');
-        const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+            // Parse items JSON
+            const orders = results.map(order => {
+                try {
+                    if (order.items && typeof order.items === 'string') {
+                        order.items = JSON.parse(order.items);
+                    }
+                } catch (e) {
+                    order.items = [];
+                }
+                return order;
+            });
+            
+            // Calculate totals from ALL orders (not just current page)
+            db.query("SELECT * FROM active_orders", (err, allResults) => {
+                let allOrders = [];
+                if (allResults) {
+                    allOrders = allResults.map(order => {
+                        try {
+                            if (order.items && typeof order.items === 'string') {
+                                order.items = JSON.parse(order.items);
+                            }
+                        } catch (e) {
+                            order.items = [];
+                        }
+                        return order;
+                    });
+                }
+                
+                // Calculate revenue from completed orders only
+                const completedOrders = allOrders.filter(o => o.status === 'Completed');
+                const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
 
-        res.render('admin/reports', { 
-            orders: orders, 
-            totalOrders: completedOrders.length, 
-            totalRevenue: total.toFixed(2), 
-            storeOpen: storeOpen, 
-            storeStatus: storeStatus 
+                res.render('admin/reports', { 
+                    orders: orders, 
+                    storeOpen: storeOpen, 
+                    storeStatus: storeStatus,
+                    currentPage: currentPage,
+                    totalPages: totalPages,
+                    totalOrders: completedOrders.length,
+                    totalRevenue: total.toFixed(2)
+                });
+            });
         });
     });
 });
-
 // ========== 404 CATCH-ALL ==========
 
 app.use((req, res) => {
