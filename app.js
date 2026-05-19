@@ -237,6 +237,7 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
 });
 
 // Orders Management
+// Orders Management
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, results) => {
         if (err) {
@@ -248,17 +249,20 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
             });
         }
 
+        // Parse items JSON for each order
         const orders = results.map(order => {
             try {
+                // Parse items from JSON string to array
                 order.items = JSON.parse(order.items);
             } catch (e) {
+                // If parsing fails, set empty array
                 order.items = [];
             }
             return order;
         });
 
         res.render('admin/orders', { 
-            orders, 
+            orders: orders || [], 
             storeOpen: storeOpen, 
             storeStatus: storeStatus 
         });
@@ -282,6 +286,7 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
 
 // Reports
 // Reports
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, orders) => {
         if (err) {
@@ -295,10 +300,10 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
 
-        // Process orders - parse items and create summary
+        // Parse items JSON for each order
         const processedOrders = orders.map(order => {
             try {
-                // Parse items JSON
+                // Parse items from JSON string to array
                 order.items = JSON.parse(order.items);
                 
                 // Create items summary text
@@ -313,7 +318,7 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             return order;
         });
 
-        // Calculate totals
+        // Calculate totals (only completed orders)
         const completedOrders = processedOrders.filter(o => o.status === 'Completed');
         const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
         
