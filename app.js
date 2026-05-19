@@ -238,10 +238,11 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
 
 // Orders Management
 // Orders Management
+// Orders Management
 app.get('/admin/orders', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, results) => {
+    db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
         if (err) {
-            console.error(err);
+            console.error('Orders Error:', err);
             return res.render('admin/orders', { 
                 orders: [], 
                 storeOpen: storeOpen, 
@@ -249,20 +250,24 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
             });
         }
 
-        // Parse items JSON for each order
+        // Process each order - parse the items JSON
         const orders = results.map(order => {
             try {
-                // Parse items from JSON string to array
-                order.items = JSON.parse(order.items);
+                // Parse the items column from JSON string to array
+                let parsedItems = [];
+                if (order.items) {
+                    parsedItems = JSON.parse(order.items);
+                }
+                order.items = parsedItems;
             } catch (e) {
-                // If parsing fails, set empty array
+                console.log('Parse error for order:', order.order_number, e.message);
                 order.items = [];
             }
             return order;
         });
 
         res.render('admin/orders', { 
-            orders: orders || [], 
+            orders: orders, 
             storeOpen: storeOpen, 
             storeStatus: storeStatus 
         });
