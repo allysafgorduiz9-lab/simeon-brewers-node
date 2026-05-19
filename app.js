@@ -302,9 +302,6 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 });
 
 // Reports
-// Reports
-// Reports
-// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
         if (err) {
