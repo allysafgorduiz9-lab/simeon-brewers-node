@@ -100,13 +100,13 @@
                         <th>Items</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th>Date & Time</th>
+                        <th>Date & Time (PHT)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% orders.forEach(function(order) { %>
                     <%
-                    // Properly format the date/time
+                    // Convert to Philippine Time (PHT - UTC+8)
                     var orderDate = order.created_at;
                     var displayTime = '-';
                     if (orderDate) {
@@ -119,13 +119,16 @@
                             dateObj = new Date(orderDate);
                         }
                         if (!isNaN(dateObj.getTime())) {
-                            displayTime = dateObj.toLocaleString('en-US', { 
+                            // Convert to Philippine Time (UTC+8)
+                            var phtDate = new Date(dateObj.getTime() + (8 * 60 * 60 * 1000));
+                            displayTime = phtDate.toLocaleString('en-PH', { 
                                 month: 'short', 
                                 day: 'numeric', 
                                 year: 'numeric',
                                 hour: 'numeric', 
                                 minute: '2-digit',
-                                hour12: true 
+                                hour12: true,
+                                timeZone: 'Asia/Manila'
                             });
                         }
                     }
