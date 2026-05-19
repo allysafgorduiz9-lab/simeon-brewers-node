@@ -239,10 +239,11 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
 // Orders Management
 // Orders Management
 // Orders Management
+// Orders Management
 app.get('/admin/orders', isAuthenticated, (req, res) => {
     db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
         if (err) {
-            console.error('Orders Error:', err);
+            console.error('DB Error:', err);
             return res.render('admin/orders', { 
                 orders: [], 
                 storeOpen: storeOpen, 
@@ -250,17 +251,14 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
             });
         }
 
-        // Process each order - parse the items JSON
+        // IMPORTANT: Parse items JSON for each order
         const orders = results.map(order => {
             try {
                 // Parse the items column from JSON string to array
-                let parsedItems = [];
-                if (order.items) {
-                    parsedItems = JSON.parse(order.items);
+                if (order.items && typeof order.items === 'string') {
+                    order.items = JSON.parse(order.items);
                 }
-                order.items = parsedItems;
             } catch (e) {
-                console.log('Parse error for order:', order.order_number, e.message);
                 order.items = [];
             }
             return order;
@@ -292,10 +290,11 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
 // Reports
 // Reports
 // Reports
+// Reports
 app.get('/admin/reports', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM active_orders ORDER BY created_at DESC", (err, orders) => {
+    db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
         if (err) {
-            console.error(err);
+            console.error('DB Error:', err);
             return res.render('admin/reports', { 
                 orders: [], 
                 totalOrders: 0, 
@@ -306,29 +305,23 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
         }
 
         // Parse items JSON for each order
-        const processedOrders = orders.map(order => {
+        const orders = results.map(order => {
             try {
-                // Parse items from JSON string to array
-                order.items = JSON.parse(order.items);
-                
-                // Create items summary text
-                const itemNames = order.items.map(item => item.name + ' x' + item.quantity);
-                order.items_summary = itemNames.join(', ');
-                
+                if (order.items && typeof order.items === 'string') {
+                    order.items = JSON.parse(order.items);
+                }
             } catch (e) {
                 order.items = [];
-                order.items_summary = 'No items';
             }
-            
             return order;
         });
 
-        // Calculate totals (only completed orders)
-        const completedOrders = processedOrders.filter(o => o.status === 'Completed');
+        // Calculate totals
+        const completedOrders = orders.filter(o => o.status === 'Completed');
         const total = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
-        
+
         res.render('admin/reports', { 
-            orders: processedOrders, 
+            orders: orders, 
             totalOrders: completedOrders.length, 
             totalRevenue: total.toFixed(2), 
             storeOpen: storeOpen, 
