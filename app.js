@@ -302,8 +302,11 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 });
 
 // Reports
-// Reports Route - FIXED
+// Reports Route - Simple Working Version
 app.get('/admin/reports', isAuthenticated, (req, res) => {
+    const currentPage = parseInt(req.query.page) || 1;
+    const itemsPerPage = 10;
+    
     db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
         if (err) {
             console.error('DB Error:', err);
@@ -317,38 +320,38 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
 
-        // Handle null/undefined results
-        let orders = [];
-        if (results && results.length > 0) {
-            orders = results.map(order => {
-                try {
-                    if (order.items && typeof order.items === 'string') {
-                        order.items = JSON.parse(order.items);
-                    } else {
-                        order.items = order.items || [];
-                    }
-                } catch (e) {
+        const orders = results.map(order => {
+            try {
+                if (order.items && typeof order.items === 'string') {
+                    order.items = JSON.parse(order.items);
+                } else {
                     order.items = [];
                 }
-                return order;
-            });
-        }
+            } catch (e) {
+                order.items = [];
+            }
+            return order;
+        });
 
-        // Calculate totals (completed orders only)
         const completedOrders = orders.filter(o => o.status === 'Completed');
         const totalOrders = completedOrders.length;
         const totalRevenue = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        
+        const totalPages = Math.ceil(orders.length / itemsPerPage);
+        const offset = (currentPage - 1) * itemsPerPage;
+        const paginatedOrders = orders.slice(offset, offset + itemsPerPage);
 
         res.render('admin/reports', { 
-            orders: orders,
+            orders: paginatedOrders,
             totalOrders: totalOrders,
             totalRevenue: totalRevenue.toFixed(2),
             storeStatus: storeStatus,
-            currentPage: 1,
-            totalPages: 1
+            currentPage: currentPage,
+            totalPages: totalPages
         });
     });
 });
+
 // ========== 404 CATCH-ALL ==========
 
 app.use((req, res) => {
