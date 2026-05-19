@@ -303,6 +303,7 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
 
 // Reports
 // Reports Route - Simple Working Version
+// Reports Route - FIXED Items Parsing
 app.get('/admin/reports', isAuthenticated, (req, res) => {
     const currentPage = parseInt(req.query.page) || 1;
     const itemsPerPage = 10;
@@ -320,22 +321,31 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
             });
         }
 
+        // Parse items for each order
         const orders = results.map(order => {
             try {
+                // Check if items is a string (JSON) and parse it
                 if (order.items && typeof order.items === 'string') {
                     order.items = JSON.parse(order.items);
-                } else {
+                }
+                // Ensure items is an array
+                if (!Array.isArray(order.items)) {
                     order.items = [];
                 }
             } catch (e) {
+                console.error('Parse Error:', e);
                 order.items = [];
             }
             return order;
         });
 
+        // Calculate totals from completed orders
         const completedOrders = orders.filter(o => o.status === 'Completed');
         const totalOrders = completedOrders.length;
-        const totalRevenue = completedOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        const totalRevenue = completedOrders.reduce((sum, o) => {
+            const amount = parseFloat(o.total_amount);
+            return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
         
         const totalPages = Math.ceil(orders.length / itemsPerPage);
         const offset = (currentPage - 1) * itemsPerPage;
@@ -351,7 +361,6 @@ app.get('/admin/reports', isAuthenticated, (req, res) => {
         });
     });
 });
-
 // ========== 404 CATCH-ALL ==========
 
 app.use((req, res) => {
