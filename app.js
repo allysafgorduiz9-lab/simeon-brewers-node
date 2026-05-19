@@ -308,42 +308,42 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
     var offset = (page - 1) * limit;
     
     db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [limit, offset], function(err, orders) {
-        if (err) return res.render('admin/reports', {
-            orders: [], totalOrders: 0, totalRevenue: '0.00',
-            storeStatus: storeStatus, currentPage: 1, totalPages: 1,
-            salesByDay: [], topProducts: []
-        });
+        if (err) {
+            console.log('Error:', err);
+            return res.render('admin/reports', {
+                orders: [], totalOrders: 0, totalRevenue: '0.00',
+                storeStatus: storeStatus, currentPage: 1, totalPages: 1
+            });
+        }
 
+        // Parse items for each order
         var parsed = orders.map(function(o) {
-            try { o.items = JSON.parse(o.items || '[]'); } catch(e) { o.items = []; }
+            try {
+                // Parse the items JSON string to array
+                if (o.items) {
+                    o.items = JSON.parse(o.items);
+                }
+                // Ensure items is an array
+                if (!Array.isArray(o.items)) {
+                    o.items = [];
+                }
+            } catch(e) {
+                o.items = [];
+                console.log('Parse error:', e);
+            }
             return o;
         });
 
+        // Get all orders for stats
         db.query("SELECT * FROM active_orders WHERE status='Completed'", function(err2, all) {
             var completed = all || [];
-            var totalRev = completed.reduce(function(s, o) { return s + (parseFloat(o.total_amount)||0); }, 0);
+            var totalRev = 0;
             
-            // Sales by day
-            var salesMap = {};
             completed.forEach(function(o) {
-                var d = new Date(o.created_at);
-                d.setHours(d.getHours() + 8);
-                var k = (d.getMonth()+1) + '/' + d.getDate();
-                salesMap[k] = (salesMap[k] || 0) + (parseFloat(o.total_amount)||0);
+                totalRev += parseFloat(o.total_amount) || 0;
             });
-            var salesByDay = Object.keys(salesMap).map(function(k) { return {date:k, total:salesMap[k]}; });
-            
-            // Top products
-            var pMap = {};
-            completed.forEach(function(o) {
-                (o.items || []).forEach(function(i) {
-                    pMap[i.name] = (pMap[i.name] || 0) + (i.quantity||1);
-                });
-            });
-            var topProducts = Object.keys(pMap).sort(function(a,b) { return pMap[b] - pMap[a]; })
-                .slice(0,5).map(function(n) { return {name:n, quantity:pMap[n]}; });
 
-            var totalPages = Math.ceil((all||[]).length / limit);
+            var totalPages = Math.ceil((all || []).length / limit);
             
             res.render('admin/reports', {
                 orders: parsed,
@@ -351,9 +351,7 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
                 totalRevenue: totalRev.toFixed(2),
                 storeStatus: storeStatus,
                 currentPage: page,
-                totalPages: totalPages,
-                salesByDay: salesByDay,
-                topProducts: topProducts
+                totalPages: totalPages
             });
         });
     });
