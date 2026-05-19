@@ -51,6 +51,14 @@
         .empty-state { text-align: center; padding: 60px; color: #8D6E63; }
         
         .count-badge { background: #C6A664; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 10px; }
+        
+        /* Pagination Styles */
+        .pagination { display: flex; justify-content: center; align-items: center; padding: 30px; gap: 10px; }
+        .page-btn { padding: 10px 18px; border: 1px solid #ddd; background: white; color: #2D1B14; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .page-btn:hover { background: #C6A664; color: white; border-color: #C6A664; }
+        .page-btn.disabled { opacity: 0.4; pointer-events: none; }
+        .page-btn.active { background: #2D1B14; color: white; border-color: #2D1B14; }
+        .page-info { color: #8D6E63; font-size: 14px; margin: 0 15px; }
     </style>
 </head>
 <body>
@@ -64,7 +72,7 @@
             </div>
         </div>
         <div class="nav-section">
-            <a href="/admin/orders" class="nav-item active"><i class="fas fa-list"></i> Active Orders <span class="count-badge"><%= orders.filter(o => o.status !== 'Completed').length %></span></a>
+            <a href="/admin/orders" class="nav-item active"><i class="fas fa-list"></i> Active Orders <span class="count-badge"><%= activeCount %></span></a>
             <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
             <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
             <a href="/admin/reports" class="nav-item"><i class="fas fa-chart-bar"></i> Reports</a>
@@ -75,10 +83,13 @@
     </div>
 
     <div class="main-content">
-        <h1 class="page-header"><i class="fas fa-list"></i> Active Orders <span class="count-badge"><%= orders.filter(o => o.status !== 'Completed').length %></span></h1>
+        <h1 class="page-header"><i class="fas fa-list"></i> Active Orders <span class="count-badge"><%= activeCount %></span></h1>
         
         <div class="orders-card">
-            <div class="card-title"><i class="fas fa-clipboard-list"></i> All Orders</div>
+            <div class="card-title">
+                <i class="fas fa-clipboard-list"></i> All Orders 
+                <span style="font-size: 14px; font-weight: 400; opacity: 0.8;">(Page <%= currentPage %> of <%= totalPages %>)</span>
+            </div>
             
             <% if (orders && orders.length > 0) { %>
             <table>
@@ -99,10 +110,10 @@
                         <td>
                             <div style="font-weight:700; color: #2D1B14;">#<%= order.order_number %></div>
                             <% var phTime = new Date(order.created_at); phTime.setHours(phTime.getHours() + 8); %>
-<div class="order-meta">
-    <%= phTime.toLocaleDateString('en-PH', {month:'short', day:'numeric', year:'numeric'}) %>
-    <%= phTime.toLocaleTimeString('en-PH', {hour:'numeric', minute:'2-digit'}) %>
-</div>
+                            <div class="order-meta">
+                                <%= phTime.toLocaleDateString('en-PH', {month:'short', day:'numeric', year:'numeric'}) %>
+                                <%= phTime.toLocaleTimeString('en-PH', {hour:'numeric', minute:'2-digit'}) %>
+                            </div>
                         </td>
                         <td>
                             <div style="font-weight:600;"><%= order.customer_name %></div>
@@ -115,28 +126,21 @@
                             <div class="notes-tag"><i class="fas fa-sticky-note"></i> <%= order.special_instructions %></div>
                             <% } %>
                         </td>
-                       <td>
-    <div class="item-list">
-        <% 
-        // Debug - show raw items
-        var itemsData = '';
-        try { itemsData = JSON.stringify(order.items); } catch(e) { itemsData = 'error'; }
-        %>
-        <!-- <%= itemsData %> -->
-        
-        <% if (order.items && order.items.length > 0) { %>
-            <% order.items.forEach(function(item) { %>
-                <div>
-                    <%= item.name || 'Unknown' %> 
-                    x<%= item.quantity || 1 %> 
-                    — ₱<%= ((item.price || 0) * (item.quantity || 1)).toFixed(2) %>
-                </div>
-            <% }); %>
-        <% } else { %>
-            <span style="color: #999;">No items</span>
-        <% } %>
-    </div>
-</td>
+                        <td>
+                            <div class="item-list">
+                                <% if (order.items && order.items.length > 0) { %>
+                                    <% order.items.forEach(function(item) { %>
+                                        <div>
+                                            <%= item.name || 'Unknown' %> 
+                                            x<%= item.quantity || 1 %> 
+                                            — ₱<%= ((item.price || 0) * (item.quantity || 1)).toFixed(2) %>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <span style="color: #999;">No items</span>
+                                <% } %>
+                            </div>
+                        </td>
                         <td style="font-weight:700; font-size: 16px;">₱<%= parseFloat(order.total_amount).toFixed(2) %></td>
                         <td>
                             <span class="status-badge badge-<%= order.status.toLowerCase() %>"><%= order.status %></span>
@@ -162,6 +166,26 @@
                     <% }); %>
                 </tbody>
             </table>
+            
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+            <div class="pagination">
+                <a href="/admin/orders?page=<%= currentPage - 1 %>" class="page-btn <%= currentPage <= 1 ? 'disabled' : '' %>">
+                    <i class="fas fa-arrow-left"></i> Prev
+                </a>
+                
+                <% for(var i = 1; i <= totalPages; i++) { %>
+                    <% if (i >= currentPage - 2 && i <= currentPage + 2) { %>
+                        <a href="/admin/orders?page=<%= i %>" class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+                    <% } %>
+                <% } %>
+                
+                <a href="/admin/orders?page=<%= currentPage + 1 %>" class="page-btn <%= currentPage >= totalPages ? 'disabled' : '' %>">
+                    Next <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <% } %>
+            
             <% } else { %>
             <div class="empty-state">
                 <i class="fas fa-clipboard-list" style="font-size:54px;color:#C6A664;opacity:0.4;"></i>

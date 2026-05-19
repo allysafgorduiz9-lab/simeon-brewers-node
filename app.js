@@ -237,53 +237,67 @@ app.post('/admin/delete-category', isAuthenticated, (req, res) => {
 });
 
 // Orders Management
-// Orders Management
-// Orders Management
-// Orders Management
+// Orders Management with Pagination (10 per page)
 app.get('/admin/orders', isAuthenticated, (req, res) => {
-    db.query("SELECT * FROM active_orders ORDER BY id DESC", (err, results) => {
+    const itemsPerPage = 10;
+    const currentPage = parseInt(req.query.page) || 1;
+    
+    // Get total count
+    db.query("SELECT COUNT(*) as total FROM active_orders", (err, countResult) => {
         if (err) {
             console.error('DB Error:', err);
             return res.render('admin/orders', { 
                 orders: [], 
                 storeOpen: storeOpen, 
-                storeStatus: storeStatus 
+                storeStatus: storeStatus,
+                currentPage: 1,
+                totalPages: 1,
+                activeCount: 0
             });
         }
-
-        // IMPORTANT: Parse items JSON for each order
-        const orders = results.map(order => {
-            try {
-                // Parse the items column from JSON string to array
-                if (order.items && typeof order.items === 'string') {
-                    order.items = JSON.parse(order.items);
-                }
-            } catch (e) {
-                order.items = [];
+        
+        const totalOrders = countResult[0].total;
+        const totalPages = Math.ceil(totalOrders / itemsPerPage);
+        const offset = (currentPage - 1) * itemsPerPage;
+        
+        // Get paginated orders
+        db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [itemsPerPage, offset], (err, results) => {
+            if (err) {
+                console.error('DB Error:', err);
+                return res.render('admin/orders', { 
+                    orders: [], 
+                    storeOpen: storeOpen, 
+                    storeStatus: storeStatus,
+                    currentPage: 1,
+                    totalPages: 1,
+                    activeCount: 0
+                });
             }
-            return order;
-        });
 
-        res.render('admin/orders', { 
-            orders: orders, 
-            storeOpen: storeOpen, 
-            storeStatus: storeStatus 
-        });
-    });
-});
+            // Parse items JSON
+            const orders = results.map(order => {
+                try {
+                    if (order.items && typeof order.items === 'string') {
+                        order.items = JSON.parse(order.items);
+                    }
+                } catch (e) {
+                    order.items = [];
+                }
+                return order;
+            });
+            
+            // Get active orders count (not completed)
+            const activeCount = orders.filter(o => o.status !== 'Completed').length;
 
-// Update Order Status
-app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
-    const { orderId, status } = req.body;
-    
-    const validStatuses = ['Pending', 'Preparing', 'Completed'];
-    if (!validStatuses.includes(status)) {
-        return res.redirect('/admin/orders');
-    }
-    
-    db.query("UPDATE active_orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
-        if (err) console.error(err);
-        res.redirect('/admin/orders');
+            res.render('admin/orders', { 
+                orders: orders, 
+                storeOpen: storeOpen, 
+                storeStatus: storeStatus,
+                currentPage: currentPage,
+                totalPages: totalPages,
+                activeCount: activeCount
+            });
+        });
     });
 });
 
