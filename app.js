@@ -308,33 +308,37 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
     var offset = (page - 1) * limit;
     
     db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [limit, offset], function(err, orders) {
-        if (err) {
-            console.log('Error:', err);
-            return res.render('admin/reports', {
-                orders: [], totalOrders: 0, totalRevenue: '0.00',
-                storeStatus: storeStatus, currentPage: 1, totalPages: 1
-            });
-        }
+        if (err) return res.render('admin/reports', {
+            orders: [], totalOrders: 0, totalRevenue: '0.00',
+            storeStatus: storeStatus, currentPage: 1, totalPages: 1
+        });
 
-        // Parse items for each order
+        // Process each order
         var parsed = orders.map(function(o) {
-            try {
-                // Parse the items JSON string to array
-                if (o.items) {
-                    o.items = JSON.parse(o.items);
+            // Handle items field
+            var itemsStr = o.items;
+            var itemsArr = [];
+            
+            if (itemsStr) {
+                // If it's a string, parse it
+                if (typeof itemsStr === 'string') {
+                    try {
+                        itemsArr = JSON.parse(itemsStr);
+                    } catch(e) {
+                        // If parsing fails, try to fix common issues
+                        itemsArr = [];
+                    }
+                } 
+                // If it's already an array, use it
+                else if (Array.isArray(itemsStr)) {
+                    itemsArr = itemsStr;
                 }
-                // Ensure items is an array
-                if (!Array.isArray(o.items)) {
-                    o.items = [];
-                }
-            } catch(e) {
-                o.items = [];
-                console.log('Parse error:', e);
             }
+            
+            o.items = itemsArr;
             return o;
         });
 
-        // Get all orders for stats
         db.query("SELECT * FROM active_orders WHERE status='Completed'", function(err2, all) {
             var completed = all || [];
             var totalRev = 0;
@@ -343,15 +347,13 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
                 totalRev += parseFloat(o.total_amount) || 0;
             });
 
-            var totalPages = Math.ceil((all || []).length / limit);
-            
             res.render('admin/reports', {
                 orders: parsed,
                 totalOrders: completed.length,
                 totalRevenue: totalRev.toFixed(2),
                 storeStatus: storeStatus,
                 currentPage: page,
-                totalPages: totalPages
+                totalPages: Math.ceil((all || []).length / limit)
             });
         });
     });
