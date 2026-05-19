@@ -61,7 +61,7 @@
             <a href="/admin/orders" class="nav-item"><i class="fas fa-list"></i> Active Orders</a>
             <a href="/admin/menu" class="nav-item"><i class="fas fa-utensils"></i> Manage Menu</a>
             <a href="/admin/categories" class="nav-item"><i class="fas fa-tags"></i> Manage Categories</a>
-            <a href="/admin/reports" class="nav-item active"><i class="fas fa-chart-bar"></i> Daily Reports</a>
+            <a href="/admin/reports" class="nav-item active"><i class="fas fa-chart-bar"></i> Reports</a>
             <hr class="nav-divider">
             <a href="/" target="_blank" class="nav-item live-site-link"><i class="fas fa-external-link-alt"></i> View Live Site</a>
             <a href="/logout" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -100,36 +100,29 @@
                         <th>Items</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th>Date & Time (PHT)</th>
+                        <th>Date & Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% orders.forEach(function(order) { %>
                     <%
-                    // Convert to Philippine Time (PHT - UTC+8)
+                    // Match the exact same format as orders page
                     var orderDate = order.created_at;
                     var displayTime = '-';
                     if (orderDate) {
                         var dateObj;
                         if (typeof orderDate === 'string') {
-                            // Parse MySQL datetime string
-                            var parts = orderDate.split(/[- :]/);
-                            dateObj = new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
+                            dateObj = new Date(orderDate);
                         } else {
                             dateObj = new Date(orderDate);
                         }
                         if (!isNaN(dateObj.getTime())) {
-                            // Convert to Philippine Time (UTC+8)
-                            var phtDate = new Date(dateObj.getTime() + (8 * 60 * 60 * 1000));
-                            displayTime = phtDate.toLocaleString('en-PH', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric',
-                                hour: 'numeric', 
-                                minute: '2-digit',
-                                hour12: true,
-                                timeZone: 'Asia/Manila'
-                            });
+                            // Format: same as orders page - M/D/YYYY, h:mm a
+                            var month = dateObj.toLocaleString('en-US', { month: 'short', timeZone: 'Asia/Manila' });
+                            var day = dateObj.toLocaleString('en-US', { day: 'numeric', timeZone: 'Asia/Manila' });
+                            var year = dateObj.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Manila' });
+                            var time = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Manila' });
+                            displayTime = month + '/' + day + '/' + year + ', ' + time;
                         }
                     }
                     %>
