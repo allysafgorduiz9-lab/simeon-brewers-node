@@ -34,6 +34,8 @@
         .stat-label { color: #8D6E63; text-transform: uppercase; font-size: 12px; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 12px; }
         .stat-number { font-size: 42px; font-weight: 800; color: #2D1B14; }
         .revenue-value { color: #C6A664; }
+        .chart-card { background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); }
+        .chart-title { font-size: 20px; font-weight: 700; color: #2D1B14; margin-bottom: 20px; }
         
         .orders-card { background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(45,27,20,0.08); overflow: hidden; }
         .card-title { background: linear-gradient(135deg, #2D1B14, #3A271C); color: white; padding: 25px 30px; font-size: 20px; font-weight: 700; }
@@ -89,12 +91,6 @@
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-label">Total Revenue</div>
                 <div class="stat-number revenue-value">₱<%= totalRevenue %></div>
-                <div style="background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(45,27,20,0.08);">
-    <div style="font-size: 20px; font-weight: 700; color: #2D1B14; margin-bottom: 20px;">
-        <i class="fas fa-chart-bar"></i> Sales by Date
-    </div>
-    <canvas id="salesChart" style="max-height: 280px;"></canvas>
-</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-receipt"></i></div>
@@ -102,6 +98,14 @@
                 <div class="stat-number"><%= totalOrders %></div>
             </div>
         </div>
+        
+        <!-- Chart -->
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Sales by Date</div>
+            <canvas id="salesChart" style="max-height: 280px;"></canvas>
+        </div>
+        
+        <div id="ordersData" style="display:none;"><%= JSON.stringify(orders || []) %></div>
         
         <!-- Orders Table -->
         <div class="orders-card">
@@ -194,8 +198,24 @@
         </div>
     </div>
 
-   // Sales by Date Chart
-if (typeof orders !== 'undefined' && orders.length > 0) {
+    <script>
+var storeStatus = "<%= storeStatus %>";
+var orders = JSON.parse(document.getElementById('ordersData').textContent);
+
+async function toggleStore() {
+    await fetch('/admin/toggle-status', { method: 'POST' });
+    var btn = document.getElementById('storeBtn');
+    if (storeStatus == "OPEN") {
+        storeStatus = "CLOSED";
+        btn.className = "status-btn btn-closed";
+    } else {
+        storeStatus = "OPEN";
+        btn.className = "status-btn btn-open";
+    }
+}
+
+// Sales by Date Chart
+if (orders && orders.length > 0) {
     var salesByDate = {};
     orders.forEach(function(order) {
         var date = new Date(order.created_at);
@@ -224,9 +244,7 @@ if (typeof orders !== 'undefined' && orders.length > 0) {
             }
         }
     });
-} else {
-    document.getElementById('salesChart').style.display = 'none';
 }
-    </script>
+</script>
 </body>
 </html>
