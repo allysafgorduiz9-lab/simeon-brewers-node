@@ -225,9 +225,9 @@ app.get('/admin/categories', isAuthenticated, (req, res) => {
 });
 
 app.post('/admin/add-category', isAuthenticated, (req, res) => {
-    const { name, description } = req.body;
+    const { name } = req.body;
     if (name) {
-        db.query("INSERT INTO categories (name, description) VALUES (?, ?)", [name, description || '']);
+        db.query("INSERT INTO categories (name) VALUES (?)", [name]);
     }
     res.redirect('/admin/categories');
 });
