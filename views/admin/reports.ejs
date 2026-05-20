@@ -194,49 +194,39 @@
         </div>
     </div>
 
-    <script>
-    var storeStatus = "<%= storeStatus %>";
+   // Sales by Date Chart
+if (typeof orders !== 'undefined' && orders.length > 0) {
+    var salesByDate = {};
+    orders.forEach(function(order) {
+        var date = new Date(order.created_at);
+        date.setHours(date.getHours() + 8);
+        var dateStr = date.toLocaleDateString('en-PH', {month:'short', day:'numeric'});
+        if (!salesByDate[dateStr]) salesByDate[dateStr] = 0;
+        salesByDate[dateStr] += parseFloat(order.total_amount);
+    });
 
-    async function toggleStore() {
-        await fetch('/admin/toggle-status', { method: 'POST' });
-        var btn = document.getElementById('storeBtn');
-        if (storeStatus == "OPEN") {
-            storeStatus = "CLOSED";
-            btn.className = "status-btn btn-closed";
-        } else {
-            storeStatus = "OPEN";
-            btn.className = "status-btn btn-open";
+    new Chart(document.getElementById('salesChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(salesByDate),
+            datasets: [{
+                label: 'Sales (₱)',
+                data: Object.values(salesByDate),
+                backgroundColor: '#C6A664',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { callback: function(v) { return '₱' + v; } } }
+            }
         }
-    }
-    // Aggregate sales by date
-var salesByDate = {};
-orders.forEach(function(order) {
-    var date = new Date(order.created_at);
-    date.setHours(date.getHours() + 8);
-    var dateStr = date.toLocaleDateString('en-PH', {month:'short', day:'numeric'});
-    if (!salesByDate[dateStr]) salesByDate[dateStr] = 0;
-    salesByDate[dateStr] += parseFloat(order.total_amount);
-});
-
-new Chart(document.getElementById('salesChart'), {
-    type: 'bar',
-    data: {
-        labels: Object.keys(salesByDate),
-        datasets: [{
-            label: 'Sales (₱)',
-            data: Object.values(salesByDate),
-            backgroundColor: '#C6A664',
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, ticks: { callback: function(v) { return '₱' + v; } } }
-        }
-    }
-});
+    });
+} else {
+    document.getElementById('salesChart').style.display = 'none';
+}
     </script>
 </body>
 </html>
