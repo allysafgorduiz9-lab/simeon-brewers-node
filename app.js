@@ -314,6 +314,7 @@ app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
 });
 
 // Reports
+// Reports
 app.get('/admin/reports', isAuthenticated, function(req, res) {
     var page = parseInt(req.query.page) || 1;
     var limit = 10;
@@ -322,27 +323,23 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
     db.query("SELECT * FROM active_orders ORDER BY id DESC LIMIT ? OFFSET ?", [limit, offset], function(err, orders) {
         if (err) return res.render('admin/reports', {
             orders: [], totalOrders: 0, totalRevenue: '0.00',
-            storeStatus: storeStatus, currentPage: 1, totalPages: 1
+            storeStatus: storeStatus, currentPage: 1, totalPages: 1,
+            bestSellers: []
         });
 
         // Process each order
         var parsed = orders.map(function(o) {
-            // Handle items field
             var itemsStr = o.items;
             var itemsArr = [];
             
             if (itemsStr) {
-                // If it's a string, parse it
                 if (typeof itemsStr === 'string') {
                     try {
                         itemsArr = JSON.parse(itemsStr);
                     } catch(e) {
-                        // If parsing fails, try to fix common issues
                         itemsArr = [];
                     }
-                } 
-                // If it's already an array, use it
-                else if (Array.isArray(itemsStr)) {
+                } else if (Array.isArray(itemsStr)) {
                     itemsArr = itemsStr;
                 }
             }
@@ -359,13 +356,35 @@ app.get('/admin/reports', isAuthenticated, function(req, res) {
                 totalRev += parseFloat(o.total_amount) || 0;
             });
 
+            // Calculate best sellers
+            var productCounts = {};
+            completed.forEach(function(o) {
+                var items = [];
+                try {
+                    items = JSON.parse(o.items);
+                } catch(e) {
+                    items = o.items || [];
+                }
+                items.forEach(function(item) {
+                    var name = item.name || 'Unknown';
+                    if (!productCounts[name]) productCounts[name] = 0;
+                    productCounts[name] += parseInt(item.quantity) || 1;
+                });
+            });
+
+            var bestSellers = Object.keys(productCounts)
+                .map(function(name) { return { name: name, count: productCounts[name] }; })
+                .sort(function(a, b) { return b.count - a.count; })
+                .slice(0, 5);
+
             res.render('admin/reports', {
                 orders: parsed,
                 totalOrders: completed.length,
                 totalRevenue: totalRev.toFixed(2),
                 storeStatus: storeStatus,
                 currentPage: page,
-                totalPages: Math.ceil((all || []).length / limit)
+                totalPages: Math.ceil((all || []).length / limit),
+                bestSellers: bestSellers
             });
         });
     });

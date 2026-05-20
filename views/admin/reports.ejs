@@ -104,9 +104,39 @@
             <div class="chart-title"><i class="fas fa-chart-bar"></i> Sales by Date</div>
             <canvas id="salesChart" style="max-height: 280px;"></canvas>
         </div>
+    
         
         <div id="ordersData" style="display:none;"><%= JSON.stringify(orders || []) %></div>
-        
+
+        <!-- Best Selling Products -->
+<div style="background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(45,27,20,0.08);">
+    <div style="font-size: 20px; font-weight: 700; color: #2D1B14; margin-bottom: 20px;">
+        <i class="fas fa-star"></i> Best Selling Products
+    </div>
+    <% if (bestSellers && bestSellers.length > 0) { %>
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left; padding: 12px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700;">#</th>
+                <th style="text-align: left; padding: 12px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700;">Product</th>
+                <th style="text-align: left; padding: 12px; background: rgba(45,27,20,0.05); color: #2D1B14; font-weight: 700;">Orders</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% bestSellers.forEach(function(product, index) { %>
+            <tr>
+                <td style="padding: 12px; font-weight: 700; color: #C6A664;"><%= index + 1 %></td>
+                <td style="padding: 12px;"><%= product.name %></td>
+                <td style="padding: 12px; font-weight: 700;"><%= product.count %></td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+    <% } else { %>
+    <p style="color: #8D6E63;">No orders yet</p>
+    <% } %>
+</div>
+
         <!-- Orders Table -->
         <div class="orders-card">
             <div class="card-title">
