@@ -191,9 +191,11 @@ app.get('/admin/edit-product/:id', isAuthenticated, (req, res) => {
 
 // Update Product
 app.post('/admin/update-product/:id', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1, active } = req.body;
+    const { name, category, price_1, active, imageUrl, existing_image } = req.body;
     const activeValue = active === '1' ? 1 : 0;
-    const image = req.file ? req.file.filename : req.body.existing_image;
+    
+    // Use URL if provided, otherwise use uploaded file, otherwise keep existing
+    const image = imageUrl || (req.file ? req.file.filename : existing_image);
     
     const sql = `UPDATE products SET name = ?, category = ?, price_1 = ?, active = ?, image = ? WHERE id = ?`;
     
