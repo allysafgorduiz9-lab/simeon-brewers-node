@@ -301,6 +301,18 @@ app.get('/admin/orders', isAuthenticated, (req, res) => {
     });
 });
 
+// Update Order Status
+app.post('/admin/orders/update-status', isAuthenticated, (req, res) => {
+    const { orderId, status } = req.body;
+    
+    db.query("UPDATE active_orders SET status = ? WHERE id = ?", [status, orderId], (err) => {
+        if (err) {
+            console.error('Update Error:', err);
+        }
+        res.redirect('/admin/orders');
+    });
+});
+
 // Reports
 app.get('/admin/reports', isAuthenticated, function(req, res) {
     var page = parseInt(req.query.page) || 1;
