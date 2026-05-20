@@ -159,9 +159,9 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
 
 // Save New Product
 app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
-    const { name, category, price_1 } = req.body;
+    const { name, category, price_1, imageUrl } = req.body;
     if (!name || !price_1) return res.redirect('/admin/menu');
-    const image = req.file ? req.file.filename : 'default.jpg';
+    const image = imageUrl || (req.file ? req.file.filename : 'default.jpg');
     db.query("INSERT INTO products (name, category, price_1, image, active) VALUES (?, ?, ?, ?, 1)",
         [name, category || 'General', price_1, image]);
     res.redirect('/admin/menu');
