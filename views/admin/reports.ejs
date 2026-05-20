@@ -3,6 +3,7 @@
 <head>
     <title>Daily Reports - Simeon Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F8F4F1, #F5EDE3); min-height: 100vh; display: flex; }
@@ -88,6 +89,12 @@
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-label">Total Revenue</div>
                 <div class="stat-number revenue-value">₱<%= totalRevenue %></div>
+                <div style="background: white; border-radius: 24px; padding: 30px; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(45,27,20,0.08);">
+    <div style="font-size: 20px; font-weight: 700; color: #2D1B14; margin-bottom: 20px;">
+        <i class="fas fa-chart-bar"></i> Sales by Date
+    </div>
+    <canvas id="salesChart" style="max-height: 280px;"></canvas>
+</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-receipt"></i></div>
@@ -201,6 +208,35 @@
             btn.className = "status-btn btn-open";
         }
     }
+    // Aggregate sales by date
+var salesByDate = {};
+orders.forEach(function(order) {
+    var date = new Date(order.created_at);
+    date.setHours(date.getHours() + 8);
+    var dateStr = date.toLocaleDateString('en-PH', {month:'short', day:'numeric'});
+    if (!salesByDate[dateStr]) salesByDate[dateStr] = 0;
+    salesByDate[dateStr] += parseFloat(order.total_amount);
+});
+
+new Chart(document.getElementById('salesChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(salesByDate),
+        datasets: [{
+            label: 'Sales (₱)',
+            data: Object.values(salesByDate),
+            backgroundColor: '#C6A664',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { callback: function(v) { return '₱' + v; } } }
+        }
+    }
+});
     </script>
 </body>
 </html>
