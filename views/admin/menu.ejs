@@ -122,7 +122,7 @@
                         <!-- ADD THIS - Image Column Cell -->
                         <td>
                             <% if (product.image && product.image !== '') { %>
-                            <img src="/images/<%= product.image %>" class="product-thumb" alt="<%= product.name %>" onerror="this.style.display='none'">
+                            <img src="<%= product.image %>" class="product-thumb" alt="<%= product.name %>" onerror="this.style.display='none'">
                             <% } %>
                         </td>
                         <td><%= product.id %></td>
