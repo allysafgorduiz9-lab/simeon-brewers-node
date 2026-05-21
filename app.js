@@ -158,13 +158,38 @@ app.get('/admin/menu', isAuthenticated, (req, res) => {
 });
 
 // Save New Product
-app.post('/admin/save-product', isAuthenticated, upload.single('image'), (req, res) => {
+app.post('/admin/save-product', isAuthenticated, (req, res) => {
     const { name, category, price_1, imageUrl } = req.body;
-    if (!name || !price_1) return res.redirect('/admin/menu');
-    const image = imageUrl || (req.file ? req.file.filename : 'default.jpg');
-    db.query("INSERT INTO products (name, category, price_1, image, active) VALUES (?, ?, ?, ?, 1)",
-        [name, category || 'General', price_1, image]);
-    res.redirect('/admin/menu');
+
+    // Check required fields
+    if (!name || !price_1) {
+        return res.redirect('/admin/menu');
+    }
+
+    // Use image URL or default image
+    const image = imageUrl && imageUrl.trim() !== ''
+        ? imageUrl
+        : 'https://via.placeholder.com/150';
+
+    // Insert into database
+    const sql = `
+        INSERT INTO products 
+        (name, category, price_1, image, active) 
+        VALUES (?, ?, ?, ?, 1)
+    `;
+
+    db.query(
+        sql,
+        [name, category || 'General', price_1, image],
+        (err) => {
+            if (err) {
+                console.log('Database Error:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+
+            res.redirect('/admin/menu');
+        }
+    );
 });
 
 // Toggle Product Availability
