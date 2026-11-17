@@ -1,0 +1,41 @@
+STEP 1 -- Python version on this computer: 3.15.2
+
+STEP 4 -- every function on every combination
+ my_not(True ) = False
+ my_not(False) = True
+ my_and(True , True ) = True
+ my_and(True , False) = False
+ my_and(False, True ) = False
+ my_and(False, False) = False
+ my_or(True , True ) = True
+ my_or(True , False) = True
+ my_or(False, True ) = True
+ my_or(False, False) = False
+ my_implies(True , True ) = True
+ my_implies(True , False) = False
+ my_implies(False, True ) = True
+ my_implies(False, False) = True
+
+STEP 6 -- evaluate on six expressions
+ evaluate(('and', True, ('not', False))) = True (by hand: True) OK
+ evaluate(('or', False, False)) = False (by hand: False) OK
+ evaluate(('implies', True, False)) = False (by hand: False) OK
+ evaluate(('implies', False, False)) = True (by hand: True) OK
+ evaluate(('not', ('and', True, ('or', False, True)))) = False (by hand: False) OK
+ evaluate(('and', ('implies', ('not', False), ('and', False, True)), ('or', ('not', False), ('not', True)))) = False (by hand: False) OK
+ EXPR written out: ((not False implies (False and True)) and (not False or not True))
+
+STEP 7 -- ("or", True, ("and", 1/0, False))
+ The error exactly as Python reports it:
+ Traceback (most recent call last):
+   File "C:\Users\user\OneDrive\Desktop\Logic Programming L\Gorduiz_Activity_Files\Activity 1\2310005-2\logic_ops.py", line 96, in <module>
+     expr = ('or', True, ('and', 1 / 0, False))
+                                 ~~^~~
+ ZeroDivisionError: division by zero
+
+
+
+Note (step 7): the error happened while Python was building the tuple, before evaluate() was called, because it
+computes 1/0 to put the value in the tuple. Python’s own “True or (...)” would not fail: or stops as soon as the left
+side is True. A function always receives its arguments already evaluated, so my evaluator cannot short-circuit.
+Stamp: 9D39E979A3 (the last line your own file prints; it goes in stamp.txt)

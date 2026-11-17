@@ -1,0 +1,13 @@
+FACTS:
+ parent(carl, jom).
+ parent(carl, luis).
+ parent(carl, kira).
+ parent(carl, ivy).
+ parent(carl, ben).
+ parent(ben, dina).
+ parent(dina, uma).
+ parent(dina, nico).
+RULES:
+ grandparent(X, Z) :- parent(X, Y), parent(Y, Z).
+ ancestor(X, Z) :- parent(X, Z).
+ ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).

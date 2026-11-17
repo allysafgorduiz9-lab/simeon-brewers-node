@@ -1,0 +1,19 @@
+STEP 6 -- grandparents (3):
+ grandparent(ben, nico)
+ grandparent(ben, uma)
+ grandparent(carl, dina)
+ 
+STEP 7 -- ancestors (13):
+ ancestor(ben, dina)
+ ancestor(ben, nico)
+ ancestor(ben, uma)
+ ancestor(carl, ben)
+ ancestor(carl, dina)
+ ancestor(carl, ivy)
+ ancestor(carl, jom)
+ ancestor(carl, kira)
+ ancestor(carl, luis)
+ ancestor(carl, nico)
+ ancestor(carl, uma)
+ ancestor(dina, nico)
+ ancestor(dina, uma)
