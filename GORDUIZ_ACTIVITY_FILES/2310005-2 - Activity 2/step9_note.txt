@@ -1,2 +1,0 @@
-The list [p, q] never gives r a value, so fill() raises KeyError: that answer cannot be trusted. The fix takes the
-variables from BOTH expressions; then the comparison runs over all of them.

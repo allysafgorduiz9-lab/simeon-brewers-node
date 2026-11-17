@@ -1,3 +1,0 @@
-Why: parent(ben, ben) lets proving an ancestor of ben ask the very same goal again with nothing smaller, so the
-search never ends: a depth bound stops it with RuntimeError, without one Python raises RecursionError. One way
-to survive it: remember the goals being proved and never start the same goal again.
